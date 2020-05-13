@@ -1,0 +1,58 @@
+// Copyright 2020, Verizon Media
+// Licensed under the terms of GPLv3. See LICENSE file in project root for terms.
+
+#ifndef EVIDENCEFILTER_H
+#define EVIDENCEFILTER_H
+
+#include <QDate>
+#include <QString>
+#include <utility>
+#include <vector>
+
+enum Tri { Any, Yes, No };
+
+// These represent the standard key for a filter
+const QString FILTER_KEY_ERROR = "err";
+const QString FILTER_KEY_SUBMITTED = "submitted";
+const QString FILTER_KEY_TO = "to";
+const QString FILTER_KEY_FROM = "from";
+const QString FILTER_KEY_ON = "on";
+const QString FILTER_KEY_OPERATION = "op";
+const QString FILTER_KEY_CONTENT_TYPE = "type";
+
+// These represent aliases for standard key for a filter
+const QStringList FILTER_KEYS_ERROR = {FILTER_KEY_ERROR, "error", "failed", "fail"};
+const QStringList FILTER_KEYS_SUBMITTED = {FILTER_KEY_SUBMITTED};
+const QStringList FILTER_KEYS_TO = {FILTER_KEY_TO, "before", "til", "until"};
+const QStringList FILTER_KEYS_FROM = {FILTER_KEY_FROM, "after"};
+const QStringList FILTER_KEYS_ON = {FILTER_KEY_ON};
+const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, "operation"};
+const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, "contentType"};
+
+class EvidenceFilters {
+ public:
+  EvidenceFilters();
+
+  static QString standardizeFilterKey(QString key);
+  QString toString() const;
+  static EvidenceFilters parseFilter(const QString &text);
+
+ public:
+  QString operationSlug = "";
+  QString contentType = "";
+  Tri hasError = Any;
+  Tri submitted = Any;
+  QDate startDate = QDate();
+  QDate endDate = QDate();
+
+ public:
+  static Tri parseTri(const QString &text);
+  static QString triToString(const Tri &tri);
+
+ private:
+  static std::vector<std::pair<QString, QString>> tokenizeFilterText(const QString &text);
+  static QDate parseDateString(QString text);
+  static Tri parseTriFilterValue(const QString &text, bool strict = false);
+};
+
+#endif  // EVIDENCEFILTER_H

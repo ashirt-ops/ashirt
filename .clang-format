@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+ColumnLimit: 100
+# Not sure how to get BreakBeforeBraces: BS_Stroustrup to work -- this should hopefully be roughly equivalent
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeCatch: true
+  BeforeElse: true

@@ -1,0 +1,3 @@
+[submodule "tools/UGlobalHotkey"]
+	path = tools/UGlobalHotkey
+	url = git@github.com:JoelAtDeluxe/UGlobalHotkey.git
