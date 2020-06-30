@@ -38,6 +38,7 @@ Settings::~Settings() {
   delete _captureAreaShortcutLabel;
   delete _captureWindowCmdLabel;
   delete _captureWindowShortcutLabel;
+  delete _recordCodeblockShortcutLabel;
   delete connStatusLabel;
 
   delete eviRepoTextBox;
@@ -48,6 +49,7 @@ Settings::~Settings() {
   delete captureAreaShortcutTextBox;
   delete captureWindowCmdTextBox;
   delete captureWindowShortcutTextBox;
+  delete recordCodeblockShortcutTextBox;
   delete testConnectionButton;
   delete eviRepoBrowseButton;
   delete buttonBox;
@@ -69,6 +71,7 @@ void Settings::buildUi() {
   _captureAreaShortcutLabel = new QLabel("Shortcut", this);
   _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
   _captureWindowShortcutLabel = new QLabel("Shortcut", this);
+  _recordCodeblockShortcutLabel = new QLabel("Record Codeblock Shortcut", this);
   connStatusLabel = new QLabel("", this);
 
   eviRepoTextBox = new QLineEdit(this);
@@ -79,6 +82,7 @@ void Settings::buildUi() {
   captureAreaShortcutTextBox = new QLineEdit(this);
   captureWindowCmdTextBox = new QLineEdit(this);
   captureWindowShortcutTextBox = new QLineEdit(this);
+  recordCodeblockShortcutTextBox = new QLineEdit(this);
   eviRepoBrowseButton = new QPushButton("Browse", this);
   testConnectionButton = new LoadingButton("Test Connection", this);
   buttonBox = new QDialogButtonBox(this);
@@ -143,6 +147,8 @@ void Settings::buildUi() {
   gridLayout->addWidget(captureWindowShortcutTextBox, 5, 3, 1, 2);
 
   // row 6 (reserved for codeblocks)
+  gridLayout->addWidget(_recordCodeblockShortcutLabel, 6, 0);
+  gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
 
   // row 7
   gridLayout->addWidget(testConnectionButton, 7, 0);
@@ -188,6 +194,7 @@ void Settings::showEvent(QShowEvent *evt) {
   captureAreaShortcutTextBox->setText(inst.screenshotShortcutCombo);
   captureWindowCmdTextBox->setText(inst.captureWindowExec);
   captureWindowShortcutTextBox->setText(inst.captureWindowShortcut);
+  recordCodeblockShortcutTextBox->setText(inst.captureCodeblockShortcut);
 
   // re-enable form
   connStatusLabel->setText("");
@@ -218,6 +225,7 @@ void Settings::onSaveClicked() {
   inst.screenshotShortcutCombo = captureAreaShortcutTextBox->text();
   inst.captureWindowExec = captureWindowCmdTextBox->text();
   inst.captureWindowShortcut = captureWindowShortcutTextBox->text();
+  inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->text();
 
   try {
     inst.writeConfig();

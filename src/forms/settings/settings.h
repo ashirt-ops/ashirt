@@ -75,6 +75,7 @@ class Settings : public QDialog {
   QLabel* _captureAreaShortcutLabel = nullptr;
   QLabel* _captureWindowCmdLabel = nullptr;
   QLabel* _captureWindowShortcutLabel = nullptr;
+  QLabel* _recordCodeblockShortcutLabel = nullptr;
   QLabel* connStatusLabel = nullptr;
 
   QLineEdit* eviRepoTextBox = nullptr;
@@ -85,6 +86,7 @@ class Settings : public QDialog {
   QLineEdit* captureAreaShortcutTextBox = nullptr;
   QLineEdit* captureWindowCmdTextBox = nullptr;
   QLineEdit* captureWindowShortcutTextBox = nullptr;
+  QLineEdit* recordCodeblockShortcutTextBox = nullptr;
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
