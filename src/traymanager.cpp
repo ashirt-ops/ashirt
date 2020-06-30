@@ -59,7 +59,7 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   creditsWindow = new Credits(this);
 
   // delayed so that windows can listen for get all ops signal
-  NetMan::getInstance().refreshOperationsList();  
+  NetMan::getInstance().refreshOperationsList();
 
   wireUi();
 
@@ -115,6 +115,8 @@ void TrayManager::cleanChooseOpSubmenu() {
 void TrayManager::wireUi() {
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
+  connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
+          &TrayManager::onCodeblockCapture);
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
@@ -159,17 +161,7 @@ void TrayManager::createActions() {
   connect(showCreditsAction, &QAction::triggered, creditsWindow, &QWidget::show);
 
   addCodeblockAction = new QAction(tr("Add Codeblock from Clipboard"), this);
-  connect(addCodeblockAction, &QAction::triggered, [this]() {
-    QString clipboardContent = ClipboardHelper::readPlaintext();
-    if (clipboardContent != "") {
-      Codeblock evidence(clipboardContent);
-      Codeblock::saveCodeblock(evidence);
-      auto evidenceID = db->createEvidence(evidence.filePath(),
-                                           AppSettings::getInstance().operationSlug(), "codeblock");
-      auto getInfoWindow = new GetInfo(db, evidenceID, this);
-      getInfoWindow->show();
-    }
-  });
+  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::onCodeblockCapture);
 
   chooseOpSubmenu = new QMenu(tr("Select Operation"));
   chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
@@ -194,6 +186,18 @@ void TrayManager::createActions() {
   chooseOpSubmenu->addSeparator();
 }
 
+void TrayManager::onCodeblockCapture() {
+  QString clipboardContent = ClipboardHelper::readPlaintext();
+  if (clipboardContent != "") {
+    Codeblock evidence(clipboardContent);
+    Codeblock::saveCodeblock(evidence);
+    auto evidenceID = db->createEvidence(evidence.filePath(),
+                                         AppSettings::getInstance().operationSlug(), "codeblock");
+    auto getInfoWindow = new GetInfo(db, evidenceID, this);
+    getInfoWindow->show();
+  }
+}
+
 void TrayManager::createTrayMenu() {
   trayIconMenu = new QMenu(this);
 
@@ -216,8 +220,7 @@ void TrayManager::createTrayMenu() {
 void TrayManager::onScreenshotCaptured(const QString& path) {
   std::cout << "Captured screenshot to file: " << path.toStdString() << std::endl;
   try {
-    auto evidenceID =
-        db->createEvidence(path, AppSettings::getInstance().operationSlug(), "image");
+    auto evidenceID = db->createEvidence(path, AppSettings::getInstance().operationSlug(), "image");
     auto getInfoWindow = new GetInfo(db, evidenceID, this);
     getInfoWindow->show();
   }

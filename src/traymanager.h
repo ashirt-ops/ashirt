@@ -45,6 +45,7 @@ class TrayManager : public QDialog {
  public slots:
   void onScreenshotCaptured(const QString &filepath);
   void setActiveOperationLabel();
+  void onCodeblockCapture();
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
