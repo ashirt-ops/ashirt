@@ -35,6 +35,7 @@ class AppConfig {
   QString screenshotShortcutCombo = "";
   QString captureWindowExec = "";
   QString captureWindowShortcut = "";
+  QString captureCodeblockShortcut = "";
 
   QString errorText = "";
 
@@ -88,6 +89,7 @@ class AppConfig {
     this->screenshotShortcutCombo = doc["screenshotShortcut"].toString();
     this->captureWindowExec = doc["captureWindowExec"].toString();
     this->captureWindowShortcut = doc["captureWindowShortcut"].toString();
+    this->captureCodeblockShortcut = doc["captureCodeblockShortcut"].toString();
   }
 
   void writeDefaultConfig() {
@@ -117,6 +119,7 @@ class AppConfig {
     root["screenshotShortcut"] = screenshotShortcutCombo;
     root["captureWindowExec"] = captureWindowExec;
     root["captureWindowShortcut"] = captureWindowShortcut;
+    root["captureCodeblockShortcut"] = captureCodeblockShortcut;
 
     auto saveRoot = saveLocation.left(saveLocation.lastIndexOf("/"));
     QDir().mkpath(saveRoot);
