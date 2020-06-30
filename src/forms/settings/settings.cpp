@@ -15,40 +15,164 @@
 #include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
-#include "ui_settings.h"
 
-using namespace std;
-
-Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
-    : ButtonBoxForm(parent), ui(new Ui::Settings) {
-  ui->setupUi(this);
+Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
+  buildUi();
   this->hotkeyManager = hotkeyManager;
-
-  couldNotSaveSettingsMsg = new QErrorMessage(this);
-  setButtonBox(ui->buttonBox);
-
-  testConnectionButton = new LoadingButton(ui->testHostButton->text(), this, ui->testHostButton);
-  UiHelpers::replacePlaceholder(ui->testHostButton, testConnectionButton, ui->gridLayout);
-
-  wireUi();
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
+
+  wireUi();
 }
 
 Settings::~Settings() {
-  delete ui;
+  delete _eviRepoLabel;
+  delete _accessKeyLabel;
+  delete _secretKeyLabel;
+  delete _hostPathLabel;
+  delete _captureAreaCmdLabel;
+  delete _captureAreaShortcutLabel;
+  delete _captureWindowCmdLabel;
+  delete _captureWindowShortcutLabel;
+  delete connStatusLabel;
+
+  delete eviRepoTextBox;
+  delete accessKeyTextBox;
+  delete secretKeyTextBox;
+  delete hostPathTextBox;
+  delete captureAreaCmdTextBox;
+  delete captureAreaShortcutTextBox;
+  delete captureWindowCmdTextBox;
+  delete captureWindowShortcutTextBox;
+  delete testConnectionButton;
+  delete eviRepoBrowseButton;
+  delete buttonBox;
+  delete spacer;
+
+  delete gridLayout;
+
   delete couldNotSaveSettingsMsg;
   stopReply(&currentTestReply);
-  delete testConnectionButton;
+}
+
+void Settings::buildUi() {
+  gridLayout = new QGridLayout(this);
+  _eviRepoLabel = new QLabel("Evidence Repository", this);
+  _accessKeyLabel = new QLabel("Access Key", this);
+  _secretKeyLabel = new QLabel("Secret Key", this);
+  _hostPathLabel = new QLabel("Host Path", this);
+  _captureAreaCmdLabel = new QLabel("Capture Area Command", this);
+  _captureAreaShortcutLabel = new QLabel("Shortcut", this);
+  _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
+  _captureWindowShortcutLabel = new QLabel("Shortcut", this);
+  connStatusLabel = new QLabel("", this);
+
+  eviRepoTextBox = new QLineEdit(this);
+  accessKeyTextBox = new QLineEdit(this);
+  secretKeyTextBox = new QLineEdit(this);
+  hostPathTextBox = new QLineEdit(this);
+  captureAreaCmdTextBox = new QLineEdit(this);
+  captureAreaShortcutTextBox = new QLineEdit(this);
+  captureWindowCmdTextBox = new QLineEdit(this);
+  captureWindowShortcutTextBox = new QLineEdit(this);
+  eviRepoBrowseButton = new QPushButton("Browse", this);
+  testConnectionButton = new LoadingButton("Test Connection", this);
+  buttonBox = new QDialogButtonBox(this);
+  buttonBox->addButton(QDialogButtonBox::Save);
+  buttonBox->addButton(QDialogButtonBox::Cancel);
+
+  spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding);
+  couldNotSaveSettingsMsg = new QErrorMessage(this);
+
+  // Layout
+  /*        0                 1           2             3
+       +---------------+-------------+------------+-------------+
+    0  | Evi Repo Lbl  |    [Evi Repo TB]         | browseBtn   |
+       +---------------+-------------+------------+-------------+
+    1  | A. Key Label  |  [A. Key TB]                           |
+       +---------------+-------------+------------+-------------+
+    2  | S. Key Label  |  [S. Key TB]                           |
+       +---------------+-------------+------------+-------------+
+    3  | Host Label    |  [Host TB]                             |
+       +---------------+-------------+------------+-------------+
+    4  | Cap A Cmd Lbl | [CapACmdTB] | CapASh lbl | [CapASh TB] |
+       +---------------+-------------+------------+-------------+
+    5  | Cap W Cmd Lbl | [CapWCmdTB] | CapWSh lbl | [CapWSh TB] |
+       +---------------+-------------+------------+-------------+
+    6  | CodeblkSh Lbl | [CodeblkSh TB] |                       |
+       +---------------+-------------+------------+-------------+
+    7  | Test Conn Btn |  StatusLabel                           |
+       +---------------+-------------+------------+-------------+
+    8  | Vertical spacer                                        |
+       +---------------+-------------+------------+-------------+
+    9  | Dialog button Box{save, cancel}                        |
+       +---------------+-------------+------------+-------------+
+  */
+
+  // row 0
+  gridLayout->addWidget(_eviRepoLabel, 0, 0);
+  gridLayout->addWidget(eviRepoTextBox, 0, 1, 1, 3);
+  gridLayout->addWidget(eviRepoBrowseButton, 0, 4);
+
+  // row 1
+  gridLayout->addWidget(_accessKeyLabel, 1, 0);
+  gridLayout->addWidget(accessKeyTextBox, 1, 1, 1, 4);
+
+  // row 2
+  gridLayout->addWidget(_secretKeyLabel, 2, 0);
+  gridLayout->addWidget(secretKeyTextBox, 2, 1, 1, 4);
+
+  // row 3
+  gridLayout->addWidget(_hostPathLabel, 3, 0);
+  gridLayout->addWidget(hostPathTextBox, 3, 1, 1, 4);
+
+  // row 4
+  gridLayout->addWidget(_captureAreaCmdLabel, 4, 0);
+  gridLayout->addWidget(captureAreaCmdTextBox, 4, 1);
+  gridLayout->addWidget(_captureAreaShortcutLabel, 4, 2);
+  gridLayout->addWidget(captureAreaShortcutTextBox, 4, 3, 1, 2);
+
+  // row 5
+  gridLayout->addWidget(_captureWindowCmdLabel, 5, 0);
+  gridLayout->addWidget(captureWindowCmdTextBox, 5, 1);
+  gridLayout->addWidget(_captureWindowShortcutLabel, 5, 2);
+  gridLayout->addWidget(captureWindowShortcutTextBox, 5, 3, 1, 2);
+
+  // row 6 (reserved for codeblocks)
+
+  // row 7
+  gridLayout->addWidget(testConnectionButton, 7, 0);
+  gridLayout->addWidget(connStatusLabel, 7, 1, 1, 4);
+
+  // row 8
+  gridLayout->addItem(spacer, 8, 0, 1, gridLayout->columnCount());
+
+  // row 9
+  gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
+
+  this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  this->resize(760, 300);
+  this->setWindowTitle("Settings");
+  this->setLayout(gridLayout);
 }
 
 void Settings::wireUi() {
-  connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &Settings::routeButtonPress);
+  connect(buttonBox, &QDialogButtonBox::clicked, this, &Settings::routeButtonPress);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
-  connect(ui->eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
+  connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
+}
+
+void Settings::routeButtonPress(QAbstractButton *btn) {
+  if (buttonBox->button(QDialogButtonBox::Save) == btn) {
+    onSaveClicked();
+  }
+  else if (buttonBox->button(QDialogButtonBox::Cancel) == btn) {
+    onCancelClicked();
+  }
 }
 
 void Settings::showEvent(QShowEvent *evt) {
@@ -56,17 +180,17 @@ void Settings::showEvent(QShowEvent *evt) {
   AppConfig &inst = AppConfig::getInstance();
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
-  ui->eviRepoTextBox->setText(inst.evidenceRepo);
-  ui->accessKeyTextBox->setText(inst.accessKey);
-  ui->secretKeyTextBox->setText(inst.secretKey);
-  ui->hostPathTextBox->setText(inst.apiURL);
-  ui->screenshotCmdTextBox->setText(inst.screenshotExec);
-  ui->screenshotShortcutTextBox->setText(inst.screenshotShortcutCombo);
-
-  ui->captureWindowCmdTextBox->setText(inst.captureWindowExec);
-  ui->captureWindowShortCutTextBox->setText(inst.captureWindowShortcut);
+  eviRepoTextBox->setText(inst.evidenceRepo);
+  accessKeyTextBox->setText(inst.accessKey);
+  secretKeyTextBox->setText(inst.secretKey);
+  hostPathTextBox->setText(inst.apiURL);
+  captureAreaCmdTextBox->setText(inst.screenshotExec);
+  captureAreaShortcutTextBox->setText(inst.screenshotShortcutCombo);
+  captureWindowCmdTextBox->setText(inst.captureWindowExec);
+  captureWindowShortcutTextBox->setText(inst.captureWindowShortcut);
 
   // re-enable form
+  connStatusLabel->setText("");
   testConnectionButton->setEnabled(true);
 }
 
@@ -77,23 +201,23 @@ void Settings::closeEvent(QCloseEvent *event) {
 
 void Settings::onCancelClicked() {
   stopReply(&currentTestReply);
-  ui->statusIconLabel->setText("");
+  close();
 }
 
 void Settings::onSaveClicked() {
   stopReply(&currentTestReply);
-  ui->statusIconLabel->setText("");
+  connStatusLabel->setText("");
 
   AppConfig &inst = AppConfig::getInstance();
 
-  inst.evidenceRepo = ui->eviRepoTextBox->text();
-  inst.accessKey = ui->accessKeyTextBox->text();
-  inst.secretKey = ui->secretKeyTextBox->text();
-  inst.apiURL = ui->hostPathTextBox->text();
-  inst.screenshotExec = ui->screenshotCmdTextBox->text();
-  inst.screenshotShortcutCombo = ui->screenshotShortcutTextBox->text();
-  inst.captureWindowExec = ui->captureWindowCmdTextBox->text();
-  inst.captureWindowShortcut = ui->captureWindowShortCutTextBox->text();
+  inst.evidenceRepo = eviRepoTextBox->text();
+  inst.accessKey = accessKeyTextBox->text();
+  inst.secretKey = secretKeyTextBox->text();
+  inst.apiURL = hostPathTextBox->text();
+  inst.screenshotExec = captureAreaCmdTextBox->text();
+  inst.screenshotShortcutCombo = captureAreaShortcutTextBox->text();
+  inst.captureWindowExec = captureWindowCmdTextBox->text();
+  inst.captureWindowShortcut = captureWindowShortcutTextBox->text();
 
   try {
     inst.writeConfig();
@@ -103,15 +227,16 @@ void Settings::onSaveClicked() {
   }
 
   hotkeyManager->updateHotkeys();
+  close();
 }
 
 void Settings::onBrowseClicked() {
-  auto browseStart = ui->eviRepoTextBox->text();
+  auto browseStart = eviRepoTextBox->text();
   browseStart = QFile(browseStart).exists() ? browseStart : QDir::homePath();
   auto filename = QFileDialog::getExistingDirectory(this, tr("Select a project directory"),
                                                     browseStart, QFileDialog::ShowDirsOnly);
   if (filename != nullptr) {
-    ui->eviRepoTextBox->setText(filename);
+    eviRepoTextBox->setText(filename);
   }
 }
 
@@ -119,7 +244,7 @@ void Settings::onTestConnectionClicked() {
   testConnectionButton->startAnimation();
   testConnectionButton->setEnabled(false);
   currentTestReply = NetMan::getInstance().testConnection(
-      ui->hostPathTextBox->text(), ui->accessKeyTextBox->text(), ui->secretKeyTextBox->text());
+      hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
   connect(currentTestReply, &QNetworkReply::finished, this, &Settings::onTestRequestComplete);
 }
 
@@ -131,24 +256,23 @@ void Settings::onTestRequestComplete() {
   if (ok) {
     switch (statusCode) {
       case HttpStatus::StatusOK:
-        this->ui->statusIconLabel->setText("Connected");
+        connStatusLabel->setText("Connected");
         break;
       case HttpStatus::StatusUnauthorized:
-        this->ui->statusIconLabel->setText(
-            "Could not connect: Unauthorized (check api key and secret)");
+        connStatusLabel->setText("Could not connect: Unauthorized (check api key and secret)");
         break;
       case HttpStatus::StatusNotFound:
-        this->ui->statusIconLabel->setText("Could not connect: Not Found (check URL)");
+        connStatusLabel->setText("Could not connect: Not Found (check URL)");
         break;
       default:
         QString msg = "Could not connect: Unexpected Error (code: ";
         msg.append(statusCode);
         msg.append(")");
-        this->ui->statusIconLabel->setText(msg);
+        connStatusLabel->setText(msg);
     }
   }
   else {
-    this->ui->statusIconLabel->setText(
+    connStatusLabel->setText(
         "Could not connect: Unexpected Error (check network connection and URL)");
   }
 
