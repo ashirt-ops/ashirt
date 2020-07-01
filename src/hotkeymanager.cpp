@@ -33,19 +33,21 @@ void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
   else if (hotkeyIndex == ACTION_CAPTURE_WINDOW) {
     screenshotTool->captureWindow();
   }
+  else if (hotkeyIndex == ACTION_CAPTURE_CODEBLOCK) {
+    emit codeblockHotkeyPressed();
+  }
 }
 
 void HotkeyManager::updateHotkeys() {
   hotkeyManager->unregisterAllHotkeys();
   if (!AppSettings::getInstance().isOperationPaused()) {
-    auto shortcut = AppConfig::getInstance().screenshotShortcutCombo;
-    if (shortcut != "") {
-      registerKey(shortcut, ACTION_CAPTURE_AREA);
-    }
-
-    shortcut = AppConfig::getInstance().captureWindowShortcut;
-    if (shortcut != "") {
-      registerKey(shortcut, ACTION_CAPTURE_WINDOW);
-    }
+    auto regKey = [this](QString combo, GlobalHotkeyEvent evt){
+      if (combo != "") {
+        registerKey(combo, evt);
+      }
+    };
+    regKey(AppConfig::getInstance().screenshotShortcutCombo, ACTION_CAPTURE_AREA);
+    regKey(AppConfig::getInstance().captureWindowShortcut, ACTION_CAPTURE_WINDOW);
+    regKey(AppConfig::getInstance().captureCodeblockShortcut, ACTION_CAPTURE_CODEBLOCK);
   }
 }
