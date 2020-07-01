@@ -81,7 +81,6 @@ void EvidenceManager::wireUi() {
   connect(ui->editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
   connect(ui->filterTextBox, &QLineEdit::returnPressed, this,
           &EvidenceManager::applyFilterButtonClicked);
-  connect(ui->closeFormButton, btnClicked, this, &EvidenceManager::close);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
   connect(ui->evidenceTable, &QTableWidget::currentCellChanged, this,
@@ -129,8 +128,6 @@ void EvidenceManager::deleteEvidenceButtonClicked() {
     else {
       loadEvidence();
     }
-
-    ui->closeFormButton->setEnabled(true);
   }
 }
 
@@ -243,7 +240,6 @@ void EvidenceManager::refreshRow(int row) {
 
 void EvidenceManager::setActionButtonsEnabled(bool enabled) {
   enableEvidenceButtons(enabled);
-  ui->closeFormButton->setEnabled(enabled);
 }
 
 void EvidenceManager::enableEvidenceButtons(bool enabled) {
@@ -306,7 +302,8 @@ void EvidenceManager::onUploadComplete() {
     }
     QMessageBox::warning(this, "Cannot Submit Evidence",
                          "Upload failed: Network error. Check your connection and try again.\n"
-                         "(Error: " + uploadAssetReply->errorString() + ")");
+                         "(Error: " +
+                             uploadAssetReply->errorString() + ")");
   }
   else {
     try {
@@ -324,7 +321,6 @@ void EvidenceManager::onUploadComplete() {
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
   submitButton->stopAnimation();
 
-  ui->closeFormButton->setEnabled(true);
   tidyReply(&uploadAssetReply);
 }
 

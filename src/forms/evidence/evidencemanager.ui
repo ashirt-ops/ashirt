@@ -26,63 +26,23 @@
    <string>Evidence Manager</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="5" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="5" column="1">
     <widget class="QPushButton" name="deleteEvidenceButton">
      <property name="text">
       <string>Delete</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" colspan="2">
-    <widget class="QLineEdit" name="filterTextBox"/>
-   </item>
-   <item row="0" column="4">
-    <widget class="QPushButton" name="applyFilterButton">
-     <property name="text">
-      <string>Apply</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="5">
-    <widget class="QPushButton" name="closeFormButton">
-     <property name="text">
-      <string>Close</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="5">
-    <widget class="QPushButton" name="submitEvidenceButton">
-     <property name="text">
-      <string>Submit</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="5">
-    <widget class="QPushButton" name="resetFilterButton">
-     <property name="text">
-      <string>Reset</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QPushButton" name="editFiltersButton">
-     <property name="text">
-      <string>Edit Filters</string>
      </property>
      <property name="autoDefault">
       <bool>false</bool>
@@ -99,6 +59,39 @@
      </property>
      <property name="text">
       <string>_evidenceEditorPlaceholder</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QPushButton" name="applyFilterButton">
+     <property name="text">
+      <string>Apply</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="QPushButton" name="resetFilterButton">
+     <property name="text">
+      <string>Reset</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="2">
+    <widget class="QLineEdit" name="filterTextBox"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="editFiltersButton">
+     <property name="text">
+      <string>Edit Filters</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -184,18 +177,15 @@
      </column>
     </widget>
    </item>
-   <item row="5" column="2">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="5" column="5">
+    <widget class="QPushButton" name="submitEvidenceButton">
+     <property name="text">
+      <string>Submit</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
+     <property name="autoDefault">
+      <bool>false</bool>
      </property>
-    </spacer>
+    </widget>
    </item>
   </layout>
  </widget>
