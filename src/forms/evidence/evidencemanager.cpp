@@ -75,7 +75,7 @@ void EvidenceManager::keyPressEvent(QKeyEvent *evt) {
   QDialog::keyPressEvent(evt);
   // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
   if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
-    close(); // not needed once onCancelClick implements close directly (other branch)
+    close();
   }
 }
 
