@@ -33,6 +33,7 @@ class Settings : public ButtonBoxForm {
 
   void showEvent(QShowEvent *evt) override;
   void closeEvent(QCloseEvent *event) override;
+  void keyPressEvent(QKeyEvent *evt) override;
 
   void onTestConnectionClicked();
   void onTestRequestComplete();
