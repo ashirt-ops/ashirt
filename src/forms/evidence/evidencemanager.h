@@ -5,6 +5,7 @@
 #define EVIDENCEMANAGER_H
 
 #include <QDialog>
+#include <QKeyEvent>
 #include <QNetworkReply>
 #include <QTableWidgetItem>
 
@@ -52,6 +53,7 @@ class EvidenceManager : public QDialog {
   void enableEvidenceButtons(bool enable);
 
   void showEvent(QShowEvent* evt) override;
+  void keyPressEvent(QKeyEvent *evt) override;
   qint64 selectedRowEvidenceID();
 
  signals:
