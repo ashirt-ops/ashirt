@@ -90,7 +90,6 @@ TrayManager::~TrayManager() {
   cleanChooseOpSubmenu();  // must be done before deleting chooseOpSubmenu/action
 
   delete chooseOpStatusAction;
-  delete pauseOperationAction;
   delete refreshOperationListAction;
   delete chooseOpSubmenu;
 
@@ -120,8 +119,6 @@ void TrayManager::wireUi() {
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
-  connect(&AppSettings::getInstance(), &AppSettings::onOperationStateChanged, this,
-          &TrayManager::setActiveOperationLabel);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
 }
@@ -173,16 +170,8 @@ void TrayManager::createActions() {
     NetMan::getInstance().refreshOperationsList();
   });
 
-  pauseOperationAction = new QAction(this);
-  connect(pauseOperationAction, &QAction::triggered, [this] {
-    AppSettings::getInstance().toggleOperationPaused();
-    hotkeyManager->updateHotkeys();
-  });
-
   chooseOpSubmenu->addAction(chooseOpStatusAction);
   chooseOpSubmenu->addAction(refreshOperationListAction);
-  chooseOpSubmenu->addSeparator();
-  chooseOpSubmenu->addAction(pauseOperationAction);
   chooseOpSubmenu->addSeparator();
 }
 
@@ -231,13 +220,9 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 
 void TrayManager::setActiveOperationLabel() {
   auto opName = AppSettings::getInstance().operationName();
-  auto isPaused = AppSettings::getInstance().isOperationPaused();
 
-  pauseOperationAction->setText(tr(isPaused ? "Enable Operation" : "Pause Operation"));
-
-  QString opLabel = tr(isPaused ? "Paused" : "Active");
-  opLabel += tr(" Operation: ");
-  opLabel += (opName == "") ? QString(tr("<None>")) : QString(opName);
+  QString opLabel = tr("Operation: ");
+  opLabel += (opName == "") ? tr("<None>") : opName;
 
   currentOperationMenuAction->setText(opLabel);
 }

@@ -76,11 +76,9 @@ To specify a shortcut pattern, simply decide on what set of modifier keys you wa
 
 E.g. `Ctrl+Shift+p`
 
-## Switching and Pausing Operations
+## Switching Operations
 
-Evidence is tied to an operation, and when an operation is paused, or inactive, then the hotkey commands will not work. It may be useful to pause an operation (within this application) once you know you will not be taking additional screenshots. Simply navigate to `Select Operation` > `Pause Operation` to pause an operation, and go to the same place (now called `Enable Operation`) to resume this application. Note: pausing an operation a really more of a pause of this application. You can still use the AShirt website. However, when switching operations, if you were previously in a paused state, you will remain in a paused state.
-
-To change operations, similarly to pause operation, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, try pressing the `Refresh Operations`, or check with the operation owner to ensure that you have write access to that operation.
+To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, try pressing the `Refresh Operations`, or check with the operation owner to ensure that you have write access to that operation.
 
 ## Managing Evidence
 

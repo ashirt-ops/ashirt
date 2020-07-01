@@ -29,14 +29,12 @@ class AppSettings : public QObject {
 
   const char *opSlugSetting = "operation/slug";
   const char *opNameSetting = "operation/name";
-  const char *opPausedSetting = "operation/paused";
 
   AppSettings() : QObject(nullptr) {}
 
  public:
  signals:
   void onOperationUpdated(QString operationSlug, QString operationName);
-  void onOperationStateChanged(bool isPaused);
   void onSettingsSynced();
 
  public:
@@ -53,15 +51,5 @@ class AppSettings : public QObject {
   }
   QString operationSlug() { return settings.value(opSlugSetting).toString(); }
   QString operationName() { return settings.value(opNameSetting).toString(); }
-
-  void setOperationPaused(bool paused) {
-    settings.setValue(opPausedSetting, paused);
-    emit onOperationStateChanged(paused);
-  }
-  bool toggleOperationPaused() {
-    setOperationPaused(!isOperationPaused());
-    return isOperationPaused();
-  }
-  bool isOperationPaused() { return settings.value(opPausedSetting).toBool(); }
 };
 #endif  // APPSETTINGS_H
