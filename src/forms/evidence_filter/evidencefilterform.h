@@ -6,6 +6,7 @@
 
 #include <QComboBox>
 #include <QDialog>
+#include <QKeyEvent>
 
 #include "src/db/databaseconnection.h"
 #include "src/dtos/operation.h"
@@ -24,6 +25,9 @@ class EvidenceFilterForm : public QDialog {
  private:
   void wireUi();
   void writeForm();
+  void keyPressEvent(QKeyEvent *evt) override;
+  bool eventFilter(QObject *obj, QEvent *evt) override;
+  bool handleCloseKeyEvent(QKeyEvent* evt);
 
  public:
   void setForm(const EvidenceFilters &model);

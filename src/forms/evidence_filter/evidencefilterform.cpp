@@ -46,6 +46,11 @@ EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
 EvidenceFilterForm::~EvidenceFilterForm() { delete ui; }
 
 void EvidenceFilterForm::wireUi() {
+  ui->erroredComboBox->installEventFilter(this);
+  ui->operationComboBox->installEventFilter(this);
+  ui->submittedComboBox->installEventFilter(this);
+  ui->contentTypeComboBox->installEventFilter(this);
+
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &EvidenceFilterForm::onOperationListUpdated);
   connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeForm);
@@ -126,4 +131,30 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   }
   UiHelpers::setComboBoxValue(ui->operationComboBox, AppSettings::getInstance().operationSlug());
   ui->operationComboBox->setEnabled(true);
+}
+
+bool EvidenceFilterForm::handleCloseKeyEvent(QKeyEvent* evt) {
+  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
+  if(evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
+    writeForm();
+    close();
+    return true;
+  }
+  return false;
+}
+
+void EvidenceFilterForm::keyPressEvent(QKeyEvent *evt) {
+  handleCloseKeyEvent(evt);
+  QDialog::keyPressEvent(evt);
+}
+
+bool EvidenceFilterForm::eventFilter(QObject *obj, QEvent *evt) {
+  if (evt->type() == QEvent::KeyPress) {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(evt);
+    bool handled = handleCloseKeyEvent(keyEvent);
+    if (handled) {
+      return true;
+    }
+  }
+  return QDialog::eventFilter(obj, evt);
 }

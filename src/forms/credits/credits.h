@@ -5,6 +5,7 @@
 #define CREDITS_H
 
 #include <QDialog>
+#include <QKeyEvent>
 
 namespace Ui {
 class Credits;
@@ -12,6 +13,9 @@ class Credits;
 
 class Credits : public QDialog {
   Q_OBJECT
+
+ private:
+  void keyPressEvent(QKeyEvent *evt) override;
 
  public:
   explicit Credits(QWidget *parent = nullptr);

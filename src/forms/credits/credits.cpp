@@ -112,8 +112,17 @@ Credits::Credits(QWidget* parent) : QDialog(parent), ui(new Ui::Credits) {
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
 }
 
 Credits::~Credits() { delete ui; }
+
+void Credits::keyPressEvent(QKeyEvent *evt) {
+  QDialog::keyPressEvent(evt);
+  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
+  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
+    close(); // not needed once onCancelClick implements close directly (other branch)
+  }
+}
