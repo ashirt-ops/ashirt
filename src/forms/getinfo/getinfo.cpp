@@ -30,7 +30,8 @@ GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
 }
 
@@ -55,6 +56,14 @@ bool GetInfo::saveData() {
                              saveResponse.model.path);
   }
   return saveResponse.actionSucceeded;
+}
+
+void GetInfo::keyPressEvent(QKeyEvent *evt) {
+  QDialog::keyPressEvent(evt);
+  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
+  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
+    deleteButtonClicked();
+  }
 }
 
 void GetInfo::submitButtonClicked() {

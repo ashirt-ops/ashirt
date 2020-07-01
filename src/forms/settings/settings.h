@@ -5,6 +5,7 @@
 #define SETTINGS_H
 
 #include <QCloseEvent>
+#include <QKeyEvent>
 #include <QDialog>
 #include <QErrorMessage>
 #include <QNetworkReply>

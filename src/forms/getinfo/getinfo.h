@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QNetworkReply>
+#include <QKeyEvent>
 
 #include "components/evidence_editor/evidenceeditor.h"
 #include "components/loading/qprogressindicator.h"
@@ -28,6 +29,9 @@ class GetInfo : public QDialog {
   void wireUi();
   bool saveData();
   void setActionButtonsEnabled(bool enabled);
+
+ public slots:
+  void keyPressEvent(QKeyEvent *evt) override;
 
  private slots:
   void submitButtonClicked();
