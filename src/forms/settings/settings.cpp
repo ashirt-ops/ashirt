@@ -76,19 +76,12 @@ void Settings::closeEvent(QCloseEvent *event) {
 }
 
 void Settings::keyPressEvent(QKeyEvent *evt) {
-#ifdef Q_OS_MACOS
-  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::MetaModifier) {
-    onCancelClicked();
-    close(); // not needed once onCancelClick implements close directly (other branch)
-  }
-#else
+  QDialog::keyPressEvent(evt);
+  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
   if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
     onCancelClicked();
     close(); // not needed once onCancelClick implements close directly (other branch)
   }
-#endif
-
-  QDialog::keyPressEvent(evt);
 }
 
 void Settings::onCancelClicked() {
