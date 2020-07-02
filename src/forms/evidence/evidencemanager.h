@@ -7,6 +7,8 @@
 #include <QDialog>
 #include <QNetworkReply>
 #include <QTableWidgetItem>
+#include <QAction>
+#include <QMenu>
 
 #include "components/evidence_editor/evidenceeditor.h"
 #include "components/loading_button/loadingbutton.h"
@@ -46,23 +48,24 @@ class EvidenceManager : public QDialog {
   void closeEvent(QCloseEvent* event) override;
 
  private:
+  /// buildUi constructs the window structure.
+  void buildUi();
   /// wireUi connects UI elements together
   void wireUi();
+
+  /// openTableContextMenu opens a context menu over the evidenceTable when right-clicking
+  void openTableContextMenu(QPoint pos);
 
   /// saveData stores any edits in evidence view. Deprecated (edits no longer available)
   bool saveData();
   /// loadEvidence retrieves data from the database and renders the evidence table
   void loadEvidence();
-  /// setActionButtonsEnabled enables the delete/submit ui buttons
-  void setActionButtonsEnabled(bool enabled);
   /// buildBaseEvidenceRow constructs a basic evidence row (fields and formatting, no data applied)
   EvidenceRow buildBaseEvidenceRow(qint64 evidenceID);
   /// refreshRow updates the indicated row (0-based) with updated (database) data.
   void refreshRow(int row);
   /// setRowText writes data the indicated row (0-based) based on the given model
   void setRowText(int row, const model::Evidence& model);
-  ///enableEvidenceButtons enables the delete/submit ui buttons
-  void enableEvidenceButtons(bool enable);
 
   /// showEvent extends QDialog's showEvent. Resets the applied filters.
   void showEvent(QShowEvent* evt) override;
@@ -78,10 +81,10 @@ class EvidenceManager : public QDialog {
   void evidenceChanged(quint64 evidenceID, bool readonly);
 
  private slots:
-  /// submitEvidenceButtonClicked recieves the submit button clicked event
-  void submitEvidenceButtonClicked();
-  /// deleteEvidenceButtonClicked recieves the delete button clicked event
-  void deleteEvidenceButtonClicked();
+  /// submitEvidenceTriggered recieves the triggered event from the submit action
+  void submitEvidenceTriggered();
+  /// deleteEvidenceTriggered recieves the triggered event from the delete action
+  void deleteEvidenceTriggered();
   /// applyFilterButtonClicked recieves the apply filter button clicked event
   void applyFilterButtonClicked();
   /// resetFilterButtonClicked recieves the reset filter button clicked event
@@ -104,13 +107,16 @@ class EvidenceManager : public QDialog {
   DatabaseConnection* db;
 
   QNetworkReply* uploadAssetReply = nullptr;
-  qint64 evidenceIDForRequest;
+  qint64 evidenceIDForRequest = 0;
 
+  // Subwindows
+  EvidenceFilterForm* filterForm = nullptr;
+  QMenu* evidenceTableContextMenu = nullptr;
+
+  QAction* submitEvidenceAction = nullptr;
+  QAction* deleteEvidenceAction = nullptr;
   // UI Elements
   EvidenceEditor* evidenceEditor;
-  EvidenceFilterForm* filterForm;
-  LoadingButton* submitButton;
-
 };
 
 #endif  // EVIDENCEMANAGER_H
