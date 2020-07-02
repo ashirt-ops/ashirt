@@ -5,6 +5,7 @@
 #include "ui_credits.h"
 
 #include <QDateTime>
+#include <QKeySequence>
 
 struct Attribution {
   std::string library;
@@ -115,14 +116,16 @@ Credits::Credits(QWidget* parent) : QDialog(parent), ui(new Ui::Credits) {
   flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
            Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
+
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
+  connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
 }
 
-Credits::~Credits() { delete ui; }
-
-void Credits::keyPressEvent(QKeyEvent *evt) {
-  QDialog::keyPressEvent(evt);
-  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
-  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
-    close();
-  }
+Credits::~Credits() {
+  delete ui;
+  delete closeWindowAction;
 }
+

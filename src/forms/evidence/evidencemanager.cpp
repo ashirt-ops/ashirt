@@ -8,6 +8,7 @@
 #include <QRandomGenerator>
 #include <QStandardPaths>
 #include <QTableWidgetItem>
+#include <QKeySequence>
 #include <iostream>
 
 #include "appsettings.h"
@@ -50,6 +51,9 @@ EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
   ui->submitEvidenceButton->setVisible(false);
   ui->gridLayout->removeWidget(ui->submitEvidenceButton);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
   wireUi();
 }
 
@@ -58,6 +62,7 @@ EvidenceManager::~EvidenceManager() {
   delete evidenceEditor;
   delete filterForm;
   delete submitButton;
+  delete closeWindowAction;
   stopReply(&uploadAssetReply);
 }
 
@@ -71,14 +76,6 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
   resetFilterButtonClicked();
 }
 
-void EvidenceManager::keyPressEvent(QKeyEvent *evt) {
-  QDialog::keyPressEvent(evt);
-  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
-  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
-    close();
-  }
-}
-
 void EvidenceManager::wireUi() {
   auto btnClicked = &QPushButton::clicked;
   connect(submitButton, btnClicked, this, &EvidenceManager::submitEvidenceButtonClicked);
@@ -89,12 +86,14 @@ void EvidenceManager::wireUi() {
   connect(ui->editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
   connect(ui->filterTextBox, &QLineEdit::returnPressed, this,
           &EvidenceManager::applyFilterButtonClicked);
-  connect(ui->closeFormButton, btnClicked, this, &EvidenceManager::close);
+  connect(ui->closeFormButton, btnClicked, this, &QDialog::close);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
   connect(ui->evidenceTable, &QTableWidget::currentCellChanged, this,
           &EvidenceManager::onRowChanged);
   connect(this, &EvidenceManager::evidenceChanged, evidenceEditor, &EvidenceEditor::updateEvidence);
+
+  connect(closeWindowAction, &QAction::triggered, this, &EvidenceManager::close);
 }
 
 void EvidenceManager::submitEvidenceButtonClicked() {

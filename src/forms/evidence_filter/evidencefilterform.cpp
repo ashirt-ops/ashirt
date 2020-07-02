@@ -3,6 +3,8 @@
 
 #include "evidencefilterform.h"
 
+#include <QKeySequence>
+
 #include "appsettings.h"
 #include "helpers/netman.h"
 #include "helpers/ui_helpers.h"
@@ -40,10 +42,17 @@ EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
   initializeDateEdit(ui->fromDateEdit);
   initializeDateEdit(ui->toDateEdit);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
   wireUi();
 }
 
-EvidenceFilterForm::~EvidenceFilterForm() { delete ui; }
+EvidenceFilterForm::~EvidenceFilterForm() {
+  delete ui;
+  delete closeWindowAction;
+}
 
 void EvidenceFilterForm::wireUi() {
   ui->erroredComboBox->installEventFilter(this);
@@ -59,6 +68,8 @@ void EvidenceFilterForm::wireUi() {
           [this](bool checked) { ui->fromDateEdit->setEnabled(checked); });
   connect(ui->includeEndDateCheckBox, &QCheckBox::stateChanged,
           [this](bool checked) { ui->toDateEdit->setEnabled(checked); });
+
+  connect(closeWindowAction, &QAction::triggered, [this](){writeForm(); close();});
 }
 
 void EvidenceFilterForm::writeForm() {
@@ -131,30 +142,4 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   }
   UiHelpers::setComboBoxValue(ui->operationComboBox, AppSettings::getInstance().operationSlug());
   ui->operationComboBox->setEnabled(true);
-}
-
-bool EvidenceFilterForm::handleCloseKeyEvent(QKeyEvent* evt) {
-  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
-  if(evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
-    writeForm();
-    close();
-    return true;
-  }
-  return false;
-}
-
-void EvidenceFilterForm::keyPressEvent(QKeyEvent *evt) {
-  handleCloseKeyEvent(evt);
-  QDialog::keyPressEvent(evt);
-}
-
-bool EvidenceFilterForm::eventFilter(QObject *obj, QEvent *evt) {
-  if (evt->type() == QEvent::KeyPress) {
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(evt);
-    bool handled = handleCloseKeyEvent(keyEvent);
-    if (handled) {
-      return true;
-    }
-  }
-  return QDialog::eventFilter(obj, evt);
 }

@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QFileDialog>
 #include <QString>
+#include <QKeySequence>
 
 #include "appconfig.h"
 #include "appsettings.h"
@@ -30,6 +31,9 @@ Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
   testConnectionButton = new LoadingButton(ui->testHostButton->text(), this, ui->testHostButton);
   UiHelpers::replacePlaceholder(ui->testHostButton, testConnectionButton, ui->gridLayout);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
   wireUi();
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
@@ -43,12 +47,14 @@ Settings::~Settings() {
   delete couldNotSaveSettingsMsg;
   stopReply(&currentTestReply);
   delete testConnectionButton;
+  delete closeWindowAction;
 }
 
 void Settings::wireUi() {
   connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &Settings::routeButtonPress);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(ui->eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
+  connect(closeWindowAction, &QAction::triggered, [this](){onSaveClicked(); close();});
 }
 
 void Settings::showEvent(QShowEvent *evt) {
@@ -73,15 +79,6 @@ void Settings::showEvent(QShowEvent *evt) {
 void Settings::closeEvent(QCloseEvent *event) {
   onSaveClicked();
   QDialog::closeEvent(event);
-}
-
-void Settings::keyPressEvent(QKeyEvent *evt) {
-  QDialog::keyPressEvent(evt);
-  // Note: Qt::ControlModifier corresponds to Cmd on the mac (meta corresponds to mac control key)
-  if( evt->key() == Qt::Key_W && evt->modifiers() == Qt::ControlModifier) {
-    onCancelClicked();
-    close(); // not needed once onCancelClick implements close directly (other branch)
-  }
 }
 
 void Settings::onCancelClicked() {

@@ -4,8 +4,8 @@
 #ifndef CREDITS_H
 #define CREDITS_H
 
+#include <QAction>
 #include <QDialog>
-#include <QKeyEvent>
 
 namespace Ui {
 class Credits;
@@ -14,15 +14,13 @@ class Credits;
 class Credits : public QDialog {
   Q_OBJECT
 
- private:
-  void keyPressEvent(QKeyEvent *evt) override;
-
  public:
   explicit Credits(QWidget *parent = nullptr);
   ~Credits();
 
  private:
   Ui::Credits *ui;
+  QAction* closeWindowAction = nullptr;
 };
 
 #endif  // CREDITS_H

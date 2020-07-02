@@ -4,8 +4,8 @@
 #ifndef EVIDENCEMANAGER_H
 #define EVIDENCEMANAGER_H
 
+#include <QAction>
 #include <QDialog>
-#include <QKeyEvent>
 #include <QNetworkReply>
 #include <QTableWidgetItem>
 
@@ -53,7 +53,6 @@ class EvidenceManager : public QDialog {
   void enableEvidenceButtons(bool enable);
 
   void showEvent(QShowEvent* evt) override;
-  void keyPressEvent(QKeyEvent *evt) override;
   qint64 selectedRowEvidenceID();
 
  signals:
@@ -75,6 +74,8 @@ class EvidenceManager : public QDialog {
   EvidenceEditor* evidenceEditor;
   EvidenceFilterForm* filterForm;
   LoadingButton* submitButton;
+
+  QAction* closeWindowAction = nullptr;
 
   DatabaseConnection* db;
 

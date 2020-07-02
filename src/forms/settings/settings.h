@@ -4,8 +4,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <QAction>
 #include <QCloseEvent>
-#include <QKeyEvent>
 #include <QDialog>
 #include <QErrorMessage>
 #include <QNetworkReply>
@@ -34,7 +34,6 @@ class Settings : public ButtonBoxForm {
 
   void showEvent(QShowEvent *evt) override;
   void closeEvent(QCloseEvent *event) override;
-  void keyPressEvent(QKeyEvent *evt) override;
 
   void onTestConnectionClicked();
   void onTestRequestComplete();
@@ -44,6 +43,7 @@ class Settings : public ButtonBoxForm {
   Ui::Settings *ui;
   QErrorMessage *couldNotSaveSettingsMsg;
   LoadingButton *testConnectionButton;
+  QAction* closeWindowAction = nullptr;
 
   QNetworkReply *currentTestReply = nullptr;
 

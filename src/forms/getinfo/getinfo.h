@@ -4,9 +4,9 @@
 #ifndef GETINFO_H
 #define GETINFO_H
 
+#include <QAction>
 #include <QDialog>
 #include <QNetworkReply>
-#include <QKeyEvent>
 
 #include "components/evidence_editor/evidenceeditor.h"
 #include "components/loading/qprogressindicator.h"
@@ -30,9 +30,6 @@ class GetInfo : public QDialog {
   bool saveData();
   void setActionButtonsEnabled(bool enabled);
 
- public slots:
-  void keyPressEvent(QKeyEvent *evt) override;
-
  private slots:
   void submitButtonClicked();
   void deleteButtonClicked();
@@ -45,6 +42,7 @@ class GetInfo : public QDialog {
   qint64 evidenceID;
 
   EvidenceEditor *evidenceEditor;
+  QAction* closeWindowAction = nullptr;
 
   QNetworkReply *uploadAssetReply = nullptr;
   LoadingButton *loadingButton;
