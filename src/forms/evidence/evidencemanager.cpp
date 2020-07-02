@@ -64,7 +64,6 @@ EvidenceManager::~EvidenceManager() {
   delete filterTextBox;
   delete evidenceTable;
   delete loadingAnimation;
-  delete spacer;
 
   delete gridLayout;
   stopReply(&uploadAssetReply);
