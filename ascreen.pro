@@ -88,7 +88,6 @@ HEADERS += \
 
 FORMS += \
     src/forms/credits/credits.ui \
-    src/forms/evidence/evidencemanager.ui \
     src/forms/evidence_filter/evidencefilterform.ui \
     src/forms/getinfo/getinfo.ui
 
