@@ -7,7 +7,7 @@
 #include <QAction>
 #include <QDialog>
 #include <QMenu>
-#include <Q#include <QNetworkReply>
+#include <QNetworkReply>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
