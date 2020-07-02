@@ -40,7 +40,6 @@ SOURCES += \
     src/traymanager.cpp \
     src/helpers/screenshot.cpp \
     src/helpers/stopreply.cpp \
-    src/forms/buttonboxform.cpp \
     src/forms/credits/credits.cpp \
     src/forms/evidence/evidencemanager.cpp \
     src/forms/settings/settings.cpp
@@ -83,17 +82,14 @@ HEADERS += \
     src/helpers/stopreply.h \
     src/dtos/tag.h \
     src/dtos/operation.h \
-    src/forms/buttonboxform.h \
     src/forms/credits/credits.h \
     src/forms/evidence/evidencemanager.h \
     src/forms/settings/settings.h
 
 FORMS += \
     src/forms/credits/credits.ui \
-    src/forms/evidence/evidencemanager.ui \
     src/forms/evidence_filter/evidencefilterform.ui \
-    src/forms/getinfo/getinfo.ui \
-    src/forms/settings/settings.ui
+    src/forms/getinfo/getinfo.ui
 
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 

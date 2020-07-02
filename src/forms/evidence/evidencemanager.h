@@ -6,19 +6,18 @@
 
 #include <QAction>
 #include <QDialog>
-#include <QNetworkReply>
+#include <QMenu>
+#include <Q#include <QNetworkReply>
+#include <QTableWidget>
 #include <QTableWidgetItem>
 
 #include "components/evidence_editor/evidenceeditor.h"
-#include "components/loading_button/loadingbutton.h"
+#include "components/loading/qprogressindicator.h"
 #include "db/databaseconnection.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 
-namespace Ui {
-class EvidenceManager;
-}
-
-// QTableWidget should memory-manage this data.
+/// EvidenceRow contains the necessary data for a full row in the evidence table.
+/// QTableWidget should memory-manage this data.
 struct EvidenceRow {
   QTableWidgetItem* dateCaptured;
   QTableWidgetItem* description;
@@ -31,6 +30,10 @@ struct EvidenceRow {
   QTableWidgetItem* dateSubmitted;
 };
 
+/**
+ * @brief The EvidenceManager class represents the Evidence Manager window that is shown
+ * when selecting "View Accumulated Evidence."
+ */
 class EvidenceManager : public QDialog {
   Q_OBJECT
 
@@ -38,49 +41,84 @@ class EvidenceManager : public QDialog {
   explicit EvidenceManager(DatabaseConnection* db, QWidget* parent = nullptr);
   ~EvidenceManager();
 
- protected:
-  void closeEvent(QCloseEvent* event) override;
-
  private:
+  /// buildUi constructs the window structure.
+  void buildUi();
+  /// buildEvidenceTableUi constructs the evidence table.
+  void buildEvidenceTableUi();
+
+  /// wireUi connects UI elements together
   void wireUi();
+  /// openTableContextMenu opens a context menu over the evidenceTable when right-clicking
+  void openTableContextMenu(QPoint pos);
 
+  /// saveData stores any edits in evidence view. Deprecated (edits no longer available)
   bool saveData();
+  /// loadEvidence retrieves data from the database and renders the evidence table
   void loadEvidence();
-  void setActionButtonsEnabled(bool enabled);
+  /// buildBaseEvidenceRow constructs a basic evidence row (fields and formatting, no data applied)
   EvidenceRow buildBaseEvidenceRow(qint64 evidenceID);
+  /// refreshRow updates the indicated row (0-based) with updated (database) data.
   void refreshRow(int row);
+  /// setRowText writes data the indicated row (0-based) based on the given model
   void setRowText(int row, const model::Evidence& model);
-  void enableEvidenceButtons(bool enable);
 
+  /// showEvent extends QDialog's showEvent. Resets the applied filters.
   void showEvent(QShowEvent* evt) override;
+  /// selectedRowEvidenceID is a small helper to get the evidence id for the currently selected row.
   qint64 selectedRowEvidenceID();
 
  signals:
+  /**
+   * @brief evidenceChanged is emitted when a user changes the selection in the evidence table
+   * @param evidenceID the evidence ID of the now-selected evidence
+   * @param readonly True if this evidence can be edited. False otherwise.
+   */
   void evidenceChanged(quint64 evidenceID, bool readonly);
 
  private slots:
-  void submitEvidenceButtonClicked();
-  void deleteEvidenceButtonClicked();
-  void applyFilterButtonClicked();
+  /// submitEvidenceTriggered recieves the triggered event from the submit action
+  void submitEvidenceTriggered();
+  /// deleteEvidenceTriggered recieves the triggered event from the delete action
+  void deleteEvidenceTriggered();
+  /// resetFilterButtonClicked recieves the reset filter button clicked event
   void resetFilterButtonClicked();
+  /// applyFilterForm updates the filter textbox to reflect the filter options chosen in the filter
+  /// menu
   void applyFilterForm(const EvidenceFilters& filter);
+  /// openFiltersMenu opens the filter menu with the current filters applied
   void openFiltersMenu();
 
+  /// onRowChanged recieves the event from the evidence table rowChange signal
   void onRowChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
+  /// onUploadComplete is triggered when the upload response has been received.
   void onUploadComplete();
 
  private:
-  Ui::EvidenceManager* ui;
-  EvidenceEditor* evidenceEditor;
-  EvidenceFilterForm* filterForm;
-  LoadingButton* submitButton;
-
-  QAction* closeWindowAction = nullptr;
-
+  /// db is a (shared) reference to the local database instance. Not to be deleted.
   DatabaseConnection* db;
 
   QNetworkReply* uploadAssetReply = nullptr;
-  qint64 evidenceIDForRequest;
+  qint64 evidenceIDForRequest = 0;
+
+  // Subwindows
+  EvidenceFilterForm* filterForm = nullptr;
+  QMenu* evidenceTableContextMenu = nullptr;
+
+  QAction* submitEvidenceAction = nullptr;
+  QAction* deleteEvidenceAction = nullptr;
+  QAction* closeWindowAction = nullptr;
+
+  // UI Elements
+  QGridLayout* gridLayout = nullptr;
+  QPushButton* editFiltersButton = nullptr;
+  QPushButton* applyFilterButton = nullptr;
+  QPushButton* resetFilterButton = nullptr;
+  QLineEdit* filterTextBox = nullptr;
+  QTableWidget* evidenceTable = nullptr;
+  EvidenceEditor* evidenceEditor = nullptr;
+  QProgressIndicator* loadingAnimation = nullptr;
+  QSpacerItem* spacer = nullptr;
 };
 
 #endif  // EVIDENCEMANAGER_H

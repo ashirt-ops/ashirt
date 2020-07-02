@@ -59,7 +59,7 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   creditsWindow = new Credits(this);
 
   // delayed so that windows can listen for get all ops signal
-  NetMan::getInstance().refreshOperationsList();  
+  NetMan::getInstance().refreshOperationsList();
 
   wireUi();
 
@@ -90,7 +90,6 @@ TrayManager::~TrayManager() {
   cleanChooseOpSubmenu();  // must be done before deleting chooseOpSubmenu/action
 
   delete chooseOpStatusAction;
-  delete pauseOperationAction;
   delete refreshOperationListAction;
   delete chooseOpSubmenu;
 
@@ -115,11 +114,11 @@ void TrayManager::cleanChooseOpSubmenu() {
 void TrayManager::wireUi() {
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
+  connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
+          &TrayManager::onCodeblockCapture);
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
-  connect(&AppSettings::getInstance(), &AppSettings::onOperationStateChanged, this,
-          &TrayManager::setActiveOperationLabel);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
 }
@@ -159,17 +158,7 @@ void TrayManager::createActions() {
   connect(showCreditsAction, &QAction::triggered, creditsWindow, &QWidget::show);
 
   addCodeblockAction = new QAction(tr("Add Codeblock from Clipboard"), this);
-  connect(addCodeblockAction, &QAction::triggered, [this]() {
-    QString clipboardContent = ClipboardHelper::readPlaintext();
-    if (clipboardContent != "") {
-      Codeblock evidence(clipboardContent);
-      Codeblock::saveCodeblock(evidence);
-      auto evidenceID = db->createEvidence(evidence.filePath(),
-                                           AppSettings::getInstance().operationSlug(), "codeblock");
-      auto getInfoWindow = new GetInfo(db, evidenceID, this);
-      getInfoWindow->show();
-    }
-  });
+  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::onCodeblockCapture);
 
   chooseOpSubmenu = new QMenu(tr("Select Operation"));
   chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
@@ -181,17 +170,21 @@ void TrayManager::createActions() {
     NetMan::getInstance().refreshOperationsList();
   });
 
-  pauseOperationAction = new QAction(this);
-  connect(pauseOperationAction, &QAction::triggered, [this] {
-    AppSettings::getInstance().toggleOperationPaused();
-    hotkeyManager->updateHotkeys();
-  });
-
   chooseOpSubmenu->addAction(chooseOpStatusAction);
   chooseOpSubmenu->addAction(refreshOperationListAction);
   chooseOpSubmenu->addSeparator();
-  chooseOpSubmenu->addAction(pauseOperationAction);
-  chooseOpSubmenu->addSeparator();
+}
+
+void TrayManager::onCodeblockCapture() {
+  QString clipboardContent = ClipboardHelper::readPlaintext();
+  if (clipboardContent != "") {
+    Codeblock evidence(clipboardContent);
+    Codeblock::saveCodeblock(evidence);
+    auto evidenceID = db->createEvidence(evidence.filePath(),
+                                         AppSettings::getInstance().operationSlug(), "codeblock");
+    auto getInfoWindow = new GetInfo(db, evidenceID, this);
+    getInfoWindow->show();
+  }
 }
 
 void TrayManager::createTrayMenu() {
@@ -216,8 +209,7 @@ void TrayManager::createTrayMenu() {
 void TrayManager::onScreenshotCaptured(const QString& path) {
   std::cout << "Captured screenshot to file: " << path.toStdString() << std::endl;
   try {
-    auto evidenceID =
-        db->createEvidence(path, AppSettings::getInstance().operationSlug(), "image");
+    auto evidenceID = db->createEvidence(path, AppSettings::getInstance().operationSlug(), "image");
     auto getInfoWindow = new GetInfo(db, evidenceID, this);
     getInfoWindow->show();
   }
@@ -228,13 +220,9 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 
 void TrayManager::setActiveOperationLabel() {
   auto opName = AppSettings::getInstance().operationName();
-  auto isPaused = AppSettings::getInstance().isOperationPaused();
 
-  pauseOperationAction->setText(tr(isPaused ? "Enable Operation" : "Pause Operation"));
-
-  QString opLabel = tr(isPaused ? "Paused" : "Active");
-  opLabel += tr(" Operation: ");
-  opLabel += (opName == "") ? QString(tr("<None>")) : QString(opName);
+  QString opLabel = tr("Operation: ");
+  opLabel += (opName == "") ? tr("<None>") : opName;
 
   currentOperationMenuAction->setText(opLabel);
 }

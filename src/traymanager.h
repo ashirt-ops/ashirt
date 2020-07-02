@@ -45,6 +45,7 @@ class TrayManager : public QDialog {
  public slots:
   void onScreenshotCaptured(const QString &filepath);
   void setActiveOperationLabel();
+  void onCodeblockCapture();
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
@@ -66,7 +67,6 @@ class TrayManager : public QDialog {
   void cleanChooseOpSubmenu();
   QMenu *chooseOpSubmenu;
   QAction *chooseOpStatusAction;
-  QAction *pauseOperationAction;
   QAction *refreshOperationListAction;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
