@@ -5,19 +5,16 @@
 #define EVIDENCEMANAGER_H
 
 #include <QDialog>
-#include <QNetworkReply>
-#include <QTableWidgetItem>
-#include <QAction>
 #include <QMenu>
+#include <QAction>
+#include <QNetworkReply>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #include "components/evidence_editor/evidenceeditor.h"
-#include "components/loading_button/loadingbutton.h"
+#include "components/loading/qprogressindicator.h"
 #include "db/databaseconnection.h"
 #include "forms/evidence_filter/evidencefilterform.h"
-
-namespace Ui {
-class EvidenceManager;
-}
 
 // QTableWidget should memory-manage this data.
 struct EvidenceRow {
@@ -43,16 +40,14 @@ class EvidenceManager : public QDialog {
   explicit EvidenceManager(DatabaseConnection* db, QWidget* parent = nullptr);
   ~EvidenceManager();
 
- protected:
-  /// closeEvent extends QDialog's closeEvent. Clears the evidenceEditor after closing.
-  void closeEvent(QCloseEvent* event) override;
-
  private:
   /// buildUi constructs the window structure.
   void buildUi();
+  /// buildEvidenceTableUi constructs the evidence table.
+  void buildEvidenceTableUi();
+
   /// wireUi connects UI elements together
   void wireUi();
-
   /// openTableContextMenu opens a context menu over the evidenceTable when right-clicking
   void openTableContextMenu(QPoint pos);
 
@@ -101,8 +96,6 @@ class EvidenceManager : public QDialog {
   void onUploadComplete();
 
  private:
-  Ui::EvidenceManager* ui;
-
   /// db is a (shared) reference to the local database instance. Not to be deleted.
   DatabaseConnection* db;
 
@@ -115,8 +108,18 @@ class EvidenceManager : public QDialog {
 
   QAction* submitEvidenceAction = nullptr;
   QAction* deleteEvidenceAction = nullptr;
+
   // UI Elements
-  EvidenceEditor* evidenceEditor;
+  QGridLayout* gridLayout = nullptr;
+  QPushButton* editFiltersButton = nullptr;
+  QPushButton* applyFilterButton = nullptr;
+  QPushButton* resetFilterButton = nullptr;
+  QLineEdit* filterTextBox = nullptr;
+  QTableWidget* evidenceTable = nullptr;
+  EvidenceEditor* evidenceEditor = nullptr;
+
+  QProgressIndicator* loadingAnimation = nullptr;
+  QSpacerItem* spacer = nullptr;
 };
 
 #endif  // EVIDENCEMANAGER_H

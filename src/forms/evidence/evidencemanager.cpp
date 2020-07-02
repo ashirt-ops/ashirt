@@ -4,6 +4,7 @@
 #include "evidencemanager.h"
 
 #include <QCheckBox>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QRandomGenerator>
 #include <QStandardPaths>
@@ -16,8 +17,6 @@
 #include "forms/evidence_filter/evidencefilterform.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
-#include "helpers/ui_helpers.h"
-#include "ui_evidencemanager.h"
 
 enum ColumnIndexes {
   COL_DATE_CAPTURED = 0,
@@ -31,46 +30,128 @@ enum ColumnIndexes {
   COL_ERROR_MSG
 };
 
-EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
-    : QDialog(parent), ui(new Ui::EvidenceManager) {
-  ui->setupUi(this);
+static QStringList columnNames() {
+  static QStringList names;
+  if (names.count() == 0) {
+    names.insert(COL_ERROR_MSG, "Error");
+    names.insert(COL_DATE_CAPTURED, "Date Captured");
+    names.insert(COL_OPERATION, "Operation");
+    names.insert(COL_PATH, "Path");
+    names.insert(COL_CONTENT_TYPE, "Content Type");
+    names.insert(COL_DESCRIPTION, "Description");
+    names.insert(COL_SUBMITTED, "Submitted");
+    names.insert(COL_DATE_SUBMITTED, "Date Submitted");
+    names.insert(COL_FAILED, "Failed");
+  }
+  return names;
+}
+
+EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent) : QDialog(parent) {
   this->db = db;
+  buildUi();
+  wireUi();
+}
 
-  evidenceEditor = new EvidenceEditor(db, this);
+EvidenceManager::~EvidenceManager() {
+  delete submitEvidenceAction;
+  delete deleteEvidenceAction;
+  delete evidenceTableContextMenu;
+  delete filterForm;
+  delete evidenceEditor;
+  delete editFiltersButton;
+  delete applyFilterButton;
+  delete resetFilterButton;
+  delete filterTextBox;
+  delete evidenceTable;
+  delete loadingAnimation;
+  delete spacer;
+
+  delete gridLayout;
+  stopReply(&uploadAssetReply);
+}
+
+void EvidenceManager::buildEvidenceTableUi() {
+  evidenceTable = new QTableWidget(this);
+  evidenceTable->setContextMenuPolicy(Qt::CustomContextMenu);
+  QStringList colNames = columnNames();
+  evidenceTable->setColumnCount(colNames.length());
+  evidenceTable->setHorizontalHeaderLabels(colNames);
+  evidenceTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  evidenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  evidenceTable->setSortingEnabled(true);
+  evidenceTable->verticalHeader()->setVisible(false);
+  evidenceTable->horizontalHeader()->setCascadingSectionResizes(false);
+  evidenceTable->horizontalHeader()->setStretchLastSection(true);
+  evidenceTable->horizontalHeader()->setSortIndicatorShown(true);
+  evidenceTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+}
+
+void EvidenceManager::buildUi() {
+  gridLayout = new QGridLayout(this);
   filterForm = new EvidenceFilterForm(this);
-
   evidenceTableContextMenu = new QMenu(this);
   submitEvidenceAction = new QAction("Submit Evidence", evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(submitEvidenceAction);
   deleteEvidenceAction = new QAction("Delete Evidence", evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(deleteEvidenceAction);
-  ui->evidenceTable->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  // Replace the _evidenceEditorPlaceholder with a proper editor
-  UiHelpers::replacePlaceholder(ui->_evidenceEditorPlaceholder, evidenceEditor, ui->gridLayout);
+  filterTextBox = new QLineEdit(this);
+  editFiltersButton = new QPushButton("Edit Filters", this);
+  applyFilterButton = new QPushButton("Apply", this);
+  resetFilterButton = new QPushButton("Reset", this);
+
+  applyFilterButton->setDefault(true);
+
+  buildEvidenceTableUi();
+
+  evidenceEditor = new EvidenceEditor(db, this);
   evidenceEditor->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
 
-  wireUi();
-}
+  loadingAnimation = new QProgressIndicator(this);
+  spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-EvidenceManager::~EvidenceManager() {
-  delete ui;
-  delete evidenceEditor;
-  delete filterForm;
-  delete submitEvidenceAction;
-  delete deleteEvidenceAction;
-  delete evidenceTableContextMenu;
-  stopReply(&uploadAssetReply);
-}
+  setTabOrder(editFiltersButton, filterTextBox);
+  setTabOrder(filterTextBox, applyFilterButton);
+  setTabOrder(applyFilterButton, resetFilterButton);
+  setTabOrder(resetFilterButton, evidenceTable);
 
-void EvidenceManager::closeEvent(QCloseEvent* event) {
-  QDialog::closeEvent(event);
-  evidenceEditor->updateEvidence(-1, true);
-}
+  // Layout
+  /*        0                 1           2             3
+       +---------------+-------------+------------+-------------+
+    0  | EditFilt Btn  | [Filt TB]   | Apply Btn  | Reset Btn   |
+       +---------------+-------------+------------+-------------+
+    1  |                                                        |
+       |                     Evidence Table                     |
+       |                                                        |
+       +---------------+-------------+------------+-------------+
+    2  |                                                        |
+       |                     Evidence Editor                    |
+       |                                                        |
+       +---------------+-------------+------------+-------------+
+    3  | Loading Ani   | Hor Spacer  | <None>     | <None>      |
+       +---------------+-------------+------------+-------------+
+  */
 
-void EvidenceManager::showEvent(QShowEvent* evt) {
-  QDialog::showEvent(evt);
-  resetFilterButtonClicked();
+  // row 0
+  gridLayout->addWidget(editFiltersButton, 0, 0);
+  gridLayout->addWidget(filterTextBox, 0, 1);
+  gridLayout->addWidget(applyFilterButton, 0, 2);
+  gridLayout->addWidget(resetFilterButton, 0, 3);
+
+  // row 1
+  gridLayout->addWidget(evidenceTable, 1, 0, 1, gridLayout->columnCount());
+
+  // row 2
+  gridLayout->addWidget(evidenceEditor, 2, 0, 1, gridLayout->columnCount());
+
+  // row 3
+  gridLayout->addWidget(loadingAnimation, 3, 0);
+  gridLayout->addItem(spacer, 3, 1);
+
+  this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  this->resize(800, 600);
+  this->setWindowTitle("Evidence Manager");
+  this->setLayout(gridLayout);
 }
 
 void EvidenceManager::wireUi() {
@@ -78,15 +159,15 @@ void EvidenceManager::wireUi() {
   auto btnClicked = &QPushButton::clicked;
   auto actionTriggered = &QAction::triggered;
 
-  connect(ui->applyFilterButton, btnClicked, this, &EvidenceManager::applyFilterButtonClicked);
-  connect(ui->resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
-  connect(ui->editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
-  connect(ui->filterTextBox, &QLineEdit::returnPressed, this,
+  connect(applyFilterButton, btnClicked, this, &EvidenceManager::applyFilterButtonClicked);
+  connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
+  connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
+  connect(filterTextBox, &QLineEdit::returnPressed, this,
           &EvidenceManager::applyFilterButtonClicked);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
-  connect(ui->evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
-  connect(ui->evidenceTable, &QTableWidget::customContextMenuRequested, this,
+  connect(evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
+  connect(evidenceTable, &QTableWidget::customContextMenuRequested, this,
           &EvidenceManager::openTableContextMenu);
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
@@ -94,7 +175,14 @@ void EvidenceManager::wireUi() {
   connect(this, &EvidenceManager::evidenceChanged, evidenceEditor, &EvidenceEditor::updateEvidence);
 }
 
+void EvidenceManager::showEvent(QShowEvent* evt) {
+  QDialog::showEvent(evt);
+  evidenceEditor->updateEvidence(-1, true);
+  resetFilterButtonClicked();
+}
+
 void EvidenceManager::submitEvidenceTriggered() {
+  loadingAnimation->startAnimation();
   if (saveData()) {
     evidenceIDForRequest = selectedRowEvidenceID();
     try {
@@ -136,7 +224,7 @@ void EvidenceManager::deleteEvidenceTriggered() {
 }
 
 void EvidenceManager::openTableContextMenu(QPoint pos) {
-  evidenceTableContextMenu->popup(ui->evidenceTable->viewport()->mapToGlobal(pos));
+  evidenceTableContextMenu->popup(evidenceTable->viewport()->mapToGlobal(pos));
 }
 
 void EvidenceManager::applyFilterButtonClicked() { loadEvidence(); }
@@ -144,45 +232,45 @@ void EvidenceManager::applyFilterButtonClicked() { loadEvidence(); }
 void EvidenceManager::resetFilterButtonClicked() {
   EvidenceFilters filter;
   filter.operationSlug = AppSettings::getInstance().operationSlug();
-  ui->filterTextBox->setText(filter.toString());
+  filterTextBox->setText(filter.toString());
   loadEvidence();
 }
 
 void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
-  ui->filterTextBox->setText(filter.toString());
+  filterTextBox->setText(filter.toString());
   applyFilterButtonClicked();
 }
 
 void EvidenceManager::loadEvidence() {
-  ui->evidenceTable->clearContents();
+  evidenceTable->clearContents();
 
   try {
-    auto filter = EvidenceFilters::parseFilter(ui->filterTextBox->text());
+    auto filter = EvidenceFilters::parseFilter(filterTextBox->text());
     std::vector<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
-    ui->evidenceTable->setRowCount(operationEvidence.size());
+    evidenceTable->setRowCount(operationEvidence.size());
 
     // removing sorting temporarily to solve a bug (per qt: not a bug)
     // Essentially, _not_ doing this breaks reloading the table. Mostly empty cells appear.
     // from: https://stackoverflow.com/a/8904287/4262552
     // see also: https://bugreports.qt.io/browse/QTBUG-75479
-    ui->evidenceTable->setSortingEnabled(false);
+    evidenceTable->setSortingEnabled(false);
     for (size_t row = 0; row < operationEvidence.size(); row++) {
       auto evi = operationEvidence.at(row);
       auto rowData = buildBaseEvidenceRow(evi.id);
 
-      ui->evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
-      ui->evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
-      ui->evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
-      ui->evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
-      ui->evidenceTable->setItem(row, COL_PATH, rowData.path);
-      ui->evidenceTable->setItem(row, COL_FAILED, rowData.failed);
-      ui->evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
-      ui->evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
-      ui->evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
+      evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
+      evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
+      evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
+      evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
+      evidenceTable->setItem(row, COL_PATH, rowData.path);
+      evidenceTable->setItem(row, COL_FAILED, rowData.failed);
+      evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
+      evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
+      evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
 
       setRowText(row, evi);
     }
-    ui->evidenceTable->setSortingEnabled(true);
+    evidenceTable->setSortingEnabled(true);
   }
   catch (QSqlError& e) {
     std::cout << "Could not retrieve evidence for operation. Error: " << e.text().toStdString()
@@ -221,17 +309,20 @@ EvidenceRow EvidenceManager::buildBaseEvidenceRow(qint64 evidenceID) {
 void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   static QString dateFormat = "MMM dd, yyyy hh:mm";
 
-  ui->evidenceTable->item(row, COL_DATE_CAPTURED)->setText(model.recordedDate.toString(dateFormat));
-  ui->evidenceTable->item(row, COL_DESCRIPTION)->setText(model.description);
-  ui->evidenceTable->item(row, COL_OPERATION)->setText(model.operationSlug);
-  ui->evidenceTable->item(row, COL_CONTENT_TYPE)->setText(model.contentType);
-  ui->evidenceTable->item(row, COL_SUBMITTED)->setText(model.uploadDate.isNull() ? "No" : "Yes");
-  ui->evidenceTable->item(row, COL_FAILED)->setText((model.errorText == "") ? "" : "Yes");
-  ui->evidenceTable->item(row, COL_PATH)->setText(model.path);
-  ui->evidenceTable->item(row, COL_ERROR_MSG)->setText(model.errorText);
+  auto setColText = [this, row](int col, QString text) {
+    evidenceTable->item(row, col)->setText(text);
+  };
+  setColText(COL_DATE_CAPTURED, model.recordedDate.toString(dateFormat));
+  setColText(COL_DESCRIPTION, model.description);
+  setColText(COL_OPERATION, model.operationSlug);
+  setColText(COL_CONTENT_TYPE, model.contentType);
+  setColText(COL_SUBMITTED, model.uploadDate.isNull() ? "No" : "Yes");
+  setColText(COL_FAILED, model.errorText == "" ? "" : "Yes");
+  setColText(COL_PATH, model.path);
+  setColText(COL_ERROR_MSG, model.errorText);
 
   auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toString(dateFormat);
-  ui->evidenceTable->item(row, COL_DATE_SUBMITTED)->setText(uploadDateText);
+  setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 
 void EvidenceManager::refreshRow(int row) {
@@ -248,7 +339,7 @@ void EvidenceManager::refreshRow(int row) {
 bool EvidenceManager::saveData() {
   auto saveResponse = evidenceEditor->saveEvidence();
   if (saveResponse.actionSucceeded) {
-    refreshRow(ui->evidenceTable->currentRow());
+    refreshRow(evidenceTable->currentRow());
     return true;
   }
 
@@ -260,7 +351,7 @@ bool EvidenceManager::saveData() {
 }
 
 void EvidenceManager::openFiltersMenu() {
-  filterForm->setForm(EvidenceFilters::parseFilter(ui->filterTextBox->text()));
+  filterForm->setForm(EvidenceFilters::parseFilter(filterTextBox->text()));
   filterForm->open();
 }
 
@@ -311,13 +402,15 @@ void EvidenceManager::onUploadComplete() {
     }
     emit evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }
-  refreshRow(ui->evidenceTable->currentRow());
+  refreshRow(evidenceTable->currentRow());
 
   // we don't actually need anything from the uploadAssets reply, so just clean it up.
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
+  loadingAnimation->stopAnimation();
+
   tidyReply(&uploadAssetReply);
 }
 
 qint64 EvidenceManager::selectedRowEvidenceID() {
-  return ui->evidenceTable->currentItem()->data(Qt::UserRole).toLongLong();
+  return evidenceTable->currentItem()->data(Qt::UserRole).toLongLong();
 }
