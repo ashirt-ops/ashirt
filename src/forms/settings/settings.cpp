@@ -53,7 +53,6 @@ Settings::~Settings() {
   delete testConnectionButton;
   delete eviRepoBrowseButton;
   delete buttonBox;
-  delete spacer;
 
   delete gridLayout;
 
