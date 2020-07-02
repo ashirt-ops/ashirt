@@ -159,11 +159,10 @@ void EvidenceManager::wireUi() {
   auto btnClicked = &QPushButton::clicked;
   auto actionTriggered = &QAction::triggered;
 
-  connect(applyFilterButton, btnClicked, this, &EvidenceManager::applyFilterButtonClicked);
+  connect(applyFilterButton, btnClicked, this, &EvidenceManager::loadEvidence);
   connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
-  connect(filterTextBox, &QLineEdit::returnPressed, this,
-          &EvidenceManager::applyFilterButtonClicked);
+  connect(filterTextBox, &QLineEdit::returnPressed, this, &EvidenceManager::loadEvidence);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
   connect(evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
@@ -183,6 +182,7 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
 
 void EvidenceManager::submitEvidenceTriggered() {
   loadingAnimation->startAnimation();
+  evidenceTable->setEnabled(false); // prevent switching evidence while one is being submitted.
   if (saveData()) {
     evidenceIDForRequest = selectedRowEvidenceID();
     try {
@@ -191,6 +191,8 @@ void EvidenceManager::submitEvidenceTriggered() {
       connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
     }
     catch (QSqlError& e) {
+      evidenceTable->setEnabled(true);
+      loadingAnimation->stopAnimation();
       QMessageBox::warning(this, "Cannot submit evidence",
                            "Could not retrieve data. Please try again.");
     }
@@ -227,8 +229,6 @@ void EvidenceManager::openTableContextMenu(QPoint pos) {
   evidenceTableContextMenu->popup(evidenceTable->viewport()->mapToGlobal(pos));
 }
 
-void EvidenceManager::applyFilterButtonClicked() { loadEvidence(); }
-
 void EvidenceManager::resetFilterButtonClicked() {
   EvidenceFilters filter;
   filter.operationSlug = AppSettings::getInstance().operationSlug();
@@ -238,7 +238,7 @@ void EvidenceManager::resetFilterButtonClicked() {
 
 void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
   filterTextBox->setText(filter.toString());
-  applyFilterButtonClicked();
+  loadEvidence();
 }
 
 void EvidenceManager::loadEvidence() {
@@ -407,6 +407,7 @@ void EvidenceManager::onUploadComplete() {
   // we don't actually need anything from the uploadAssets reply, so just clean it up.
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
   loadingAnimation->stopAnimation();
+  evidenceTable->setEnabled(true);
 
   tidyReply(&uploadAssetReply);
 }

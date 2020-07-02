@@ -16,7 +16,8 @@
 #include "db/databaseconnection.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 
-// QTableWidget should memory-manage this data.
+/// EvidenceRow contains the necessary data for a full row in the evidence table.
+/// QTableWidget should memory-manage this data.
 struct EvidenceRow {
   QTableWidgetItem* dateCaptured;
   QTableWidgetItem* description;
@@ -80,8 +81,6 @@ class EvidenceManager : public QDialog {
   void submitEvidenceTriggered();
   /// deleteEvidenceTriggered recieves the triggered event from the delete action
   void deleteEvidenceTriggered();
-  /// applyFilterButtonClicked recieves the apply filter button clicked event
-  void applyFilterButtonClicked();
   /// resetFilterButtonClicked recieves the reset filter button clicked event
   void resetFilterButtonClicked();
   /// applyFilterForm updates the filter textbox to reflect the filter options chosen in the filter
@@ -117,7 +116,6 @@ class EvidenceManager : public QDialog {
   QLineEdit* filterTextBox = nullptr;
   QTableWidget* evidenceTable = nullptr;
   EvidenceEditor* evidenceEditor = nullptr;
-
   QProgressIndicator* loadingAnimation = nullptr;
   QSpacerItem* spacer = nullptr;
 };
