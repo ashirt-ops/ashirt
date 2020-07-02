@@ -39,16 +39,6 @@
      </property>
     </spacer>
    </item>
-   <item row="5" column="1">
-    <widget class="QPushButton" name="deleteEvidenceButton">
-     <property name="text">
-      <string>Delete</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1" colspan="5">
     <widget class="QLabel" name="_evidenceEditorPlaceholder">
      <property name="sizePolicy">
@@ -175,16 +165,6 @@
        <string>Error</string>
       </property>
      </column>
-    </widget>
-   </item>
-   <item row="5" column="5">
-    <widget class="QPushButton" name="submitEvidenceButton">
-     <property name="text">
-      <string>Submit</string>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
     </widget>
    </item>
   </layout>

@@ -34,21 +34,21 @@ enum ColumnIndexes {
 EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
     : QDialog(parent), ui(new Ui::EvidenceManager) {
   ui->setupUi(this);
-
   this->db = db;
-  this->evidenceIDForRequest = 0;  // initializing to remove clang-tidy warning
+
   evidenceEditor = new EvidenceEditor(db, this);
   filterForm = new EvidenceFilterForm(this);
-  submitButton =
-      new LoadingButton(ui->submitEvidenceButton->text(), this, ui->submitEvidenceButton);
+
+  evidenceTableContextMenu = new QMenu(this);
+  submitEvidenceAction = new QAction("Submit Evidence", evidenceTableContextMenu);
+  evidenceTableContextMenu->addAction(submitEvidenceAction);
+  deleteEvidenceAction = new QAction("Delete Evidence", evidenceTableContextMenu);
+  evidenceTableContextMenu->addAction(deleteEvidenceAction);
+  ui->evidenceTable->setContextMenuPolicy(Qt::CustomContextMenu);
 
   // Replace the _evidenceEditorPlaceholder with a proper editor
   UiHelpers::replacePlaceholder(ui->_evidenceEditorPlaceholder, evidenceEditor, ui->gridLayout);
   evidenceEditor->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-
-  UiHelpers::replacePlaceholder(ui->submitEvidenceButton, submitButton, ui->gridLayout);
-  ui->submitEvidenceButton->setVisible(false);
-  ui->gridLayout->removeWidget(ui->submitEvidenceButton);
 
   wireUi();
 }
@@ -57,7 +57,9 @@ EvidenceManager::~EvidenceManager() {
   delete ui;
   delete evidenceEditor;
   delete filterForm;
-  delete submitButton;
+  delete submitEvidenceAction;
+  delete deleteEvidenceAction;
+  delete evidenceTableContextMenu;
   stopReply(&uploadAssetReply);
 }
 
@@ -72,10 +74,10 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
 }
 
 void EvidenceManager::wireUi() {
+  // remap events to shorten the connect lines
   auto btnClicked = &QPushButton::clicked;
-  connect(submitButton, btnClicked, this, &EvidenceManager::submitEvidenceButtonClicked);
-  connect(ui->deleteEvidenceButton, btnClicked, this,
-          &EvidenceManager::deleteEvidenceButtonClicked);
+  auto actionTriggered = &QAction::triggered;
+
   connect(ui->applyFilterButton, btnClicked, this, &EvidenceManager::applyFilterButtonClicked);
   connect(ui->resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(ui->editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
@@ -83,14 +85,16 @@ void EvidenceManager::wireUi() {
           &EvidenceManager::applyFilterButtonClicked);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
-  connect(ui->evidenceTable, &QTableWidget::currentCellChanged, this,
-          &EvidenceManager::onRowChanged);
+  connect(ui->evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
+  connect(ui->evidenceTable, &QTableWidget::customContextMenuRequested, this,
+          &EvidenceManager::openTableContextMenu);
+  connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
+  connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
+
   connect(this, &EvidenceManager::evidenceChanged, evidenceEditor, &EvidenceEditor::updateEvidence);
 }
 
-void EvidenceManager::submitEvidenceButtonClicked() {
-  submitButton->startAnimation();
-  setActionButtonsEnabled(false);
+void EvidenceManager::submitEvidenceTriggered() {
   if (saveData()) {
     evidenceIDForRequest = selectedRowEvidenceID();
     try {
@@ -105,7 +109,7 @@ void EvidenceManager::submitEvidenceButtonClicked() {
   }
 }
 
-void EvidenceManager::deleteEvidenceButtonClicked() {
+void EvidenceManager::deleteEvidenceTriggered() {
   auto reply = QMessageBox::question(this, "Discard Evidence",
                                      "Are you sure you want to discard this evidence? This will "
                                      "only delete this evidence on your computer.",
@@ -131,6 +135,10 @@ void EvidenceManager::deleteEvidenceButtonClicked() {
   }
 }
 
+void EvidenceManager::openTableContextMenu(QPoint pos) {
+  evidenceTableContextMenu->popup(ui->evidenceTable->viewport()->mapToGlobal(pos));
+}
+
 void EvidenceManager::applyFilterButtonClicked() { loadEvidence(); }
 
 void EvidenceManager::resetFilterButtonClicked() {
@@ -146,7 +154,6 @@ void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
 }
 
 void EvidenceManager::loadEvidence() {
-  enableEvidenceButtons(false);
   ui->evidenceTable->clearContents();
 
   try {
@@ -238,15 +245,6 @@ void EvidenceManager::refreshRow(int row) {
   }
 }
 
-void EvidenceManager::setActionButtonsEnabled(bool enabled) {
-  enableEvidenceButtons(enabled);
-}
-
-void EvidenceManager::enableEvidenceButtons(bool enabled) {
-  submitButton->setEnabled(enabled);
-  ui->deleteEvidenceButton->setEnabled(enabled);
-}
-
 bool EvidenceManager::saveData() {
   auto saveResponse = evidenceEditor->saveEvidence();
   if (saveResponse.actionSucceeded) {
@@ -273,16 +271,14 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   Q_UNUSED(_previousColumn);
 
   if (currentRow == -1) {
-    enableEvidenceButtons(false);
     emit evidenceChanged(-1, true);
     return;
   }
 
   auto evidence = db->getEvidenceDetails(selectedRowEvidenceID());
-  enableEvidenceButtons(true);
 
   auto readonly = evidence.uploadDate.isValid();
-  submitButton->setEnabled(!readonly);
+  submitEvidenceAction->setEnabled(!readonly);
   emit evidenceChanged(evidence.id, true);
 }
 
@@ -319,8 +315,6 @@ void EvidenceManager::onUploadComplete() {
 
   // we don't actually need anything from the uploadAssets reply, so just clean it up.
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
-  submitButton->stopAnimation();
-
   tidyReply(&uploadAssetReply);
 }
 
