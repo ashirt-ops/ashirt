@@ -200,7 +200,7 @@ void Settings::closeEvent(QCloseEvent *event) {
 
 void Settings::onCancelClicked() {
   stopReply(&currentTestReply);
-  close();
+  reject();
 }
 
 void Settings::onSaveClicked() {
