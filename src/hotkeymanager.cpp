@@ -40,14 +40,12 @@ void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
 
 void HotkeyManager::updateHotkeys() {
   hotkeyManager->unregisterAllHotkeys();
-  if (!AppSettings::getInstance().isOperationPaused()) {
-    auto regKey = [this](QString combo, GlobalHotkeyEvent evt){
-      if (combo != "") {
-        registerKey(combo, evt);
-      }
-    };
-    regKey(AppConfig::getInstance().screenshotShortcutCombo, ACTION_CAPTURE_AREA);
-    regKey(AppConfig::getInstance().captureWindowShortcut, ACTION_CAPTURE_WINDOW);
-    regKey(AppConfig::getInstance().captureCodeblockShortcut, ACTION_CAPTURE_CODEBLOCK);
-  }
+  auto regKey = [this](QString combo, GlobalHotkeyEvent evt) {
+    if (combo != "") {
+      registerKey(combo, evt);
+    }
+  };
+  regKey(AppConfig::getInstance().screenshotShortcutCombo, ACTION_CAPTURE_AREA);
+  regKey(AppConfig::getInstance().captureWindowShortcut, ACTION_CAPTURE_WINDOW);
+  regKey(AppConfig::getInstance().captureCodeblockShortcut, ACTION_CAPTURE_CODEBLOCK);
 }
