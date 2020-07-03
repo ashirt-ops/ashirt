@@ -13,6 +13,10 @@ class SingleStrokeKeySequenceEdit : public QKeySequenceEdit
  protected:
   void keyPressEvent(QKeyEvent *evt) override;
 
+  bool eventFilter(QObject *object, QEvent *event) override;
+
+ private:
+  QKeySequence previousSequence;
 };
 
 #endif // SINGLESTROKEKEYSEQUENCEEDIT_H
