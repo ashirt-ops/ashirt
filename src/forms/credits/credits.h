@@ -4,6 +4,7 @@
 #ifndef CREDITS_H
 #define CREDITS_H
 
+#include <QAction>
 #include <QDialog>
 
 namespace Ui {
@@ -19,6 +20,7 @@ class Credits : public QDialog {
 
  private:
   Ui::Credits *ui;
+  QAction* closeWindowAction = nullptr;
 };
 
 #endif  // CREDITS_H

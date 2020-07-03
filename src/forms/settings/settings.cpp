@@ -5,6 +5,7 @@
 
 #include <QDateTime>
 #include <QFileDialog>
+#include <QKeySequence>
 #include <QString>
 
 #include "appconfig.h"
@@ -17,15 +18,8 @@
 #include "hotkeymanager.h"
 
 Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
-  buildUi();
   this->hotkeyManager = hotkeyManager;
-
-  // Make the dialog pop up above any other windows but retain title bar and buttons
-  Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
-           Qt::WindowCloseButtonHint;
-  this->setWindowFlags(flags);
-
+  buildUi();
   wireUi();
 }
 
@@ -58,6 +52,7 @@ Settings::~Settings() {
 
   delete couldNotSaveSettingsMsg;
   stopReply(&currentTestReply);
+  delete closeWindowAction;
 }
 
 void Settings::buildUi() {
@@ -159,16 +154,27 @@ void Settings::buildUi() {
   // row 9
   gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
+  this->setLayout(gridLayout);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(760, 300);
   this->setWindowTitle("Settings");
-  this->setLayout(gridLayout);
+
+  // Make the dialog pop up above any other windows but retain title bar and buttons
+  Qt::WindowFlags flags = this->windowFlags();
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
+  this->setWindowFlags(flags);
 }
 
 void Settings::wireUi() {
   connect(buttonBox, &QDialogButtonBox::clicked, this, &Settings::routeButtonPress);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
+  connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
 }
 
 void Settings::routeButtonPress(QAbstractButton *btn) {

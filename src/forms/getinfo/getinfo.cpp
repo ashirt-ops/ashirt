@@ -4,6 +4,7 @@
 #include "getinfo.h"
 
 #include <QMessageBox>
+#include <QKeySequence>
 
 #include "appsettings.h"
 #include "components/evidence_editor/evidenceeditor.h"
@@ -26,11 +27,16 @@ GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
   UiHelpers::replacePlaceholder(ui->evidenceEditorPlaceholder, evidenceEditor, ui->gridLayout);
   UiHelpers::replacePlaceholder(ui->submitButton, loadingButton, ui->gridLayout);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
   wireUi();
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
 }
 
@@ -38,12 +44,14 @@ GetInfo::~GetInfo() {
   delete ui;
   delete evidenceEditor;
   delete loadingButton;
+  delete closeWindowAction;
   stopReply(&uploadAssetReply);
 }
 
 void GetInfo::wireUi() {
   connect(loadingButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
   connect(ui->deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
+  connect(closeWindowAction, &QAction::triggered, this, &GetInfo::deleteButtonClicked);
 }
 
 bool GetInfo::saveData() {

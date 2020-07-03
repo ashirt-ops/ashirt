@@ -3,6 +3,8 @@
 
 #include "evidencefilterform.h"
 
+#include <QKeySequence>
+
 #include "appsettings.h"
 #include "helpers/netman.h"
 #include "helpers/ui_helpers.h"
@@ -40,12 +42,24 @@ EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
   initializeDateEdit(ui->fromDateEdit);
   initializeDateEdit(ui->toDateEdit);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
   wireUi();
 }
 
-EvidenceFilterForm::~EvidenceFilterForm() { delete ui; }
+EvidenceFilterForm::~EvidenceFilterForm() {
+  delete ui;
+  delete closeWindowAction;
+}
 
 void EvidenceFilterForm::wireUi() {
+  ui->erroredComboBox->installEventFilter(this);
+  ui->operationComboBox->installEventFilter(this);
+  ui->submittedComboBox->installEventFilter(this);
+  ui->contentTypeComboBox->installEventFilter(this);
+
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &EvidenceFilterForm::onOperationListUpdated);
   connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeForm);
@@ -54,6 +68,8 @@ void EvidenceFilterForm::wireUi() {
           [this](bool checked) { ui->fromDateEdit->setEnabled(checked); });
   connect(ui->includeEndDateCheckBox, &QCheckBox::stateChanged,
           [this](bool checked) { ui->toDateEdit->setEnabled(checked); });
+
+  connect(closeWindowAction, &QAction::triggered, [this](){writeForm(); close();});
 }
 
 void EvidenceFilterForm::writeForm() {

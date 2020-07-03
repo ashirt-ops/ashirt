@@ -5,6 +5,7 @@
 #include "ui_credits.h"
 
 #include <QDateTime>
+#include <QKeySequence>
 
 struct Attribution {
   std::string library;
@@ -112,8 +113,19 @@ Credits::Credits(QWidget* parent) : QDialog(parent), ui(new Ui::Credits) {
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
+           Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
+
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
+  connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
 }
 
-Credits::~Credits() { delete ui; }
+Credits::~Credits() {
+  delete ui;
+  delete closeWindowAction;
+}
+

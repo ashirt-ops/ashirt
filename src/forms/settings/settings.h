@@ -4,6 +4,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <QAction>
 #include <QCloseEvent>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -64,6 +65,7 @@ class Settings : public QDialog {
   HotkeyManager* hotkeyManager;
 
   QNetworkReply* currentTestReply = nullptr;
+  QAction* closeWindowAction = nullptr;
 
   // UI components
   QGridLayout* gridLayout = nullptr;
