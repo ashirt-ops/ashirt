@@ -176,6 +176,7 @@ void Settings::wireUi() {
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
   AppConfig &inst = AppConfig::getInstance();
+  eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
   eviRepoTextBox->setText(inst.evidenceRepo);
