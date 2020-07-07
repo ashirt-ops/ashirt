@@ -16,6 +16,7 @@
 #include "dtos/tag.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
+#include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 
@@ -56,6 +57,7 @@ EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent) : QDia
 EvidenceManager::~EvidenceManager() {
   delete submitEvidenceAction;
   delete deleteEvidenceAction;
+  delete copyPathToClipboardAction;
   delete closeWindowAction;
   delete evidenceTableContextMenu;
   delete filterForm;
@@ -95,6 +97,8 @@ void EvidenceManager::buildUi() {
   evidenceTableContextMenu->addAction(submitEvidenceAction);
   deleteEvidenceAction = new QAction("Delete Evidence", evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(deleteEvidenceAction);
+  copyPathToClipboardAction = new QAction("Copy Path", evidenceTableContextMenu);
+  evidenceTableContextMenu->addAction(copyPathToClipboardAction);
 
   filterTextBox = new QLineEdit(this);
   editFiltersButton = new QPushButton("Edit Filters", this);
@@ -173,6 +177,7 @@ void EvidenceManager::wireUi() {
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
   connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
+  connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
 
@@ -233,7 +238,19 @@ void EvidenceManager::deleteEvidenceTriggered() {
   }
 }
 
+void EvidenceManager::copyPathTriggered() {
+  auto evidence = db->getEvidenceDetails(selectedRowEvidenceID());
+  ClipboardHelper::setText(evidence.path);
+}
+
 void EvidenceManager::openTableContextMenu(QPoint pos) {
+  int selectedRowCount = evidenceTable->selectionModel()->selectedRows().count();
+  if (selectedRowCount == 0) {
+    return;
+  }
+  bool singleItemSelected = selectedRowCount == 1;
+  copyPathToClipboardAction->setEnabled(singleItemSelected);
+
   evidenceTableContextMenu->popup(evidenceTable->viewport()->mapToGlobal(pos));
 }
 

@@ -15,6 +15,7 @@ class ClipboardHelper : public QObject {
  public:
   static QString readPlaintext();
   static QPixmap readImage();
+  static void setText(QString text);
 
  signals:
 };

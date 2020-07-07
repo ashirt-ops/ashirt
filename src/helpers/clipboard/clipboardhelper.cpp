@@ -27,3 +27,8 @@ QPixmap ClipboardHelper::readImage() {
   }
   return data;
 }
+
+void ClipboardHelper::setText(QString text) {
+  auto clipboard = QApplication::clipboard();
+  clipboard->setText(text);
+}

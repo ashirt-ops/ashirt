@@ -94,6 +94,9 @@ class EvidenceManager : public QDialog {
   /// onUploadComplete is triggered when the upload response has been received.
   void onUploadComplete();
 
+  /// copyPathTriggered recives the triggered event from the copyPathToClipboardAction
+  void copyPathTriggered();
+
  private:
   /// db is a (shared) reference to the local database instance. Not to be deleted.
   DatabaseConnection* db;
@@ -108,6 +111,7 @@ class EvidenceManager : public QDialog {
   QAction* submitEvidenceAction = nullptr;
   QAction* deleteEvidenceAction = nullptr;
   QAction* closeWindowAction = nullptr;
+  QAction* copyPathToClipboardAction = nullptr;
 
   // UI Elements
   QGridLayout* gridLayout = nullptr;
