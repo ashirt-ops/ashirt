@@ -36,6 +36,9 @@ jobs:
     - name: Set artifact name
       run: echo "::set-env name=name::ascreen-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
 
+    - name: Check out code
+      uses: actions/checkout@v2 
+
     - name: Build (mac)
       if: matrix.os == 'macos-latest'
       run: |
