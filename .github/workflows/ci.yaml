@@ -28,37 +28,25 @@ jobs:
     needs: [store-sha8]
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
     steps:
     - name: Set artifact name
-      run: echo "::set-env name=name::aterm-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
+      run: echo "::set-env name=name::ascreen-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
-      id: go
-
-    - name: Install go tools
+    - name: Build (mac)
+      if: matrix.os == macos-latest
       run: |
-        go get golang.org/x/lint/golint
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2 
-    - name: Build Repo
-      run: go build -v ./...
-
-    - name: Build Executable
-      run: go build -o cmd/aterm/aterm cmd/aterm/*.go
-
-    - name: package
-      run: |
+        brew install qt
+        export PATH="/usr/local/opt/qt/bin:$PATH"
+        brew link -f qt
+        qmake -config release
+        make
+        macdeployqt ascreen.app
         mkdir dist
-        cp cmd/aterm/aterm dist/
-        cp cmd/aterm/example.config.yaml dist/config.yaml
+        cp -r ascreen.app dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
@@ -94,23 +82,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [darwin, linux]
+        platform: [darwin]
     steps:
       - name: Set Version
         run: echo "::set-env name=version::$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)"
       - name: Download Previous Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: aterm-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
-          path: aterm-${{ env.version }}-${{ matrix.platform }}
+          name: ascreen-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
+          path: ascreen-${{ env.version }}-${{ matrix.platform }}
       - name: Produce Zip
-        run: zip -r aterm-${{ env.version }}-${{ matrix.platform }}.zip aterm-${{ env.version }}-${{ matrix.platform }}
+        run: zip -r ascreen-${{ env.version }}-${{ matrix.platform }}.zip ascreen-${{ env.version }}-${{ matrix.platform }}
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: aterm-${{ env.version }}-${{ matrix.platform }}.zip
-          asset_name: aterm-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_path: ascreen-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_name: ascreen-${{ env.version }}-${{ matrix.platform }}.zip
           asset_content_type: application/zip
