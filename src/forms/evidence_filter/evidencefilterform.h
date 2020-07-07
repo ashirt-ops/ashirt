@@ -6,6 +6,7 @@
 
 #include <QComboBox>
 #include <QDialog>
+#include <QAction>
 
 #include "src/db/databaseconnection.h"
 #include "src/dtos/operation.h"
@@ -37,6 +38,8 @@ class EvidenceFilterForm : public QDialog {
 
  private:
   Ui::EvidenceFilterForm *ui;
+
+  QAction* closeWindowAction = nullptr;
 };
 
 #endif  // EVIDENCEFILTERFORM_H

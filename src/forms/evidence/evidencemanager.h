@@ -110,6 +110,7 @@ class EvidenceManager : public QDialog {
 
   QAction* submitEvidenceAction = nullptr;
   QAction* deleteEvidenceAction = nullptr;
+  QAction* closeWindowAction = nullptr;
   QAction* copyPathToClipboardAction = nullptr;
 
   // UI Elements

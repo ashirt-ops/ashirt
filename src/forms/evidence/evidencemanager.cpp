@@ -5,6 +5,7 @@
 
 #include <QCheckBox>
 #include <QHeaderView>
+#include <QKeySequence>
 #include <QMessageBox>
 #include <QRandomGenerator>
 #include <QStandardPaths>
@@ -15,9 +16,9 @@
 #include "dtos/tag.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
+#include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
-#include "helpers/clipboard/clipboardhelper.h"
 
 enum ColumnIndexes {
   COL_DATE_CAPTURED = 0,
@@ -57,6 +58,7 @@ EvidenceManager::~EvidenceManager() {
   delete submitEvidenceAction;
   delete deleteEvidenceAction;
   delete copyPathToClipboardAction;
+  delete closeWindowAction;
   delete evidenceTableContextMenu;
   delete filterForm;
   delete evidenceEditor;
@@ -151,6 +153,10 @@ void EvidenceManager::buildUi() {
   gridLayout->addWidget(loadingAnimation, 3, 0);
   gridLayout->addItem(spacer, 3, 1);
 
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(800, 600);
   this->setWindowTitle("Evidence Manager");
@@ -165,17 +171,20 @@ void EvidenceManager::wireUi() {
   connect(applyFilterButton, btnClicked, this, &EvidenceManager::loadEvidence);
   connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
+
   connect(filterTextBox, &QLineEdit::returnPressed, this, &EvidenceManager::loadEvidence);
 
+  connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
+  connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
+  connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
+  connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
+
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
+
+  connect(this, &EvidenceManager::evidenceChanged, evidenceEditor, &EvidenceEditor::updateEvidence);
   connect(evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
   connect(evidenceTable, &QTableWidget::customContextMenuRequested, this,
           &EvidenceManager::openTableContextMenu);
-  connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
-  connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
-  connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
-
-  connect(this, &EvidenceManager::evidenceChanged, evidenceEditor, &EvidenceEditor::updateEvidence);
 }
 
 void EvidenceManager::showEvent(QShowEvent* evt) {
@@ -186,7 +195,7 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
 
 void EvidenceManager::submitEvidenceTriggered() {
   loadingAnimation->startAnimation();
-  evidenceTable->setEnabled(false); // prevent switching evidence while one is being submitted.
+  evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
   if (saveData()) {
     evidenceIDForRequest = selectedRowEvidenceID();
     try {

@@ -4,6 +4,7 @@
 #ifndef GETINFO_H
 #define GETINFO_H
 
+#include <QAction>
 #include <QDialog>
 #include <QNetworkReply>
 
@@ -41,6 +42,7 @@ class GetInfo : public QDialog {
   qint64 evidenceID;
 
   EvidenceEditor *evidenceEditor;
+  QAction* closeWindowAction = nullptr;
 
   QNetworkReply *uploadAssetReply = nullptr;
   LoadingButton *loadingButton;
