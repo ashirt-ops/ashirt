@@ -16,6 +16,7 @@
 #include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
+#include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 
 Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
   this->hotkeyManager = hotkeyManager;
@@ -73,10 +74,10 @@ void Settings::buildUi() {
   secretKeyTextBox = new QLineEdit(this);
   hostPathTextBox = new QLineEdit(this);
   captureAreaCmdTextBox = new QLineEdit(this);
-  captureAreaShortcutTextBox = new QLineEdit(this);
+  captureAreaShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   captureWindowCmdTextBox = new QLineEdit(this);
-  captureWindowShortcutTextBox = new QLineEdit(this);
-  recordCodeblockShortcutTextBox = new QLineEdit(this);
+  captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
+  recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   eviRepoBrowseButton = new QPushButton("Browse", this);
   testConnectionButton = new LoadingButton("Test Connection", this);
   buttonBox = new QDialogButtonBox(this);
@@ -171,24 +172,17 @@ void Settings::buildUi() {
 }
 
 void Settings::wireUi() {
-  connect(buttonBox, &QDialogButtonBox::clicked, this, &Settings::routeButtonPress);
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
 }
 
-void Settings::routeButtonPress(QAbstractButton *btn) {
-  if (buttonBox->button(QDialogButtonBox::Save) == btn) {
-    onSaveClicked();
-  }
-  else if (buttonBox->button(QDialogButtonBox::Cancel) == btn) {
-    onCancelClicked();
-  }
-}
-
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
   AppConfig &inst = AppConfig::getInstance();
+  eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
   eviRepoTextBox->setText(inst.evidenceRepo);
@@ -196,10 +190,10 @@ void Settings::showEvent(QShowEvent *evt) {
   secretKeyTextBox->setText(inst.secretKey);
   hostPathTextBox->setText(inst.apiURL);
   captureAreaCmdTextBox->setText(inst.screenshotExec);
-  captureAreaShortcutTextBox->setText(inst.screenshotShortcutCombo);
+  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.screenshotShortcutCombo));
   captureWindowCmdTextBox->setText(inst.captureWindowExec);
-  captureWindowShortcutTextBox->setText(inst.captureWindowShortcut);
-  recordCodeblockShortcutTextBox->setText(inst.captureCodeblockShortcut);
+  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureWindowShortcut));
+  recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureCodeblockShortcut));
 
   // re-enable form
   connStatusLabel->setText("");
@@ -213,7 +207,7 @@ void Settings::closeEvent(QCloseEvent *event) {
 
 void Settings::onCancelClicked() {
   stopReply(&currentTestReply);
-  close();
+  reject();
 }
 
 void Settings::onSaveClicked() {
@@ -227,10 +221,10 @@ void Settings::onSaveClicked() {
   inst.secretKey = secretKeyTextBox->text();
   inst.apiURL = hostPathTextBox->text();
   inst.screenshotExec = captureAreaCmdTextBox->text();
-  inst.screenshotShortcutCombo = captureAreaShortcutTextBox->text();
+  inst.screenshotShortcutCombo = captureAreaShortcutTextBox->keySequence().toString();
   inst.captureWindowExec = captureWindowCmdTextBox->text();
-  inst.captureWindowShortcut = captureWindowShortcutTextBox->text();
-  inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->text();
+  inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
+  inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->keySequence().toString();
 
   try {
     inst.writeConfig();

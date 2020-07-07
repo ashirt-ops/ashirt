@@ -15,6 +15,7 @@
 #include <QNetworkReply>
 #include <QPushButton>
 #include <QSpacerItem>
+#include <QKeySequenceEdit>
 
 #include "components/loading_button/loadingbutton.h"
 #include "hotkeymanager.h"
@@ -44,8 +45,6 @@ class Settings : public QDialog {
   void onSaveClicked();
   /// onCancelClicked handles the discard operation. Used when the "Cancel" button is pressed.
   void onCancelClicked();
-  /// routeButtonPress maps QDialogButtonBox buttons to named buttons.
-  void routeButtonPress(QAbstractButton* btn);
 
  public slots:
   /// showEvent extends the native showEvent handler. Restores the UI to system values.
@@ -85,10 +84,10 @@ class Settings : public QDialog {
   QLineEdit* secretKeyTextBox = nullptr;
   QLineEdit* hostPathTextBox = nullptr;
   QLineEdit* captureAreaCmdTextBox = nullptr;
-  QLineEdit* captureAreaShortcutTextBox = nullptr;
+  QKeySequenceEdit* captureAreaShortcutTextBox = nullptr;
   QLineEdit* captureWindowCmdTextBox = nullptr;
-  QLineEdit* captureWindowShortcutTextBox = nullptr;
-  QLineEdit* recordCodeblockShortcutTextBox = nullptr;
+  QKeySequenceEdit* captureWindowShortcutTextBox = nullptr;
+  QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
