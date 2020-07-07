@@ -1,0 +1,116 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      'v*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # This is a super hacky way to get this into a place that can actually be
+  # used by downstream jobs because YAML values don't allow shell
+  # interpolation, only github expression interpolation
+  store-sha8:
+    name: Store The Short Hash
+    runs-on: ubuntu-latest
+    outputs:
+      sha8: ${{ steps.calc-short.outputs.sha8 }}
+    steps:
+      - name: Calculate Short Hash
+        id: calc-short
+        run: echo "::set-output name=sha8::${GITHUB_SHA::8}"
+
+
+  build:
+    name: Build
+    needs: [store-sha8]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Set artifact name
+      run: echo "::set-env name=name::aterm-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+      id: go
+
+    - name: Install go tools
+      run: |
+        go get golang.org/x/lint/golint
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2 
+    - name: Build Repo
+      run: go build -v ./...
+
+    - name: Build Executable
+      run: go build -o cmd/aterm/aterm cmd/aterm/*.go
+
+    - name: package
+      run: |
+        mkdir dist
+        cp cmd/aterm/aterm dist/
+        cp cmd/aterm/example.config.yaml dist/config.yaml
+        cp LICENSE dist/LICENSE
+        cp README.md dist/README.md
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.name }}
+        path: dist
+
+  release:
+    name: Create GitHub Release
+    if: contains(github.ref, 'tags/v')
+    needs: [store-sha8, build]
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  publish:
+    if: contains(github.ref, 'tags/v')
+    needs: [store-sha8, build, release]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [darwin, linux]
+    steps:
+      - name: Set Version
+        run: echo "::set-env name=version::$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)"
+      - name: Download Previous Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: aterm-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
+          path: aterm-${{ env.version }}-${{ matrix.platform }}
+      - name: Produce Zip
+        run: zip -r aterm-${{ env.version }}-${{ matrix.platform }}.zip aterm-${{ env.version }}-${{ matrix.platform }}
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: aterm-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_name: aterm-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_content_type: application/zip
