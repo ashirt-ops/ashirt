@@ -49,9 +49,9 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt -dmg ascreen.app
+        macdeployqt ascreen.app -dmg
         mkdir dist
-        cp -r ascreen.app dist/
+        cp -r ascreen.dmg dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
