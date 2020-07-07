@@ -38,6 +38,8 @@ jobs:
 
     - name: Check out code
       uses: actions/checkout@v2 
+      with:
+        submodule: true
 
     - name: Build (mac)
       if: matrix.os == 'macos-latest'
