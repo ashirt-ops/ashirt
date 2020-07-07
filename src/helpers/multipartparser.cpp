@@ -16,7 +16,7 @@
 #include <future>
 #include <iostream>
 
-const std::string MultipartParser::boundary_prefix_("----AScreenTrayApp");
+const std::string MultipartParser::boundary_prefix_("----ASHIRTTrayApp");
 const std::string MultipartParser::rand_chars_(
     "0123456789"
     "abcdefghijklmnopqrstuvwxyz"

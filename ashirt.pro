@@ -96,7 +96,8 @@ FORMS += \
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
-  ICON = icons/ascreen.icns
+  QMAKE_PROJECT_NAME = ASHIRT
+  ICON = icons/ashirt.icns
 }
 
 # Default rules for deployment.

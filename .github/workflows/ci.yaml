@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: Set artifact name
-      run: echo "::set-env name=name::ascreen-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
+      run: echo "::set-env name=name::ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
 
     - name: Check out code
       uses: actions/checkout@v2 
@@ -49,9 +49,9 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ascreen.app -dmg
+        macdeployqt ashirt.app -dmg
         mkdir dist
-        cp -r ascreen.dmg dist/
+        cp -r ashirt.dmg dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
@@ -94,16 +94,16 @@ jobs:
       - name: Download Previous Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: ascreen-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
-          path: ascreen-${{ env.version }}-${{ matrix.platform }}
+          name: ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
+          path: ashirt-${{ env.version }}-${{ matrix.platform }}
       - name: Produce Zip
-        run: zip -r ascreen-${{ env.version }}-${{ matrix.platform }}.zip ascreen-${{ env.version }}-${{ matrix.platform }}
+        run: zip -r ashirt-${{ env.version }}-${{ matrix.platform }}.zip ashirt-${{ env.version }}-${{ matrix.platform }}
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ascreen-${{ env.version }}-${{ matrix.platform }}.zip
-          asset_name: ascreen-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_path: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_name: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
           asset_content_type: application/zip

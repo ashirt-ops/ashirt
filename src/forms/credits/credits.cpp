@@ -82,8 +82,8 @@ static std::string copyrightDate() {
 }
 static std::string versionData() { return "Beta 1"; }
 
-static std::string userGuideUrl = "https://www.github.com/ascreen/blob/master/README.md";
-static std::string reportAnIssueUrl = "https://www.github.com/ascreen/issues";
+static std::string userGuideUrl = "https://www.github.com/ashirt-client/blob/master/README.md";
+static std::string reportAnIssueUrl = "https://www.github.com/ashirt-client/issues";
 
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
@@ -99,7 +99,7 @@ static std::string preambleMarkdown() {
 
 static std::string bodyMarkdown() {
   // clang-format off
-  return "# AScreen\n\n"
+  return "# ASHIRT\n\n"
           + preambleMarkdown()
           + "## Credits\n"
           + attributionMarkdown();
