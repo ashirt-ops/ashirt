@@ -96,7 +96,6 @@ FORMS += \
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
-  QMAKE_PROJECT_NAME = ASHIRT
   ICON = icons/ashirt.icns
 }
 
@@ -106,8 +105,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    bin/update_migration_resource.py \
-    sadbear.png
+    bin/update_migration_resource.py
 
 RESOURCES += \
     res_migrations.qrc \
