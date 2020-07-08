@@ -25,8 +25,10 @@ SOURCES += \
     src/components/error_view/errorview.cpp \
     src/components/evidence_editor/evidenceeditor.cpp \
     src/components/evidencepreview.cpp \
+    src/components/flow_layout/flowlayout.cpp \
     src/components/loading/qprogressindicator.cpp \
     src/components/loading_button/loadingbutton.cpp \
+    src/components/tagging/tagview.cpp \
     src/components/tagging/tagwidget.cpp \
     src/db/databaseconnection.cpp \
     src/forms/evidence_filter/evidencefilter.cpp \
@@ -54,8 +56,10 @@ HEADERS += \
     src/components/evidence_editor/evidenceeditor.h \
     src/components/evidence_editor/saveevidenceresponse.h \
     src/components/evidencepreview.h \
+    src/components/flow_layout/flowlayout.h \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
+    src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
     src/exceptions/databaseerr.h \
