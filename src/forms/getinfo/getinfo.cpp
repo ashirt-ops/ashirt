@@ -139,6 +139,7 @@ void GetInfo::onUploadComplete() {
   else {
     try {
       db->updateEvidenceSubmitted(this->evidenceID);
+      emit evidenceSubmitted(db->getEvidenceDetails(this->evidenceID));
       this->close();
     }
     catch (QSqlError& e) {

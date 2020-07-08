@@ -36,6 +36,10 @@ class GetInfo : public QDialog {
 
   void onUploadComplete();
 
+ public:
+ signals:
+  void evidenceSubmitted(model::Evidence evidence);
+
  private:
   Ui::GetInfo *ui;
   DatabaseConnection *db;

@@ -7,6 +7,8 @@
 #include <QSettings>
 #include <QString>
 
+#include "models/tag.h"
+
 // AppSettings is a singleton construct for accessing the application's settings. This is different
 // from configuration, as it represents the application's state, rather than how the application
 // communicates.
@@ -29,6 +31,7 @@ class AppSettings : public QObject {
 
   const char *opSlugSetting = "operation/slug";
   const char *opNameSetting = "operation/name";
+  const char *lastUsedTagsSetting = "gather/tags";
 
   AppSettings() : QObject(nullptr) {}
 
@@ -51,5 +54,13 @@ class AppSettings : public QObject {
   }
   QString operationSlug() { return settings.value(opSlugSetting).toString(); }
   QString operationName() { return settings.value(opNameSetting).toString(); }
+
+  void setLastUsedTags(std::vector<model::Tag> lastTags) {
+    settings.setValue(lastUsedTagsSetting, QVariant::fromValue(lastTags));
+  }
+  std::vector<model::Tag> getLastUsedTags() {
+    auto val = settings.value(lastUsedTagsSetting);
+    return qvariant_cast<std::vector<model::Tag>>(val);
+  }
 };
 #endif  // APPSETTINGS_H

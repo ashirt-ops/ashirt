@@ -175,15 +175,36 @@ void TrayManager::createActions() {
   chooseOpSubmenu->addSeparator();
 }
 
+void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
+  auto getInfoWindow = new GetInfo(db, evidenceID, this);
+  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](model::Evidence evi){
+    AppSettings::getInstance().setLastUsedTags(evi.tags);
+  });
+  getInfoWindow->show();
+}
+
+qint64 TrayManager::createNewEvidence(QString filepath, QString evidenceType) {
+  AppSettings& inst = AppSettings::getInstance();
+  auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), evidenceType);
+  auto tags = inst.getLastUsedTags();
+  if (tags.size() > 0) {
+    db->setEvidenceTags(tags, evidenceID);
+  }
+  return evidenceID;
+}
+
 void TrayManager::onCodeblockCapture() {
   QString clipboardContent = ClipboardHelper::readPlaintext();
   if (clipboardContent != "") {
     Codeblock evidence(clipboardContent);
     Codeblock::saveCodeblock(evidence);
-    auto evidenceID = db->createEvidence(evidence.filePath(),
-                                         AppSettings::getInstance().operationSlug(), "codeblock");
-    auto getInfoWindow = new GetInfo(db, evidenceID, this);
-    getInfoWindow->show();
+    try {
+      auto evidenceID = createNewEvidence(evidence.filePath(), "codeblock");
+      spawnGetInfoWindow(evidenceID);
+    }
+    catch (QSqlError& e) {
+      std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
+    }
   }
 }
 
@@ -207,11 +228,9 @@ void TrayManager::createTrayMenu() {
 }
 
 void TrayManager::onScreenshotCaptured(const QString& path) {
-  std::cout << "Captured screenshot to file: " << path.toStdString() << std::endl;
   try {
-    auto evidenceID = db->createEvidence(path, AppSettings::getInstance().operationSlug(), "image");
-    auto getInfoWindow = new GetInfo(db, evidenceID, this);
-    getInfoWindow->show();
+    auto evidenceID = createNewEvidence(path, "image");
+    spawnGetInfoWindow(evidenceID);
   }
   catch (QSqlError& e) {
     std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
@@ -245,6 +264,7 @@ void TrayManager::onOperationListUpdated(bool success,
       }
 
       connect(newAction, &QAction::triggered, [this, newAction, op] {
+        AppSettings::getInstance().setLastUsedTags(std::vector<model::Tag>{}); // clear last used tags
         AppSettings::getInstance().setOperationDetails(op.slug, op.name);
         if (selectedAction != nullptr) {
           selectedAction->setChecked(false);
