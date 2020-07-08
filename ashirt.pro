@@ -96,7 +96,7 @@ FORMS += \
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
-  ICON = icons/ascreen.icns
+  ICON = icons/ashirt.icns
 }
 
 # Default rules for deployment.
@@ -105,8 +105,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    bin/update_migration_resource.py \
-    sadbear.png
+    bin/update_migration_resource.py
 
 RESOURCES += \
     res_migrations.qrc \
