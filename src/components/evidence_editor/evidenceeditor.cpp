@@ -124,13 +124,7 @@ void EvidenceEditor::loadData() {
     loadedPreview->setReadonly(readonly);
 
     // get all remote tags (for op)
-    std::vector<qint64> initialTagIDs;
-    initialTagIDs.reserve(originalEvidenceData.tags.size());
-    for (const model::Tag &tag : originalEvidenceData.tags) {
-      initialTagIDs.push_back(tag.serverTagId);
-    }
-
-    tagEditor->loadTags(operationSlug, initialTagIDs);
+    tagEditor->loadTags(operationSlug, originalEvidenceData.tags);
   }
   catch (QSqlError &e) {
     loadedPreview = new ErrorView("Unable to load evidence: " + e.text(), this);

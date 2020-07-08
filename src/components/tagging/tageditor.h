@@ -36,7 +36,7 @@ class TagEditor : public QWidget
  public:
   void clear();
   void setReadonly(bool readonly);
-  void loadTags(const QString& operationSlug, std::vector<qint64> initialTagIDs);
+  void loadTags(const QString& operationSlug, std::vector<model::Tag> initialTagIDs);
   std::vector<model::Tag> getIncludedTags();
 
  signals:
@@ -44,7 +44,7 @@ class TagEditor : public QWidget
 
  private:
   QString operationSlug = "";
-  std::vector<qint64> initialTagIDs;
+  std::vector<model::Tag> initialTags;
 
   QNetworkReply* getTagsReply = nullptr;
   QNetworkReply* createTagReply = nullptr;

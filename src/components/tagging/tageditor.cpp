@@ -98,9 +98,9 @@ void TagEditor::clear() {
   tagView->clear();
 }
 
-void TagEditor::loadTags(const QString& operationSlug, std::vector<qint64> initialTagIDs) {
+void TagEditor::loadTags(const QString& operationSlug, std::vector<model::Tag> initialTags) {
   this->operationSlug = operationSlug;
-  this->initialTagIDs = initialTagIDs;
+  this->initialTags = initialTags;
 
   getTagsReply = NetMan::getInstance().getOperationTags(operationSlug);
   connect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
@@ -114,8 +114,11 @@ void TagEditor::onGetTagsComplete() {
     for (auto tag : tags) {
       tagListComboBox->addItem(tag.name, QVariant::fromValue(tag));
       // If this exists in our initial tags, add it
-      auto itr = std::find(initialTagIDs.begin(), initialTagIDs.end(), tag.id);
-      if (itr != initialTagIDs.end()) {
+      //auto itr = std::find(initialTags.begin(), initialTags.end(), tag.id); // TODO: this won't work
+      auto itr = std::find_if(initialTags.begin(), initialTags.end(), [tag](model::Tag modelTag){
+        return modelTag.serverTagId == tag.id;
+      });
+      if (itr != initialTags.end()) {
         tagView->addTag(tag);
       }
     }
@@ -124,9 +127,11 @@ void TagEditor::onGetTagsComplete() {
   else {
     errorLabel->setText(tr("Unable to fetch tags."
                            " Please check your connection."
-                           " (Tag colors may be incorrect)"));
+                           " (Tags names and colors may be incorrect)"));
     tagListComboBox->setEnabled(false);
-    // TODO: add tags to flow from DB (choose a random color?)
+    for (auto tag : initialTags) {
+      tagView->addTag(dto::Tag::fromModelTag(tag, TagWidget::randomColor()));
+    }
   }
 
   disconnect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
