@@ -27,7 +27,7 @@ SOURCES += \
     src/components/evidencepreview.cpp \
     src/components/loading/qprogressindicator.cpp \
     src/components/loading_button/loadingbutton.cpp \
-    src/components/tag_editor/tageditor.cpp \
+    src/components/tagging/tagwidget.cpp \
     src/db/databaseconnection.cpp \
     src/forms/evidence_filter/evidencefilter.cpp \
     src/forms/evidence_filter/evidencefilterform.cpp \
@@ -56,7 +56,7 @@ HEADERS += \
     src/components/evidencepreview.h \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
-    src/components/tag_editor/tageditor.h \
+    src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
     src/exceptions/databaseerr.h \
     src/exceptions/fileerror.h \
