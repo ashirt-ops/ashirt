@@ -1,0 +1,109 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      'v*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # This is a super hacky way to get this into a place that can actually be
+  # used by downstream jobs because YAML values don't allow shell
+  # interpolation, only github expression interpolation
+  store-sha8:
+    name: Store The Short Hash
+    runs-on: ubuntu-latest
+    outputs:
+      sha8: ${{ steps.calc-short.outputs.sha8 }}
+    steps:
+      - name: Calculate Short Hash
+        id: calc-short
+        run: echo "::set-output name=sha8::${GITHUB_SHA::8}"
+
+
+  build:
+    name: Build
+    needs: [store-sha8]
+    strategy:
+      matrix:
+        os: [macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Set artifact name
+      run: echo "::set-env name=name::ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')"
+
+    - name: Check out code
+      uses: actions/checkout@v2 
+      with:
+        submodules: true
+
+    - name: Build (mac)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install qt
+        export PATH="/usr/local/opt/qt/bin:$PATH"
+        brew link -f qt
+        qmake -config release
+        make
+        macdeployqt ashirt.app -dmg
+        mkdir dist
+        cp -r ashirt.dmg dist/
+        cp LICENSE dist/LICENSE
+        cp README.md dist/README.md
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.name }}
+        path: dist
+
+  release:
+    name: Create GitHub Release
+    if: contains(github.ref, 'tags/v')
+    needs: [store-sha8, build]
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  publish:
+    if: contains(github.ref, 'tags/v')
+    needs: [store-sha8, build, release]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [darwin]
+    steps:
+      - name: Set Version
+        run: echo "::set-env name=version::$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)"
+      - name: Download Previous Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
+          path: ashirt-${{ env.version }}-${{ matrix.platform }}
+      - name: Produce Zip
+        run: zip -r ashirt-${{ env.version }}-${{ matrix.platform }}.zip ashirt-${{ env.version }}-${{ matrix.platform }}
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_name: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
+          asset_content_type: application/zip

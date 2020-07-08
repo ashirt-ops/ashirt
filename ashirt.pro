@@ -22,6 +22,7 @@ SOURCES += \
     src/components/aspectratio_pixmap_label/imageview.cpp \
     src/components/code_editor/codeblockview.cpp \
     src/components/code_editor/codeeditor.cpp \
+    src/components/custom_keyseq_edit/singlestrokekeysequenceedit.cpp \
     src/components/error_view/errorview.cpp \
     src/components/evidence_editor/evidenceeditor.cpp \
     src/components/evidencepreview.cpp \
@@ -52,6 +53,7 @@ HEADERS += \
     src/components/aspectratio_pixmap_label/imageview.h \
     src/components/code_editor/codeblockview.h \
     src/components/code_editor/codeeditor.h \
+    src/components/custom_keyseq_edit/singlestrokekeysequenceedit.h \
     src/components/error_view/errorview.h \
     src/components/evidence_editor/deleteevidenceresponse.h \
     src/components/evidence_editor/evidenceeditor.h \
@@ -100,7 +102,7 @@ FORMS += \
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
-  ICON = icons/ascreen.icns
+  ICON = icons/ashirt.icns
 }
 
 # Default rules for deployment.
@@ -109,8 +111,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    bin/update_migration_resource.py \
-    sadbear.png
+    bin/update_migration_resource.py
 
 RESOURCES += \
     res_migrations.qrc \

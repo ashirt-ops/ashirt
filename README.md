@@ -1,4 +1,4 @@
-# AScreen
+# ASHIRT
 
 A Qt tray-type application that allows for capturing (via user-selectable area or entire window) screenshots, or codeblocks associated with a particular ASHIRT instance.
 
