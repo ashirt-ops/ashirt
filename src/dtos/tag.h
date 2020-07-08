@@ -8,20 +8,21 @@
 #include <vector>
 
 #include "helpers/jsonhelpers.h"
+#include "models/tag.h"
 
 namespace dto {
 class Tag {
  public:
-  Tag() {}
+  Tag() = default;
+  ~Tag() = default;
+  Tag(const Tag &) = default;
+
   Tag(QString name, QString colorName) {
     this->name = name;
     this->colorName = colorName;
   }
 
-  qint64 id;
-  QString colorName;
-  QString name;
-
+ public:
   static Tag parseData(QByteArray data) { return parseJSONItem<Tag>(data, Tag::fromJson); }
 
   static std::vector<Tag> parseDataAsList(QByteArray data) {
@@ -35,6 +36,13 @@ class Tag {
     return QJsonDocument(obj).toJson();
   }
 
+  static Tag fromModelTag(model::Tag tag, QString colorName) {
+    Tag t;
+    t.name = tag.tagName;
+    t.colorName = colorName;
+    return t;
+  }
+
  private:
   // provides a Tag from a given QJsonObject
   static Tag fromJson(QJsonObject obj) {
@@ -45,7 +53,13 @@ class Tag {
 
     return t;
   }
+
+ public:
+  qint64 id;
+  QString colorName;
+  QString name;
+
 };
 }  // namespace dto
-
+Q_DECLARE_METATYPE(dto::Tag);
 #endif  // DTO_TAG_H
