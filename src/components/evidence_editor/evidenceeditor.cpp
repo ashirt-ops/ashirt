@@ -91,7 +91,7 @@ model::Evidence EvidenceEditor::encodeEvidence() {
 void EvidenceEditor::setEnabled(bool enable) {
   // if the product is enabled, then we can edit, hence it's not readonly
   descriptionTextBox->setReadOnly(!enable);
-  tagEditor->setEnabled(enable);
+  tagEditor->setReadonly(!enable);
   if (loadedPreview != nullptr) {
     loadedPreview->setReadonly(!enable);
   }
@@ -157,12 +157,7 @@ void EvidenceEditor::clearEditor() {
 }
 
 void EvidenceEditor::onTagsLoaded(bool success) {
-  if (!success) {
-    tagEditor->setEnabled(false);
-  }
-  else {
-    tagEditor->setEnabled(!readonly);
-  }
+  tagEditor->setReadonly(!success || readonly);
   emit onWidgetReady();
 }
 

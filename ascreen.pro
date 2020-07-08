@@ -28,6 +28,7 @@ SOURCES += \
     src/components/flow_layout/flowlayout.cpp \
     src/components/loading/qprogressindicator.cpp \
     src/components/loading_button/loadingbutton.cpp \
+    src/components/tagging/tageditor.cpp \
     src/components/tagging/tagview.cpp \
     src/components/tagging/tagwidget.cpp \
     src/db/databaseconnection.cpp \
@@ -59,6 +60,7 @@ HEADERS += \
     src/components/flow_layout/flowlayout.h \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
+    src/components/tagging/tageditor.h \
     src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \

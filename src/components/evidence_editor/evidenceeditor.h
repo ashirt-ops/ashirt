@@ -9,14 +9,15 @@
 #include <QString>
 #include <QTextEdit>
 #include <QWidget>
+#include <QSplitter>
 
 #include "components/evidencepreview.h"
-#include "components/tag_editor/tageditor.h"
 #include "db/databaseconnection.h"
 #include "deleteevidenceresponse.h"
 #include "saveevidenceresponse.h"
 
-#include <QSplitter>
+#include "components/tagging/tageditor.h"
+
 
 class EvidenceEditor : public QWidget {
   Q_OBJECT
