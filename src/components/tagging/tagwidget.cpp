@@ -36,8 +36,7 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
 }
 
 void TagWidget::buildTag() {
-  QFont labelFont = QFont("Helvetica", 14);
-  labelFont.setStyleStrategy(QFont::PreferAntialias);
+  QFont labelFont = QFont("Sans", 14);
 
   // Calculate the positions of everything
   QFontMetrics metric(labelFont);
@@ -61,27 +60,31 @@ void TagWidget::buildTag() {
   int fullTagHeight = innerTagHeight + tagHeightBuffer;
 
   // set bounds for mouse release event
-  labelArea = QRect(0, 0, removeLeftOffset, fullTagHeight);
-  removeArea = QRect(-1, -1, 0, 0); // set to dummy value in case we don't have a remove area
+  labelArea = QRectF(0, 0, removeLeftOffset, fullTagHeight);
+  removeArea = QRectF(-1, -1, 0, 0); // set to dummy value in case we don't have a remove area
 
   if (!readonly) {
     fullTagWidth += removeSize.width() + innerBuffer;
-    removeArea = QRect(removeLeftOffset, 0, fullTagWidth - removeLeftOffset, fullTagHeight);
+    removeArea = QRectF(removeLeftOffset, 0, fullTagWidth - removeLeftOffset, fullTagHeight);
   }
 
+  const qreal dpr = this->devicePixelRatio();
+
   // prep the image
-  QPixmap pixmap = QPixmap(fullTagWidth, fullTagHeight);
+  QPixmap pixmap = QPixmap(fullTagWidth * dpr, fullTagHeight * dpr);
+  pixmap.setDevicePixelRatio(dpr);
   pixmap.fill(Qt::transparent);
 
   QColor bgColor = colorMap[tag.colorName];
   QPainter painter(&pixmap);
+  // these actually are used and removing them makes the edges/text slightly less sharp
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
   painter.begin(&pixmap);
 
   // draw container
   painter.setBrush(bgColor);
   painter.setPen(Qt::NoPen);
-  painter.drawRoundedRect(QRect(0, 0, pixmap.width()-1, pixmap.height()-1), 6, 6);
+  painter.drawRoundedRect(QRectF(0, 0, (pixmap.width() / dpr)-1, (pixmap.height() / dpr)-1), 6, 6);
 
   // set up font drawing
   auto fontColor = fontColorForBgColor(bgColor);
@@ -89,11 +92,11 @@ void TagWidget::buildTag() {
   painter.setPen(fontColor);
 
   // draw label
-  painter.drawText(QRect(QPoint(labelLeftOffset, labelTopOffset), labelSize), Qt::AlignCenter, tag.name);
+  painter.drawText(QRectF(QPointF(labelLeftOffset, labelTopOffset), labelSize), Qt::AlignCenter, tag.name);
 
   if(!readonly) {
     // draw remove
-    painter.drawText(QRect(QPoint(removeLeftOffset, removeTopOffset), removeSize), Qt::AlignCenter, removeSymbol);
+    painter.drawText(QRectF(QPointF(removeLeftOffset, removeTopOffset), removeSize), Qt::AlignCenter, removeSymbol);
   }
   painter.end();
 

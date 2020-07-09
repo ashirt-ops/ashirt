@@ -83,8 +83,8 @@ class TagWidget : public QLabel {
 
   const QString removeSymbol = QString::fromUtf8("\u2718");
 
-  QRect labelArea;
-  QRect removeArea;
+  QRectF labelArea;
+  QRectF removeArea;
   int tagWidth;
   int tagHeight;
 };
