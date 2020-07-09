@@ -87,7 +87,7 @@ QImage TagWidget::mkNewImage() {
   // draw container
   painter.setBrush(bgColor);
   painter.setPen(Qt::NoPen);
-  painter.drawRoundedRect(QRect(0, 0, img.width()-1, img.height()-1), 3, 3);
+  painter.drawRoundedRect(QRect(0, 0, img.width()-1, img.height()-1), 4, 4);
 
   // set up font drawing
   auto fontColor = fontColorForBgColor(bgColor);
