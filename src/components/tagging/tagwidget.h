@@ -81,7 +81,7 @@ class TagWidget : public QLabel {
   bool readonly = false;
   dto::Tag tag;
 
-  const QString removeSymbol = "\u2717";
+  const QString removeSymbol = QString::fromUtf8("\u2718");
 
   QRect labelArea;
   QRect removeArea;

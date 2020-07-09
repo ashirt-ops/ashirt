@@ -42,8 +42,12 @@ void TagWidget::setImage(QImage img) {
 }
 
 QImage TagWidget::mkNewImage() {
+  QFont labelFont;
+  labelFont.setFamily("Helvetica");
+  labelFont.setPixelSize(14);
+
   // Calculate the positions of everything
-  QFontMetrics metric(font());
+  QFontMetrics metric(labelFont);
   QSize labelSize = metric.size(Qt::TextSingleLine, tag.name);
   QSize removeSize = metric.size(Qt::TextSingleLine, removeSymbol);
 
@@ -58,7 +62,7 @@ QImage TagWidget::mkNewImage() {
   int labelTopOffset = ((innerTagHeight - labelSize.height())/2) + (tagHeightBuffer/2);
 
   int removeLeftOffset = labelLeftOffset + labelWidth + innerBuffer;
-  int removeTopOffset = labelTopOffset;// ((innerTagHeight - removeSize.height())/2) + (tagHeightBuffer/2);
+  int removeTopOffset = ((innerTagHeight - removeSize.height())/2) + (tagHeightBuffer/2);
 
   int fullTagWidth = labelWidth + tagWidthBuffer;
   int fullTagHeight = innerTagHeight + tagHeightBuffer;
@@ -76,17 +80,14 @@ QImage TagWidget::mkNewImage() {
   QImage img(fullTagWidth, fullTagHeight, QImage::Format_ARGB32_Premultiplied);
   img.fill(qRgba(0,0,0,0)); // not sure if we need this
 
-  QFont labelFont;
-  labelFont.setStyleStrategy(QFont::ForceOutline); // not sure if this is *really* needed
-  labelFont.setBold(true);
-
   QColor bgColor = colorMap[tag.colorName];
   QPainter painter;
   painter.begin(&img);
-  painter.setBrush(bgColor);
 
   // draw container
-  painter.drawRect(QRect(0, 0, img.width()-1, img.height()-1));
+  painter.setBrush(bgColor);
+  painter.setPen(Qt::NoPen);
+  painter.drawRoundedRect(QRect(0, 0, img.width()-1, img.height()-1), 3, 3);
 
   // set up font drawing
   auto fontColor = fontColorForBgColor(bgColor);
