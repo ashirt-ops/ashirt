@@ -50,7 +50,7 @@ class TagWidget : public QLabel {
  private:
   void buildUi();
   void wireUi();
-  QImage mkNewImage();
+  void buildTag();
   void setImage(QImage img);
 
  protected:

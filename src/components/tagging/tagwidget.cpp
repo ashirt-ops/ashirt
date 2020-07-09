@@ -11,7 +11,7 @@ TagWidget::TagWidget(dto::Tag tag, bool readonly, QWidget *parent) : QLabel(pare
 }
 
 void TagWidget::buildUi() {
-  setImage(mkNewImage());
+  buildTag();
 }
 
 void TagWidget::wireUi(){
@@ -20,7 +20,7 @@ void TagWidget::wireUi(){
 
 void TagWidget::setReadOnly(bool readonly) {
   this->readonly = readonly;
-  setImage(mkNewImage());
+  buildTag();
 }
 
 void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
@@ -35,16 +35,9 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
   }
 }
 
-void TagWidget::setImage(QImage img) {
-  setPixmap(QPixmap::fromImage(img));
-  tagWidth = img.width();
-  tagHeight = img.height();
-}
-
-QImage TagWidget::mkNewImage() {
-  QFont labelFont;
-  labelFont.setFamily("Helvetica");
-  labelFont.setPixelSize(14);
+void TagWidget::buildTag() {
+  QFont labelFont = QFont("Helvetica", 14);
+  labelFont.setStyleStrategy(QFont::PreferAntialias);
 
   // Calculate the positions of everything
   QFontMetrics metric(labelFont);
@@ -77,17 +70,18 @@ QImage TagWidget::mkNewImage() {
   }
 
   // prep the image
-  QImage img(fullTagWidth, fullTagHeight, QImage::Format_ARGB32_Premultiplied);
-  img.fill(qRgba(0,0,0,0)); // not sure if we need this
+  QPixmap pixmap = QPixmap(fullTagWidth, fullTagHeight);
+  pixmap.fill(Qt::transparent);
 
   QColor bgColor = colorMap[tag.colorName];
-  QPainter painter;
-  painter.begin(&img);
+  QPainter painter(&pixmap);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+  painter.begin(&pixmap);
 
   // draw container
   painter.setBrush(bgColor);
   painter.setPen(Qt::NoPen);
-  painter.drawRoundedRect(QRect(0, 0, img.width()-1, img.height()-1), 4, 4);
+  painter.drawRoundedRect(QRect(0, 0, pixmap.width()-1, pixmap.height()-1), 6, 6);
 
   // set up font drawing
   auto fontColor = fontColorForBgColor(bgColor);
@@ -99,10 +93,9 @@ QImage TagWidget::mkNewImage() {
 
   if(!readonly) {
     // draw remove
-    labelFont.setBold(false);
     painter.drawText(QRect(QPoint(removeLeftOffset, removeTopOffset), removeSize), Qt::AlignCenter, removeSymbol);
   }
   painter.end();
 
-  return img;
+  setPixmap(pixmap);
 }
