@@ -79,7 +79,6 @@ void TagWidget::buildTag() {
   QPainter painter(&pixmap);
   // these actually are used and removing them makes the edges/text slightly less sharp
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
-  painter.begin(&pixmap);
 
   // draw container
   painter.setBrush(bgColor);
