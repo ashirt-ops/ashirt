@@ -36,7 +36,12 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
 }
 
 void TagWidget::buildTag() {
-  QFont labelFont = QFont("Sans", 14);
+  QFont labelFont;
+#ifdef Q_OS_MACOS
+  labelFont = QFont("Sans", 14);
+#else
+  labelFont = QFont("Sans", 12);
+#endif
 
   // Calculate the positions of everything
   QFontMetrics metric(labelFont);
@@ -93,8 +98,8 @@ void TagWidget::buildTag() {
   // draw label
   painter.drawText(QRectF(QPointF(labelLeftOffset, labelTopOffset), labelSize), Qt::AlignCenter, tag.name);
 
+  // draw remove (if needed)
   if(!readonly) {
-    // draw remove
     painter.drawText(QRectF(QPointF(removeLeftOffset, removeTopOffset), removeSize), Qt::AlignCenter, removeSymbol);
   }
   painter.end();
