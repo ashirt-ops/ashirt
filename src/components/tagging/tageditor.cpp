@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <QLineEdit>
+#include <QCompleter>
 
 #include "helpers/stopreply.h"
 #include "helpers/netman.h"
