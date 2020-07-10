@@ -18,6 +18,8 @@
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 
+#include "components/githubtags/tags.h"
+
 Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
   this->hotkeyManager = hotkeyManager;
   buildUi();
@@ -87,6 +89,13 @@ void Settings::buildUi() {
   spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding);
   couldNotSaveSettingsMsg = new QErrorMessage(this);
 
+  githubTags = new Tags(this);
+  githubTags->completion(std::vector<QString>{
+      "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+      "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron" "pi", "rho",
+      "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+  });
+
   // Layout
   /*        0                 1           2             3
        +---------------+-------------+------------+-------------+
@@ -154,6 +163,9 @@ void Settings::buildUi() {
 
   // row 9
   gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
+
+  // row 10
+  gridLayout->addWidget(githubTags, 10, 0, 1, gridLayout->columnCount());
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);

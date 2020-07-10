@@ -20,6 +20,8 @@
 #include "components/loading_button/loadingbutton.h"
 #include "hotkeymanager.h"
 
+#include "components/githubtags/tags.h"
+
 /**
  * @brief The Settings class represents the settings dialog that displays when
  * a user chooses the "settings" option in the tray menu
@@ -91,6 +93,7 @@ class Settings : public QDialog {
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
+  Tags* githubTags = nullptr;
 
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
   QSpacerItem* spacer = nullptr;

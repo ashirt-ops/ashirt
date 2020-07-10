@@ -2,7 +2,7 @@ QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++17
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -26,6 +26,7 @@ SOURCES += \
     src/components/error_view/errorview.cpp \
     src/components/evidence_editor/evidenceeditor.cpp \
     src/components/evidencepreview.cpp \
+    src/components/githubtags/tags.cpp \
     src/components/loading/qprogressindicator.cpp \
     src/components/loading_button/loadingbutton.cpp \
     src/components/tag_editor/tageditor.cpp \
@@ -56,6 +57,7 @@ HEADERS += \
     src/components/evidence_editor/evidenceeditor.h \
     src/components/evidence_editor/saveevidenceresponse.h \
     src/components/evidencepreview.h \
+    src/components/githubtags/tags.h \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
     src/components/tag_editor/tageditor.h \
