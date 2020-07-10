@@ -37,6 +37,9 @@ void TagEditor::buildUi() {
   tagListComboBox->setEditable(true);
   tagListComboBox->setInsertPolicy(QComboBox::NoInsert); // inserts will be handled by hand
   tagListComboBox->lineEdit()->setPlaceholderText("Add Tags...");
+  auto completer = tagListComboBox->completer();
+  completer->setCompletionMode(QCompleter::PopupCompletion);
+  completer->setFilterMode(Qt::MatchContains);
 
   // Layout
   /*        0                 1           2
@@ -62,11 +65,11 @@ void TagEditor::buildUi() {
 }
 
 void TagEditor::wireUi() {
-  connect(tagListComboBox->lineEdit(), &QLineEdit::returnPressed, this, &TagEditor::addButtonClicked);
-  connect(tagListComboBox, &QComboBox::textActivated, this, &TagEditor::addButtonClicked);
+  connect(tagListComboBox->lineEdit(), &QLineEdit::returnPressed, this, &TagEditor::tagSelectionActivated);
+  connect(tagListComboBox, &QComboBox::textActivated, this, &TagEditor::tagSelectionActivated);
 }
 
-void TagEditor::addButtonClicked() {
+void TagEditor::tagSelectionActivated() {
   auto text = tagListComboBox->currentText().trimmed();
   if (text.isEmpty()) {
     return;
@@ -86,6 +89,7 @@ void TagEditor::addButtonClicked() {
     }
   }
 
+  tagListComboBox->hidePopup();
   tagListComboBox->setEditText("");
   tagListComboBox->setCurrentIndex(-1);
 }

@@ -26,12 +26,12 @@ class TagEditor : public QWidget
   void buildUi();
   void wireUi();
 
-  void addButtonClicked();
   void createTag(QString tagName);
 
  private slots:
   void onGetTagsComplete();
   void onCreateTagComplete();
+  void tagSelectionActivated();
 
  public:
   void clear();
