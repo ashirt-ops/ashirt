@@ -1,5 +1,5 @@
 // Copyright 2020, Verizon Media
-// Licensed under the terms of GPLv3. See LICENSE file in project root for terms.
+// Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #ifndef PATHSEPARATOR_H
 #define PATHSEPARATOR_H

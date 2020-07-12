@@ -149,7 +149,7 @@ Please refer to [the contributing.md file](Contributing.md) for information abou
 
 ## License
 
-GPL-3.0-or-later
+This project is licensed under the terms of the [MIT](LICENSE) open source license. Please refer to [LICENSE](LICENSE) for the full terms.
 
 ## Credits / Contributors / Thanks
 

@@ -1,5 +1,5 @@
 // Copyright 2020, Verizon Media
-// Licensed under the terms of GPLv3. See LICENSE file in project root for terms.
+// Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #include "credits.h"
 #include "ui_credits.h"
@@ -31,8 +31,8 @@ static std::string hyperlinkMd(std::string label, std::string url) {
 
 static std::string attributionMarkdown() {
   std::vector<Attribution> attribs = {
-      Attribution("Qt", "http://qt.io", "The Qt Company", "GPL v3",
-                  "https://www.gnu.org/licenses/gpl-3.0.html"),
+      Attribution("Qt", "http://qt.io", "The Qt Company", "LGPLv3",
+                  "https://www.gnu.org/licenses/lgpl-3.0.html"),
       Attribution("QProgressIndicator", "https://github.com/mojocorp/QProgressIndicator",
                   "Mojocorp, et al", "MIT License",
                   "https://github.com/mojocorp/QProgressIndicator/blob/master/LICENSE"),
@@ -90,7 +90,7 @@ static std::string preambleMarkdown() {
   // clang-format off
   return "Version: " + versionData() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
-         lf + "Licensed under the terms of [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)" +
+         lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
          lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +
          lf + "Report issues " + hyperlinkMd("here", reportAnIssueUrl) +
          lf;
