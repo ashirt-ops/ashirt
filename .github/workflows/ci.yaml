@@ -31,9 +31,6 @@ jobs:
         os: [macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    env:
-      TAG_REF: ${{GITHUB_REF}}
-      COMMIT_SHA: ${GITHUB_SHA:8}
 
     steps:
     - name: Set artifact name
