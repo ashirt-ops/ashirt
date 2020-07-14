@@ -63,6 +63,7 @@ HEADERS += \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
     src/components/tagging/tageditor.h \
+    src/components/tagging/tagginglineediteventfilter.h \
     src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \

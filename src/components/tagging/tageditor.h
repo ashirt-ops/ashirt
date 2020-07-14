@@ -1,25 +1,26 @@
 #ifndef TAGEDITOR_H
 #define TAGEDITOR_H
 
-#include <QWidget>
-#include <QGridLayout>
-#include <QPushButton>
-#include <QComboBox>
-#include <QLabel>
-#include <QNetworkReply>
+#include <QCompleter>
 #include <QErrorMessage>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QNetworkReply>
+#include <QPushButton>
+#include <QWidget>
 
-#include "components/tagging/tagwidget.h"
-#include "components/tagging/tagview.h"
-#include "components/loading_button/loadingbutton.h"
 #include "components/loading/qprogressindicator.h"
+#include "components/loading_button/loadingbutton.h"
+#include "components/tagging/tagview.h"
+#include "components/tagging/tagwidget.h"
+#include "components/tagging/tagginglineediteventfilter.h"
 #include "models/tag.h"
 
-class TagEditor : public QWidget
-{
+class TagEditor : public QWidget {
   Q_OBJECT
  public:
-  explicit TagEditor(QWidget *parent = nullptr);
+  explicit TagEditor(QWidget* parent = nullptr);
   ~TagEditor();
 
  private:
@@ -27,17 +28,23 @@ class TagEditor : public QWidget
   void wireUi();
 
   void createTag(QString tagName);
+  void updateCompleterModel();
+  void tagTextEntered(QString text);
+  inline void showCompleter() { completer->complete(); }
+  void addTag(dto::Tag tag);
+  QString standardizeTagKey(const QString &tagName);
 
  private slots:
   void onGetTagsComplete();
   void onCreateTagComplete();
-  void tagSelectionActivated();
+  void tagEditReturnPressed();
+  void completerActivated(const QString& text);
 
  public:
   void clear();
   void setReadonly(bool readonly);
   void loadTags(const QString& operationSlug, std::vector<model::Tag> initialTagIDs);
-  std::vector<model::Tag> getIncludedTags();
+  inline std::vector<model::Tag> getIncludedTags() { return tagView->getIncludedTags(); }
 
  signals:
   void tagsLoaded(bool isValid);
@@ -51,12 +58,17 @@ class TagEditor : public QWidget
 
   QErrorMessage* couldNotCreateTagMsg = nullptr;
 
+  TaggingLineEditEventFilter filter;
+  QCompleter* completer;
+  QStringList tagNames;
+  std::unordered_map<QString, dto::Tag> tagMap;
+
   // Ui Elements
   QGridLayout* gridLayout = nullptr;
-  QComboBox* tagListComboBox = nullptr;
+  QLineEdit* tagCompleteTextBox = nullptr;
   QProgressIndicator* loading = nullptr;
   QLabel* errorLabel = nullptr;
   TagView* tagView = nullptr;
 };
 
-#endif // TAGEDITOR_H
+#endif  // TAGEDITOR_H
