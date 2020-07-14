@@ -267,7 +267,7 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  trayIcon->showMessage("Unable to Record Evidence", "No Operation has been selected. Please select an operation first.");
+  trayIcon->showMessage("Unable to Record Evidence", "No Operation has been selected. Please select an operation first.",QSystemTrayIcon::Warning);
 }
 
 void TrayManager::setActiveOperationLabel() {
