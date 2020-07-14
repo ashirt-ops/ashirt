@@ -199,14 +199,26 @@ qint64 TrayManager::createNewEvidence(QString filepath, QString evidenceType) {
 }
 
 void TrayManager::captureWindowActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
   screenshotTool->captureWindow();
 }
 
 void TrayManager::captureAreaActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
   screenshotTool->captureArea();
 }
 
 void TrayManager::captureCodeblockActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
   onCodeblockCapture();
 }
 
@@ -252,6 +264,10 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
   catch (QSqlError& e) {
     std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
   }
+}
+
+void TrayManager::showNoOperationSetTrayMessage() {
+  trayIcon->showMessage("Unable to Record Evidence", "No Operation has been selected. Please select an operation first.");
 }
 
 void TrayManager::setActiveOperationLabel() {

@@ -59,6 +59,7 @@ class TrayManager : public QDialog {
   void wireUi();
   qint64 createNewEvidence(QString filepath, QString evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
+  void showNoOperationSetTrayMessage();
 
  private:
   QAction *quitAction;
