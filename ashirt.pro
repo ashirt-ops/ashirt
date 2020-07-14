@@ -11,10 +11,8 @@ CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # App version number
-#VERSION_TAG_PLAIN = $$getenv(GITHUB_REF)
-#COMMIT_HASH_PLAIN = $$getenv(GITHUB_SHA)
-VERSION_TAG_PLAIN = blahblah_tags/v1.2.3
-COMMIT_HASH_PLAIN = cafebabe
+VERSION_TAG_PLAIN = $$getenv(GITHUB_REF)
+COMMIT_HASH_PLAIN = $$getenv(GITHUB_SHA)
 
 !contains(VERSION_TAG_PLAIN, .*tags/v.*) {
   message("Ref appears to not be a tag (Value: $$VERSION_TAG_PLAIN). Using non-version instead.")
