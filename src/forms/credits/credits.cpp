@@ -85,10 +85,14 @@ static QString versionData() {
   auto rawVersion = QString("%1").arg(VERSION_TAG);
   auto tagIndex = rawVersion.indexOf(tagPrefix);
   if (tagIndex == -1) {
-    return "Commit SHA: " + rawVersion;
+    return rawVersion;
   }
 
   return rawVersion.right(rawVersion.size() - (tagIndex + tagPrefix.size()));
+}
+
+static QString CommitHash() {
+  return QString("%1").arg(COMMIT_HASH);
 }
 
 static std::string userGuideUrl = "https://www.github.com/ashirt-client/blob/master/README.md";
@@ -98,6 +102,7 @@ static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
   // clang-format off
   return "Version: " + versionData().toStdString() +
+         lf + "Commit Hash: " + CommitHash().toStdString() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
          lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
          lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +

@@ -11,24 +11,29 @@ CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # App version number
-VERSION_TAG_PLAIN = $$getenv(TAG_REF)
+#VERSION_TAG_PLAIN = $$getenv(GITHUB_REF)
+#COMMIT_HASH_PLAIN = $$getenv(GITHUB_SHA)
+VERSION_TAG_PLAIN = blahblah_tags/v1.2.3
+COMMIT_HASH_PLAIN = cafebabe
 
 !contains(VERSION_TAG_PLAIN, .*tags/v.*) {
-  message("Ref appears to not be a tag (Value: $$VERSION_TAG_PLAIN) -- using SHA isntead.")
-  VERSION_TAG_PLAIN = $$getenv(COMMIT_SHA)
+  message("Ref appears to not be a tag (Value: $$VERSION_TAG_PLAIN). Using non-version instead.")
+  VERSION_TAG_PLAIN = 0.0.0-Unversioned
 }
 
-equals(VERSION_TAG_PLAIN, "") {
-  message("No tag or commit hash specified. Check if TAG_REF or COMMIT_SHA environment variables are set.")
-  VERSION_TAG_PLAIN = Unknown
+equals(COMMIT_HASH_PLAIN, "") {
+  message("commit hash specified. Please ensure GITHUB_SHA environment variable is set.")
+  COMMIT_HASH_PLAIN = Unknown
 }
 
 
-VERSION_TAG=\\\"$$VERSION_TAG_PLAIN\\\"
+VERSION_TAG = \\\"$$VERSION_TAG_PLAIN\\\"
+COMMIT_HASH = \\\"$$COMMIT_HASH_PLAIN\\\"
 
 message(Building version [$$VERSION_TAG_PLAIN])
 
-DEFINES += "VERSION_TAG=$$VERSION_TAG"
+DEFINES += "VERSION_TAG=$$VERSION_TAG" \
+           "COMMIT_HASH=$$COMMIT_HASH"
 
 INCLUDEPATH += src
 
