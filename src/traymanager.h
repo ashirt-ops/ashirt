@@ -46,6 +46,9 @@ class TrayManager : public QDialog {
   void onScreenshotCaptured(const QString &filepath);
   void setActiveOperationLabel();
   void onCodeblockCapture();
+  void captureAreaActionTriggered();
+  void captureWindowActionTriggered();
+  void captureCodeblockActionTriggered();
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
@@ -56,6 +59,7 @@ class TrayManager : public QDialog {
   void wireUi();
   qint64 createNewEvidence(QString filepath, QString evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
+  void showNoOperationSetTrayMessage();
 
  private:
   QAction *quitAction;

@@ -8,11 +8,9 @@
 
 #include "appconfig.h"
 #include "appsettings.h"
-#include "helpers/screenshot.h"
 
-HotkeyManager::HotkeyManager(Screenshot* ss) {
+HotkeyManager::HotkeyManager() {
   hotkeyManager = new UGlobalHotkeys();
-  screenshotTool = ss;
   connect(hotkeyManager, &UGlobalHotkeys::activated, this, &HotkeyManager::hotkeyTriggered);
 }
 
@@ -28,10 +26,10 @@ void HotkeyManager::unregisterKey(GlobalHotkeyEvent evt) {
 
 void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
   if (hotkeyIndex == ACTION_CAPTURE_AREA) {
-    screenshotTool->captureArea();
+    emit captureAreaHotkeyPressed();
   }
   else if (hotkeyIndex == ACTION_CAPTURE_WINDOW) {
-    screenshotTool->captureWindow();
+    emit captureWindowHotkeyPressed();
   }
   else if (hotkeyIndex == ACTION_CAPTURE_CODEBLOCK) {
     emit codeblockHotkeyPressed();

@@ -17,7 +17,7 @@ class HotkeyManager : public QObject {
   Q_OBJECT
 
  public:
-  HotkeyManager(Screenshot* ss);
+  HotkeyManager();
   ~HotkeyManager();
 
   /// GlobalHotkeyEvent provides names for all possible application-global hotkeys
@@ -42,6 +42,10 @@ class HotkeyManager : public QObject {
  signals:
   /// codeblockHotkeyPressed signals when the ACTION_CAPTURE_CODEBLOCK event has been triggered.
   void codeblockHotkeyPressed();
+  /// captureWindowHotkeyPressed signals when the ACTION_CAPTURE_WINDOW event has been triggered.
+  void captureWindowHotkeyPressed();
+  /// captureAreaHotkeyPressed signals when the ACTION_CAPTURE_AREA event has been triggered.
+  void captureAreaHotkeyPressed();
 
  public slots:
   /// updateHotkeys retrives AppConfig data to set known global hotkeys. Removes _all_ (Application)
@@ -53,8 +57,6 @@ class HotkeyManager : public QObject {
   void hotkeyTriggered(size_t hotkeyIndex);
 
  private:
-  /// screenshotTool is a (shared) reference to the ScreenShot object. Not to be deleted.
-  Screenshot* screenshotTool;
   /// hotkeyManager is a reference to the raw hotkey manager, which a 3rd party manages.
   UGlobalHotkeys* hotkeyManager;
 };

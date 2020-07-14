@@ -51,7 +51,7 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   this->db = db;
 
   screenshotTool = new Screenshot();
-  hotkeyManager = new HotkeyManager(screenshotTool);
+  hotkeyManager = new HotkeyManager();
   hotkeyManager->updateHotkeys();
 
   settingsWindow = new Settings(hotkeyManager, this);
@@ -114,8 +114,13 @@ void TrayManager::cleanChooseOpSubmenu() {
 void TrayManager::wireUi() {
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
+
   connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
-          &TrayManager::onCodeblockCapture);
+          &TrayManager::captureCodeblockActionTriggered);
+  connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
+          &TrayManager::captureAreaActionTriggered);
+  connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
+          &TrayManager::captureWindowActionTriggered);
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
@@ -146,10 +151,10 @@ void TrayManager::createActions() {
   currentOperationMenuAction->setEnabled(false);
 
   captureScreenAreaAction = new QAction(tr("Capture Screen Area"), this);
-  connect(captureScreenAreaAction, &QAction::triggered, screenshotTool, &Screenshot::captureArea);
+  connect(captureScreenAreaAction, &QAction::triggered, this, &TrayManager::captureAreaActionTriggered);
 
   captureWindowAction = new QAction(tr("Capture Window"), this);
-  connect(captureWindowAction, &QAction::triggered, screenshotTool, &Screenshot::captureWindow);
+  connect(captureWindowAction, &QAction::triggered, this, &TrayManager::captureWindowActionTriggered);
 
   showEvidenceManagerAction = new QAction(tr("View Accumulated Evidence"), this);
   connect(showEvidenceManagerAction, &QAction::triggered, evidenceManagerWindow, &QWidget::show);
@@ -158,7 +163,7 @@ void TrayManager::createActions() {
   connect(showCreditsAction, &QAction::triggered, creditsWindow, &QWidget::show);
 
   addCodeblockAction = new QAction(tr("Add Codeblock from Clipboard"), this);
-  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::onCodeblockCapture);
+  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::captureCodeblockActionTriggered);
 
   chooseOpSubmenu = new QMenu(tr("Select Operation"));
   chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
@@ -191,6 +196,30 @@ qint64 TrayManager::createNewEvidence(QString filepath, QString evidenceType) {
     db->setEvidenceTags(tags, evidenceID);
   }
   return evidenceID;
+}
+
+void TrayManager::captureWindowActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
+  screenshotTool->captureWindow();
+}
+
+void TrayManager::captureAreaActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
+  screenshotTool->captureArea();
+}
+
+void TrayManager::captureCodeblockActionTriggered() {
+  if(AppSettings::getInstance().operationSlug() == "") {
+    showNoOperationSetTrayMessage();
+    return;
+  }
+  onCodeblockCapture();
 }
 
 void TrayManager::onCodeblockCapture() {
@@ -235,6 +264,10 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
   catch (QSqlError& e) {
     std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
   }
+}
+
+void TrayManager::showNoOperationSetTrayMessage() {
+  trayIcon->showMessage("Unable to Record Evidence", "No Operation has been selected. Please select an operation first.",QSystemTrayIcon::Warning);
 }
 
 void TrayManager::setActiveOperationLabel() {
