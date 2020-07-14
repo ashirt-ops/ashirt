@@ -80,7 +80,12 @@ static std::string copyrightDate() {
   }
   return rtn;
 }
-static std::string versionData() { return "Beta 1"; }
+static QString versionData() {
+  return QString("%1 (Commit: %2)")
+      .arg(VERSION_COMMIT_HASH)
+      .arg(VERSION_TAG)
+      ;
+}
 
 static std::string userGuideUrl = "https://www.github.com/ashirt-client/blob/master/README.md";
 static std::string reportAnIssueUrl = "https://www.github.com/ashirt-client/issues";
@@ -88,7 +93,7 @@ static std::string reportAnIssueUrl = "https://www.github.com/ashirt-client/issu
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
   // clang-format off
-  return "Version: " + versionData() +
+  return "Version: " + versionData().toStdString() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
          lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
          lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +
