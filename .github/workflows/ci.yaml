@@ -31,6 +31,9 @@ jobs:
         os: [macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    env:
+      TAG: ${GITHUB_REF}
+      COMMIT_SHA: ${needs.store-sha8.outputs.sha8}
 
     steps:
     - name: Set artifact name
