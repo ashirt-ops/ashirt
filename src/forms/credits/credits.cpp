@@ -81,10 +81,14 @@ static std::string copyrightDate() {
   return rtn;
 }
 static QString versionData() {
-  return QString("%1 (Commit: %2)")
-      .arg(VERSION_COMMIT_HASH)
-      .arg(VERSION_TAG)
-      ;
+  QString tagPrefix = "tags/v";
+  auto rawVersion = QString("%1").arg(VERSION_TAG);
+  auto tagIndex = rawVersion.indexOf(tagPrefix);
+  if (tagIndex == -1) {
+    return "Commit SHA: " + rawVersion;
+  }
+
+  return rawVersion.right(rawVersion.size() - (tagIndex + tagPrefix.size()));
 }
 
 static std::string userGuideUrl = "https://www.github.com/ashirt-client/blob/master/README.md";
