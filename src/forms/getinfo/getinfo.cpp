@@ -3,8 +3,8 @@
 
 #include "getinfo.h"
 
-#include <QMessageBox>
 #include <QKeySequence>
+#include <QMessageBox>
 
 #include "appsettings.h"
 #include "components/evidence_editor/evidenceeditor.h"
@@ -52,6 +52,12 @@ void GetInfo::wireUi() {
   connect(loadingButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
   connect(ui->deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
   connect(closeWindowAction, &QAction::triggered, this, &GetInfo::deleteButtonClicked);
+}
+
+void GetInfo::showEvent(QShowEvent* evt) {
+  QDialog::showEvent(evt);
+  setFocus();  // giving the form focus, to prevent retaining focus on the submit button when
+               // closing the window
 }
 
 bool GetInfo::saveData() {
@@ -139,6 +145,7 @@ void GetInfo::onUploadComplete() {
   else {
     try {
       db->updateEvidenceSubmitted(this->evidenceID);
+      emit evidenceSubmitted(db->getEvidenceDetails(this->evidenceID));
       this->close();
     }
     catch (QSqlError& e) {

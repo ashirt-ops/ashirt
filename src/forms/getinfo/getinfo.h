@@ -30,11 +30,17 @@ class GetInfo : public QDialog {
   bool saveData();
   void setActionButtonsEnabled(bool enabled);
 
+  void showEvent(QShowEvent *evt) override;
+
  private slots:
   void submitButtonClicked();
   void deleteButtonClicked();
 
   void onUploadComplete();
+
+ public:
+ signals:
+  void evidenceSubmitted(model::Evidence evidence);
 
  private:
   Ui::GetInfo *ui;

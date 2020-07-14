@@ -91,7 +91,7 @@ model::Evidence EvidenceEditor::encodeEvidence() {
 void EvidenceEditor::setEnabled(bool enable) {
   // if the product is enabled, then we can edit, hence it's not readonly
   descriptionTextBox->setReadOnly(!enable);
-  tagEditor->setEnabled(enable);
+  tagEditor->setReadonly(!enable);
   if (loadedPreview != nullptr) {
     loadedPreview->setReadonly(!enable);
   }
@@ -124,13 +124,7 @@ void EvidenceEditor::loadData() {
     loadedPreview->setReadonly(readonly);
 
     // get all remote tags (for op)
-    std::vector<qint64> initialTagIDs;
-    initialTagIDs.reserve(originalEvidenceData.tags.size());
-    for (const model::Tag &tag : originalEvidenceData.tags) {
-      initialTagIDs.push_back(tag.serverTagId);
-    }
-
-    tagEditor->loadTags(operationSlug, initialTagIDs);
+    tagEditor->loadTags(operationSlug, originalEvidenceData.tags);
   }
   catch (QSqlError &e) {
     loadedPreview = new ErrorView("Unable to load evidence: " + e.text(), this);
@@ -157,12 +151,7 @@ void EvidenceEditor::clearEditor() {
 }
 
 void EvidenceEditor::onTagsLoaded(bool success) {
-  if (!success) {
-    tagEditor->setEnabled(false);
-  }
-  else {
-    tagEditor->setEnabled(!readonly);
-  }
+  tagEditor->setReadonly(!success || readonly);
   emit onWidgetReady();
 }
 

@@ -6,6 +6,7 @@
 
 #include <QAction>
 #include <QDialog>
+#include <QLineEdit>
 #include <QMenu>
 #include <QNetworkReply>
 #include <QTableWidget>

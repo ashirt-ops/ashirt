@@ -1,0 +1,228 @@
+#include "components/tagging/tageditor.h"
+
+#include <QAbstractItemView>
+#include <QLineEdit>
+#include <QStringListModel>
+#include <QTimer>
+#include <algorithm>
+
+#include "helpers/netman.h"
+#include "helpers/stopreply.h"
+
+TagEditor::TagEditor(QWidget *parent) : QWidget(parent) {
+  buildUi();
+
+  wireUi();
+}
+
+TagEditor::~TagEditor() {
+  delete couldNotCreateTagMsg;
+  delete loading;
+  delete tagCompleteTextBox;
+  delete errorLabel;
+  delete tagView;
+  delete gridLayout;
+  delete completer;
+
+  stopReply(&getTagsReply);
+  stopReply(&createTagReply);
+}
+
+void TagEditor::buildUi() {
+  gridLayout = new QGridLayout(this);
+  gridLayout->setMargin(0);
+
+  couldNotCreateTagMsg = new QErrorMessage(this);
+
+  tagView = new TagView(this);
+  errorLabel = new QLabel(this);
+  loading = new QProgressIndicator(this);
+
+  completer = new QCompleter(this);
+  completer->setCompletionMode(QCompleter::PopupCompletion);
+  completer->setFilterMode(Qt::MatchContains);
+  completer->setCaseSensitivity(Qt::CaseInsensitive);
+
+  tagCompleteTextBox = new QLineEdit(this);
+  tagCompleteTextBox->setPlaceholderText("Add Tags...");
+  tagCompleteTextBox->installEventFilter(&filter);
+  tagCompleteTextBox->setCompleter(completer);
+  tagCompleteTextBox->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+
+  // Layout
+  /*        0                 1           2
+       +----------------+-------------+--------------+
+    0  |                                             |
+       |                 Flow Tag List               |
+       |                                             |
+       +----------------+-------------+--------------+
+    1  | errLbl/Loading | <None>      | [Add Tag TB] |
+       +----------------+-------------+--------------+
+  */
+
+  // row 0
+  gridLayout->addWidget(tagView, 0, 0, 1, 3);
+
+  // row 1
+  gridLayout->addWidget(errorLabel, 1, 0);
+  gridLayout->addWidget(loading, 1, 0);
+  gridLayout->addWidget(tagCompleteTextBox, 1, 2);
+
+  this->setLayout(gridLayout);
+}
+
+void TagEditor::wireUi() {
+  connect(tagCompleteTextBox, &QLineEdit::returnPressed, this, &TagEditor::tagEditReturnPressed);
+  connect(&filter, &TaggingLineEditEventFilter::upPressed, this, &TagEditor::showCompleter);
+  connect(&filter, &TaggingLineEditEventFilter::downPressed, this, &TagEditor::showCompleter);
+  connect(&filter, &TaggingLineEditEventFilter::completePressed, this, &TagEditor::showCompleter);
+  connect(&filter, &TaggingLineEditEventFilter::leftMouseClickPressed, this, &TagEditor::showCompleter);
+
+  connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this,
+          &TagEditor::completerActivated);
+
+  connect(tagCompleteTextBox, &QLineEdit::textChanged, [this](const QString &text) {
+    if (text.isEmpty()) {
+      tagCompleteTextBox->completer()->setCompletionPrefix("");
+    }
+  });
+}
+
+void TagEditor::completerActivated(const QString &text) {
+  tagTextEntered(text);
+  QTimer::singleShot(0, tagCompleteTextBox, &QLineEdit::clear);
+}
+
+void TagEditor::tagEditReturnPressed() {
+  if (completer->popup()->isVisible()) {
+    return;
+  }
+  tagTextEntered(tagCompleteTextBox->text().trimmed());
+}
+
+void TagEditor::tagTextEntered(QString text) {
+  if (text.isEmpty()) {
+    return;
+  }
+
+  auto foundTag = tagMap.find(standardizeTagKey(text));
+  if (foundTag == tagMap.end()) {
+    createTag(text);
+  }
+  else {
+    dto::Tag data = foundTag->second;
+    tagView->contains(data) ? tagView->remove(data) : tagView->addTag(data);
+  }
+
+  tagCompleteTextBox->setText("");
+  tagCompleteTextBox->completer()->setCompletionPrefix("");
+}
+
+void TagEditor::updateCompleterModel() {
+  tagNames.sort(Qt::CaseInsensitive);
+  // no need to delete previous model -- handled by qcompleter
+  completer->setModel(new QStringListModel(tagNames, completer));
+  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+}
+
+void TagEditor::clear() {
+  stopReply(&getTagsReply);
+  stopReply(&createTagReply);
+  tagCompleteTextBox->clear();
+  errorLabel->setText("");
+  tagView->clear();
+}
+
+void TagEditor::loadTags(const QString &operationSlug, std::vector<model::Tag> initialTags) {
+  this->operationSlug = operationSlug;
+  this->initialTags = initialTags;
+
+  getTagsReply = NetMan::getInstance().getOperationTags(operationSlug);
+  connect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
+}
+
+void TagEditor::onGetTagsComplete() {
+  bool isValid;
+  auto data = NetMan::extractResponse(getTagsReply, isValid);
+  tagMap.clear();
+  tagNames.clear();
+  if (isValid) {
+    std::vector<dto::Tag> tags = dto::Tag::parseDataAsList(data);
+    for (auto tag : tags) {
+      addTag(tag);
+
+      auto itr = std::find_if(initialTags.begin(), initialTags.end(), [tag](model::Tag modelTag) {
+        return modelTag.serverTagId == tag.id;
+      });
+      if (itr != initialTags.end()) {
+        tagView->addTag(tag);
+      }
+    }
+    updateCompleterModel();
+  }
+  else {
+    errorLabel->setText(
+        tr("Unable to fetch tags."
+           " Please check your connection."
+           " (Tags names and colors may be incorrect)"));
+    tagCompleteTextBox->setEnabled(false);
+    for (auto tag : initialTags) {
+      tagView->addTag(dto::Tag::fromModelTag(tag, TagWidget::randomColor()));
+    }
+  }
+
+  disconnect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
+  tidyReply(&getTagsReply);
+  emit tagsLoaded(isValid);
+}
+
+void TagEditor::createTag(QString tagName) {
+  auto newText = tagName.trimmed();
+  if (newText == "") {
+    return;
+  }
+  errorLabel->setText("");
+  loading->startAnimation();
+  tagCompleteTextBox->setEnabled(false);
+
+  dto::Tag newTag(newText, TagWidget::randomColor());
+  createTagReply = NetMan::getInstance().createTag(newTag, operationSlug);
+  connect(createTagReply, &QNetworkReply::finished, this, &TagEditor::onCreateTagComplete);
+}
+
+void TagEditor::onCreateTagComplete() {
+  bool isValid;
+  auto data = NetMan::extractResponse(createTagReply, isValid);
+  if (isValid) {
+    auto newTag = dto::Tag::parseData(data);
+    addTag(newTag);
+    tagView->addTag(newTag);
+    updateCompleterModel();
+  }
+  else {
+    couldNotCreateTagMsg->showMessage(
+        "Could not create tag."
+        " Please check your connection and try again.");
+  }
+  disconnect(createTagReply, &QNetworkReply::finished, this, &TagEditor::onCreateTagComplete);
+  tidyReply(&createTagReply);
+  loading->stopAnimation();
+  tagCompleteTextBox->setEnabled(true);
+  tagCompleteTextBox->setFocus();
+}
+
+void TagEditor::addTag(dto::Tag tag) {
+  tagNames << tag.name;
+  tagMap.emplace(standardizeTagKey(tag.name), tag);
+}
+
+QString TagEditor::standardizeTagKey(const QString& tagName) {
+  return tagName.trimmed().toLower();
+}
+
+void TagEditor::setReadonly(bool readonly) {
+  tagCompleteTextBox->setEnabled(!readonly);
+  tagCompleteTextBox->setVisible(!readonly);
+
+  tagView->setReadonly(readonly);
+}
