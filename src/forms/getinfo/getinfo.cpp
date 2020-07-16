@@ -36,8 +36,10 @@ void GetInfo::buildUi() {
 
   submitButton = new LoadingButton("Submit", this);
   submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  submitButton->setAutoDefault(false);
   deleteButton = new QPushButton("Delete", this);
   deleteButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  deleteButton->setAutoDefault(false);
 
   evidenceEditor = new EvidenceEditor(evidenceID, db, this);
   evidenceEditor->setEnabled(true);
@@ -74,6 +76,7 @@ void GetInfo::buildUi() {
   flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
            Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
+  setFocus(); // ensure focus is not on the submit button
 }
 
 void GetInfo::wireUi() {
