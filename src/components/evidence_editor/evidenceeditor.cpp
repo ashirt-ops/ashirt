@@ -40,24 +40,27 @@ void EvidenceEditor::buildUi() {
   gridLayout->setMargin(0);
 
   splitter = new QSplitter(this);
-  splitter->setOrientation(Qt::Vertical);
+  splitter->setOrientation(Qt::Horizontal);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   _descriptionLabel = new QLabel("Description", this);
   tagEditor = new TagEditor(this);
+  tagEditor->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   descriptionTextBox = new QTextEdit(this);
+  descriptionTextBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   // Layout
   /*        0
        +----------------------------------------+
     0  | Desc Label                             |
        +----------------------------------------+
-    1  | +------------Vert. Splitter---------+  |
-       | |             Desc Text box         |  |
-       | |                                   |  |
-       | >===================================<  |
-       | |             Preview Area          |  |
-       | |               (reserved)          |  |
-       | +-----------------------------------+  |
+    1  | +-------------Hor. Splitter---------+  |
+       | |                 |                 |  |
+       | | Desc Text box   |   Preview Area  |  |
+       | |                 |    (reserved)   |  |
+       | |                 |                 |  |
+       | |                 |                 |  |
+       | +-----------------^-----------------+  |
        +----------------------------------------+
     2  |                                        |
        |                 tagEditor              |
@@ -112,9 +115,11 @@ void EvidenceEditor::loadData() {
 
     if (originalEvidenceData.contentType == "image") {
       loadedPreview = new ImageView(this);
+      loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
     else if (originalEvidenceData.contentType == "codeblock") {
       loadedPreview = new CodeBlockView(this);
+      loadedPreview->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
     }
     else {
       loadedPreview =
