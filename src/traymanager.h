@@ -74,7 +74,6 @@ class TrayManager : public QDialog {
   void cleanChooseOpSubmenu();
   QMenu *chooseOpSubmenu;
   QAction *chooseOpStatusAction;
-  QAction *refreshOperationListAction;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
 
