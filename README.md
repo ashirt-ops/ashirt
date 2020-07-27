@@ -80,6 +80,12 @@ E.g. `Ctrl+Shift+p`
 
 To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, try pressing the `Refresh Operations`, or check with the operation owner to ensure that you have write access to that operation.
 
+### Multiple backends
+
+Some users may end up using this application for multiple backends -- either for testing, or due to multiple communities using the same software. Currently this application does not strongly support swiching backends, though it is possible. To swtich backends, simply enter the new API Key, Secret Key, and Host Path in the settings menu. Note that when switching, it is likely your current selected operation will be removed and you will need to select a new operation.
+
+A particular edgecase that is not supported is when multiple backends have the same name for different operations. In these cases, it is incumbent on the user to be vigilant and ensure that the right data goes to the right backend.
+
 ## Managing Evidence
 
 Previous evidence can be reviewed by navigating to `View Accumulated Evidence`, which will present a screen showing evidence for the current operation. Selecting a row in the evidence list will show:
@@ -128,7 +134,7 @@ The above paths reference some variables. Some of these values change depending 
 | Path Variable            | Notes                                                                                                          |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
 | `$userSettingsDirectory` | Where user-specific configuration/settings files are stored.                                                   |
-| [For Linux]              | On the command line, run `echo $XDG_CONFIG_HOME`                                                               |
+| [For Linux]              | On the command line, run `echo $XDG_CONFIG_HOME`  (by default, this is typically the `~/.config` directory)    |
 | [For Mac OSX]            | Check `/Users/(username)/Library/Preferences`                                                                  |
 | [For windows]            | This may be in the System Registry                                                                             |
 | `$eviRepo`               | The Evidence Repository value in the "settings" window                                                         |
