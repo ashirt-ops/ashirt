@@ -104,11 +104,13 @@ TrayManager::~TrayManager() {
 }
 
 void TrayManager::cleanChooseOpSubmenu() {
+  // delete all of the existing events
   for (QAction* act : allOperationActions) {
     chooseOpSubmenu->removeAction(act);
     delete act;
   }
   allOperationActions.clear();
+  selectedAction = nullptr; // clear the selected action to ensure no funny business
 }
 
 void TrayManager::wireUi() {
@@ -310,6 +312,10 @@ void TrayManager::onOperationListUpdated(bool success,
       allOperationActions.push_back(newAction);
       chooseOpSubmenu->addAction(newAction);
     }
+    if (selectedAction == nullptr) {
+      AppSettings::getInstance().setOperationDetails("", "");
+    }
+
   }
   else {
     chooseOpStatusAction->setText(tr("Unable to load operations"));
