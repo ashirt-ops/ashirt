@@ -39,7 +39,7 @@ On the first launch, the user must first set up an appropriate configuration. Wh
 | Capture Window Command          | The CLI command to take of a given window, and save to a file                                                                |
 | [Capture Area Command] Shortcut | The key combination used (at a system level) to trigger the capture window command                                           |
 
-Once the above is configured, save the settings and you can now select an operation. Open the tray, and under `Select Operation`, choose an operation to start using the application. (Note: you may need to choose `Refresh Operations` in the submenu)
+Once the above is configured, save the settings and you can now select an operation. Open the tray, and under `Select Operation`, choose an operation to start using the application. Note that whenever you change the host path, the list of operations will be updated
 
 ## Screenshot Commands
 
@@ -78,7 +78,7 @@ E.g. `Ctrl+Shift+p`
 
 ## Switching Operations
 
-To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, try pressing the `Refresh Operations`, or check with the operation owner to ensure that you have write access to that operation.
+To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, you can refresh the list by closing and re-opening the tray menu, or check with the operation owner to ensure that you have write access to that operation.
 
 ### Multiple backends
 
