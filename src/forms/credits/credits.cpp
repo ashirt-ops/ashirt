@@ -95,8 +95,8 @@ static QString CommitHash() {
   return QString("%1").arg(COMMIT_HASH);
 }
 
-static std::string userGuideUrl = "https://www.github.com/ashirt-client/blob/master/README.md";
-static std::string reportAnIssueUrl = "https://www.github.com/ashirt-client/issues";
+static std::string userGuideUrl = "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
+static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashirt/issues";
 
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
