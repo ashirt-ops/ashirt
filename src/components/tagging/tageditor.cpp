@@ -16,6 +16,7 @@ TagEditor::TagEditor(QWidget *parent) : QWidget(parent) {
 }
 
 TagEditor::~TagEditor() {
+  disconnect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
   delete couldNotCreateTagMsg;
   delete loading;
   delete tagCompleteTextBox;
