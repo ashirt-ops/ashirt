@@ -124,7 +124,7 @@ You should never need to access these files outside of the application, however,
 | Screenshots    | `$eviRepo/$operationSlug/ashirt_screenshot_$randomCharacters.png`   | Presently, random (english) characters tacked on to the end of a screenshot, to add uniqueness and prevent overwriting           |
 | Codeblocks     | `$eviRepo/$operationSlug/ashirt_codeblock_$randomCharacters.json`   | Presently, random (english) characters tacked on to the end of the codeblock filename, to add uniqueness and prevent overwriting |
 | Configuration  | `$userSettingsDirectory/ashirt/screenshot.json`                     | Manages connection info / configuration in "settings" menu                                                                       |
-| Local Database | `$userSettingsDirectory/ashirt/screenshot.sqlite`                   |                                                                                                                                  |
+| Local Database | `$userSettingsDirectory/ashirt/evidence.sqlite`                   |                                                                                                                                  |
 | Settings       | `$userSettingsDirectory/Verizon Media Group/AShirt Screenshot.conf` | Manages state info -- e.g. last used operation ; Managed by Qt                                                                   |
 
 ### Variable locations
