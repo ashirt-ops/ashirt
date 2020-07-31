@@ -39,7 +39,7 @@ On the first launch, the user must first set up an appropriate configuration. Wh
 | Capture Window Command          | The CLI command to take of a given window, and save to a file                                                                |
 | [Capture Area Command] Shortcut | The key combination used (at a system level) to trigger the capture window command                                           |
 
-Once the above is configured, save the settings and you can now select an operation. Open the tray, and under `Select Operation`, choose an operation to start using the application. (Note: you may need to choose `Refresh Operations` in the submenu)
+Once the above is configured, save the settings and you can now select an operation. Open the tray, and under `Select Operation`, choose an operation to start using the application. Note that whenever you change the host path, the list of operations will be updated
 
 ## Screenshot Commands
 
@@ -48,7 +48,7 @@ This application requires taking screenshots from the command line. The applicat
 1. Allow for saving the screenshot to a named file.
 2. Create the file _must_ before the application exits.
 
-Theorectically, any application that satisfies this requirement will work. For Mac, the system command to do this is pre-populated, since this is a standard feature. For Linux, there are a number of screenshot commands, and so none are provided. For Windows, a 3rd party application must be used, as there is currently no way to save a screenshot to a named file.
+Theoretically, any application that satisfies this requirement will work. For Mac, the system command to do this is pre-populated, since this is a standard feature. For Linux, there are a number of screenshot commands, and so none are provided. For Windows, a 3rd party application must be used, as there is currently no way to save a screenshot to a named file.
 
 This tool will replace the above filename with `%file` as noted below:
 
@@ -57,7 +57,7 @@ This tool will replace the above filename with `%file` as noted below:
 | Linux/Gnome | gnome-screenshot -w -f %file | gnome-screenshot -a -f %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
 | MacOS X     | screencapture -w %file       | screencapture -s %file       |                                                                                                                                                     |
 
-Note: this application expects a _single, basic command_. While piping output to another command _may_ work, it is not guaranteed. Likewise, providing multiple commands on the same "line" _may_ work, but is also not guaranteed. Offically, both of these techniques are unsupported.
+Note: this application expects a _single, basic command_. While piping output to another command _may_ work, it is not guaranteed. Likewise, providing multiple commands on the same "line" _may_ work, but is also not guaranteed. Officially, both of these techniques are unsupported.
 
 ### Shortcuts
 
@@ -78,7 +78,13 @@ E.g. `Ctrl+Shift+p`
 
 ## Switching Operations
 
-To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, try pressing the `Refresh Operations`, or check with the operation owner to ensure that you have write access to that operation.
+To change operations, navigate to `Select Operation` and choose one of the operations exposed in the list. If the operation you are looking for is not in the list, you can refresh the list by closing and re-opening the tray menu, or check with the operation owner to ensure that you have write access to that operation.
+
+### Multiple backends
+
+Some users may end up using this application for multiple backends -- either for testing, or due to multiple communities using the same software. Currently this application does not strongly support switching backends, though it is possible. To switch backends, simply enter the new API Key, Secret Key, and Host Path in the settings menu. Note that when switching, it is likely your current selected operation will be removed and you will need to select a new operation.
+
+A particular edgecase that is not supported is when multiple backends have the same name for different operations. In these cases, it is incumbent on the user to be vigilant and ensure that the right data goes to the right backend.
 
 ## Managing Evidence
 
@@ -107,7 +113,7 @@ Filtering can be done by specifying items in `key:value` format. Multiple filter
 
 When trying to apply both a "before" date and "after" date filter, the system will adjust the times so that the "before" date is always _after_ the "after" date. Meaning, the timespan must be inclusive. For example, a range of "before March" and "after May" (excluding March and April) is not valid, and will be revised to "After March, Before May"
 
-When applying only one date, the range is unbounded on the other end. That is, dates are implicily "from the start of time" to "until the end of time"
+When applying only one date, the range is unbounded on the other end. That is, dates are implicitly "from the start of time" to "until the end of time"
 
 ## Local Files
 
@@ -128,7 +134,7 @@ The above paths reference some variables. Some of these values change depending 
 | Path Variable            | Notes                                                                                                          |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
 | `$userSettingsDirectory` | Where user-specific configuration/settings files are stored.                                                   |
-| [For Linux]              | On the command line, run `echo $XDG_CONFIG_HOME`                                                               |
+| [For Linux]              | On the command line, run `echo $XDG_CONFIG_HOME`  (by default, this is typically the `~/.config` directory)    |
 | [For Mac OSX]            | Check `/Users/(username)/Library/Preferences`                                                                  |
 | [For windows]            | This may be in the System Registry                                                                             |
 | `$eviRepo`               | The Evidence Repository value in the "settings" window                                                         |

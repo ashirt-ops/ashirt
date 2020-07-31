@@ -219,7 +219,13 @@ void Settings::onSaveClicked() {
   inst.evidenceRepo = eviRepoTextBox->text();
   inst.accessKey = accessKeyTextBox->text();
   inst.secretKey = secretKeyTextBox->text();
+
+  QString originalApiUrl = inst.apiURL;
   inst.apiURL = hostPathTextBox->text();
+  if (originalApiUrl != hostPathTextBox->text()) {
+    NetMan::getInstance().refreshOperationsList();
+  }
+
   inst.screenshotExec = captureAreaCmdTextBox->text();
   inst.screenshotShortcutCombo = captureAreaShortcutTextBox->keySequence().toString();
   inst.captureWindowExec = captureWindowCmdTextBox->text();
