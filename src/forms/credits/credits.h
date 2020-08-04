@@ -6,10 +6,9 @@
 
 #include <QAction>
 #include <QDialog>
-
-namespace Ui {
-class Credits;
-}
+#include <QTextBrowser>
+#include <QDialogButtonBox>
+#include <QGridLayout>
 
 class Credits : public QDialog {
   Q_OBJECT
@@ -19,8 +18,19 @@ class Credits : public QDialog {
   ~Credits();
 
  private:
-  Ui::Credits *ui;
+  /// buildUi creates the window structure.
+  void buildUi();
+  /// wireUi connects the components to each other.
+  void wireUi();
+
+ private:
   QAction* closeWindowAction = nullptr;
+
+  // UI Components
+  QGridLayout* gridLayout = nullptr;
+  QTextBrowser* creditsArea = nullptr;
+  QDialogButtonBox* buttonBox = nullptr;
+
 };
 
 #endif  // CREDITS_H
