@@ -25,51 +25,152 @@ static void initializeDateEdit(QDateEdit *dateEdit) {
 }
 
 EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
-    : QDialog(parent), ui(new Ui::EvidenceFilterForm) {
-  ui->setupUi(this);
+    : QDialog(parent) {
+  buildUi();
+  wireUi();
+}
 
-  ui->erroredComboBox->setEditable(false);
-  ui->operationComboBox->setEditable(false);
-  ui->submittedComboBox->setEditable(false);
-  ui->contentTypeComboBox->setEditable(false);
+EvidenceFilterForm::~EvidenceFilterForm() {
+  delete closeWindowAction;
 
-  initializeTriCombobox(ui->submittedComboBox);
-  initializeTriCombobox(ui->erroredComboBox);
-  ui->contentTypeComboBox->addItem("<None>", "");
-  ui->contentTypeComboBox->addItem("Image", "image");
-  ui->contentTypeComboBox->addItem("Codeblock", "codeblock");
+  delete _operationLabel;
+  delete _contentTypeLabel;
+  delete _hadErrorLabel;
+  delete _wasSubmittedLabel;
+  delete _fromDateLabel;
+  delete _toDateLabel;
 
-  initializeDateEdit(ui->fromDateEdit);
-  initializeDateEdit(ui->toDateEdit);
+  delete operationComboBox;
+  delete submittedComboBox;
+  delete erroredComboBox;
+  delete contentTypeComboBox;
+  delete fromDateEdit;
+  delete toDateEdit;
+  delete includeEndDateCheckBox;
+  delete includeStartDateCheckBox;
+  delete buttonBox;
+
+  delete gridLayout;
+}
+
+void EvidenceFilterForm::buildUi() {
+  gridLayout = new QGridLayout(this);
+
+  _operationLabel = new QLabel("Operation", this);
+  _contentTypeLabel = new QLabel("Content Type", this);
+  _hadErrorLabel = new QLabel("Had Error", this);
+  _wasSubmittedLabel = new QLabel("Was Submitted", this);
+  _fromDateLabel = new QLabel("From Date", this);
+  _toDateLabel = new QLabel("To Date", this);
+
+  operationComboBox = new QComboBox(this);
+  operationComboBox->setEditable(false);
+  operationComboBox->setEnabled(false);
+  operationComboBox->addItem("Loading...", "");
+
+  submittedComboBox = new QComboBox(this);
+  submittedComboBox->setEditable(false);
+  initializeTriCombobox(submittedComboBox);
+
+  erroredComboBox = new QComboBox(this);
+  erroredComboBox->setEditable(false);
+  initializeTriCombobox(erroredComboBox);
+
+  contentTypeComboBox = new QComboBox(this);
+  contentTypeComboBox->setEditable(false);
+  contentTypeComboBox->addItem("<None>", "");
+  contentTypeComboBox->addItem("Image", "image");
+  contentTypeComboBox->addItem("Codeblock", "codeblock");
+
+  fromDateEdit = new QDateEdit(this);
+  initializeDateEdit(fromDateEdit);
+  toDateEdit = new QDateEdit(this);
+  initializeDateEdit(toDateEdit);
+
+  includeEndDateCheckBox = new QCheckBox("Include", this);
+  includeStartDateCheckBox = new QCheckBox("Include", this);
+
+  buttonBox = new QDialogButtonBox(this);
+  buttonBox->addButton(QDialogButtonBox::Ok);
+
+  // Layout
+  /*        0                 1           2
+       +---------------+-------------+--------------+
+    0  | Op  Lbl       | Op CB                      |
+       +---------------+-------------+--------------+
+    1  | C. Type Lbl   | Content Type CB            |
+       +---------------+-------------+--------------+
+    2  | hadErr Lbl    | had Error CB               |
+       +---------------+-------------+--------------+
+    3  | Submit Lbl    | Was Submitted CB           |
+       +---------------+-------------+--------------+
+    4  | From Lbl      | From DtSel  | incl From CB |
+       +---------------+-------------+--------------+
+    5  | To Lbl        | To DtSel    | incl To CB   |
+       +---------------+-------------+--------------+
+    6  | Dialog button Box{ok}                      |
+       +---------------+-------------+--------------+
+  */
+
+  // row 0
+  gridLayout->addWidget(_operationLabel, 0, 0);
+  gridLayout->addWidget(operationComboBox, 0, 1, 1, 2);
+
+  // row 1
+  gridLayout->addWidget(_contentTypeLabel, 1, 0);
+  gridLayout->addWidget(contentTypeComboBox, 1, 1, 1, 2);
+
+  // row 2
+  gridLayout->addWidget(_hadErrorLabel, 2, 0);
+  gridLayout->addWidget(erroredComboBox, 2, 1, 1, 2);
+
+  // row 3
+  gridLayout->addWidget(_wasSubmittedLabel, 3, 0);
+  gridLayout->addWidget(submittedComboBox, 3, 1, 1, 2);
+
+  // row 4
+  gridLayout->addWidget(_fromDateLabel, 4, 0);
+  gridLayout->addWidget(fromDateEdit, 4, 1);
+  gridLayout->addWidget(includeStartDateCheckBox, 4, 2);
+
+  // row 5
+  gridLayout->addWidget(_toDateLabel, 5, 0);
+  gridLayout->addWidget(toDateEdit, 5, 1);
+  gridLayout->addWidget(includeEndDateCheckBox, 5, 2);
+
+  // row 6
+  gridLayout->addWidget(buttonBox, 6, 0, 1, gridLayout->columnCount());
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
   this->addAction(closeWindowAction);
 
-  wireUi();
-}
-
-EvidenceFilterForm::~EvidenceFilterForm() {
-  delete ui;
-  delete closeWindowAction;
+  this->setLayout(gridLayout);
+  this->setWindowTitle("Evidence Filters");
+  this->resize(320, 245);
 }
 
 void EvidenceFilterForm::wireUi() {
-  ui->erroredComboBox->installEventFilter(this);
-  ui->operationComboBox->installEventFilter(this);
-  ui->submittedComboBox->installEventFilter(this);
-  ui->contentTypeComboBox->installEventFilter(this);
+  erroredComboBox->installEventFilter(this);
+  operationComboBox->installEventFilter(this);
+  submittedComboBox->installEventFilter(this);
+  contentTypeComboBox->installEventFilter(this);
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &EvidenceFilterForm::onOperationListUpdated);
-  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeForm);
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeAndClose);
 
-  connect(ui->includeStartDateCheckBox, &QCheckBox::stateChanged,
-          [this](bool checked) { ui->fromDateEdit->setEnabled(checked); });
-  connect(ui->includeEndDateCheckBox, &QCheckBox::stateChanged,
-          [this](bool checked) { ui->toDateEdit->setEnabled(checked); });
+  connect(includeStartDateCheckBox, &QCheckBox::stateChanged,
+          [this](bool checked) { fromDateEdit->setEnabled(checked); });
+  connect(includeEndDateCheckBox, &QCheckBox::stateChanged,
+          [this](bool checked) { toDateEdit->setEnabled(checked); });
 
-  connect(closeWindowAction, &QAction::triggered, [this](){writeForm(); close();});
+  connect(closeWindowAction, &QAction::triggered, this, &EvidenceFilterForm::writeAndClose);
+}
+
+void EvidenceFilterForm::writeAndClose() {
+  writeForm();
+  close();
 }
 
 void EvidenceFilterForm::writeForm() {
@@ -80,66 +181,66 @@ void EvidenceFilterForm::writeForm() {
 EvidenceFilters EvidenceFilterForm::encodeForm() {
   EvidenceFilters filter;
 
-  filter.hasError = EvidenceFilters::parseTri(ui->erroredComboBox->currentText());
-  filter.submitted = EvidenceFilters::parseTri(ui->submittedComboBox->currentText());
-  filter.operationSlug = ui->operationComboBox->currentData().toString();
-  filter.contentType = ui->contentTypeComboBox->currentData().toString();
+  filter.hasError = EvidenceFilters::parseTri(erroredComboBox->currentText());
+  filter.submitted = EvidenceFilters::parseTri(submittedComboBox->currentText());
+  filter.operationSlug = operationComboBox->currentData().toString();
+  filter.contentType = contentTypeComboBox->currentData().toString();
 
   // swap dates so smaller date is always "from" / after
-  if (ui->fromDateEdit->isEnabled() && ui->toDateEdit->isEnabled() &&
-      ui->fromDateEdit->date() > ui->toDateEdit->date()) {
-    auto copy = ui->fromDateEdit->date();
-    ui->fromDateEdit->setDate(ui->toDateEdit->date());
-    ui->toDateEdit->setDate(copy);
+  if (fromDateEdit->isEnabled() && toDateEdit->isEnabled() &&
+      fromDateEdit->date() > toDateEdit->date()) {
+    auto copy = fromDateEdit->date();
+    fromDateEdit->setDate(toDateEdit->date());
+    toDateEdit->setDate(copy);
   }
 
-  if (ui->includeStartDateCheckBox->isChecked()) {
-    filter.startDate = ui->fromDateEdit->date();
+  if (includeStartDateCheckBox->isChecked()) {
+    filter.startDate = fromDateEdit->date();
   }
-  if (ui->includeEndDateCheckBox->isChecked()) {
-    filter.endDate = ui->toDateEdit->date();
+  if (includeEndDateCheckBox->isChecked()) {
+    filter.endDate = toDateEdit->date();
   }
 
   return filter;
 }
 
 void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
-  UiHelpers::setComboBoxValue(ui->operationComboBox, model.operationSlug);
-  UiHelpers::setComboBoxValue(ui->contentTypeComboBox, model.contentType);
-  ui->erroredComboBox->setCurrentText(EvidenceFilters::triToString(model.hasError));
-  ui->submittedComboBox->setCurrentText(EvidenceFilters::triToString(model.submitted));
+  UiHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
+  UiHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
+  erroredComboBox->setCurrentText(EvidenceFilters::triToString(model.hasError));
+  submittedComboBox->setCurrentText(EvidenceFilters::triToString(model.submitted));
 
-  ui->includeStartDateCheckBox->setChecked(model.startDate.isValid());
-  ui->fromDateEdit->setDate(model.startDate.isValid() ? model.startDate
+  includeStartDateCheckBox->setChecked(model.startDate.isValid());
+  fromDateEdit->setDate(model.startDate.isValid() ? model.startDate
                                                       : QDateTime::currentDateTime().date());
 
-  ui->includeEndDateCheckBox->setChecked(model.endDate.isValid());
-  ui->toDateEdit->setDate(model.endDate.isValid() ? model.endDate
+  includeEndDateCheckBox->setChecked(model.endDate.isValid());
+  toDateEdit->setDate(model.endDate.isValid() ? model.endDate
                                                   : QDateTime::currentDateTime().date());
 
   // swap dates so smaller date is always "from" / after
   if (model.startDate.isValid() && model.endDate.isValid() &&
-      ui->fromDateEdit->date() > ui->toDateEdit->date()) {
-    auto copy = ui->fromDateEdit->date();
-    ui->fromDateEdit->setDate(ui->toDateEdit->date());
-    ui->toDateEdit->setDate(copy);
+      fromDateEdit->date() > toDateEdit->date()) {
+    auto copy = fromDateEdit->date();
+    fromDateEdit->setDate(toDateEdit->date());
+    toDateEdit->setDate(copy);
   }
 }
 
 void EvidenceFilterForm::onOperationListUpdated(bool success,
                                                 const std::vector<dto::Operation> &operations) {
-  ui->operationComboBox->setEnabled(false);
+  operationComboBox->setEnabled(false);
   if (!success) {
-    ui->operationComboBox->setItemText(0, "Unable to fetch operations");
-    ui->operationComboBox->setCurrentIndex(0);
+    operationComboBox->setItemText(0, "Unable to fetch operations");
+    operationComboBox->setCurrentIndex(0);
     return;
   }
 
-  ui->operationComboBox->clear();
-  ui->operationComboBox->addItem("<None>", "");
+  operationComboBox->clear();
+  operationComboBox->addItem("<None>", "");
   for (const auto &op : operations) {
-    ui->operationComboBox->addItem(op.name, op.slug);
+    operationComboBox->addItem(op.name, op.slug);
   }
-  UiHelpers::setComboBoxValue(ui->operationComboBox, AppSettings::getInstance().operationSlug());
-  ui->operationComboBox->setEnabled(true);
+  UiHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
+  operationComboBox->setEnabled(true);
 }
