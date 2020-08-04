@@ -2,7 +2,6 @@
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #include "credits.h"
-#include "ui_credits.h"
 
 #include <QDateTime>
 #include <QKeySequence>

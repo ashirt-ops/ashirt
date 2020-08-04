@@ -8,7 +8,6 @@
 #include "appsettings.h"
 #include "helpers/netman.h"
 #include "helpers/ui_helpers.h"
-#include "ui_evidencefilterform.h"
 
 static void initializeTriCombobox(QComboBox *box) {
   box->clear();
