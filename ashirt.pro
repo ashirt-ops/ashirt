@@ -114,8 +114,6 @@ HEADERS += \
     src/forms/settings/settings.h
 
 FORMS += \
-    src/forms/credits/credits.ui \
-    src/forms/evidence_filter/evidencefilterform.ui \
     src/forms/getinfo/getinfo.ui
 
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
