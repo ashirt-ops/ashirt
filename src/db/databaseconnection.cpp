@@ -69,6 +69,8 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.recordedDate = query.value("recorded_date").toDateTime();
     rtn.uploadDate = query.value("upload_date").toDateTime();
 
+    rtn.recordedDate.setTimeSpec(Qt::UTC);
+
     auto getTagQuery = executeQuery(&db,
                                     "SELECT"
                                     " id, tag_id, name"
@@ -211,6 +213,8 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     evi.errorText = resultSet.value("error").toString();
     evi.recordedDate = resultSet.value("recorded_date").toDateTime();
     evi.uploadDate = resultSet.value("upload_date").toDateTime();
+
+    evi.recordedDate.setTimeSpec(Qt::UTC);
 
     allEvidence.push_back(evi);
   }
