@@ -346,7 +346,7 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_PATH, model.path);
   setColText(COL_ERROR_MSG, model.errorText);
 
-  auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toString(dateFormat);
+  auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toLocalTime().toString(dateFormat);
   setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 
