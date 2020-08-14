@@ -12,7 +12,6 @@
 #include "appconfig.h"
 #include "appsettings.h"
 #include "exceptions/fileerror.h"
-#include "helpers/pathseparator.h"
 
 class FileHelpers {
  public:
@@ -62,9 +61,9 @@ class FileHelpers {
   static QString pathToEvidence() {
     AppConfig &conf = AppConfig::getInstance();
     auto op = AppSettings::getInstance().operationSlug();
-    auto root = conf.evidenceRepo + PATH_SEPARATOR;
+    auto root = conf.evidenceRepo + "/";
     if (op != "") {
-      root += op + PATH_SEPARATOR;
+      root += op + "/";
     }
 
     QDir().mkpath(root);

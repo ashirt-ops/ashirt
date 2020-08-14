@@ -343,7 +343,7 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_CONTENT_TYPE, model.contentType);
   setColText(COL_SUBMITTED, model.uploadDate.isNull() ? "No" : "Yes");
   setColText(COL_FAILED, model.errorText == "" ? "" : "Yes");
-  setColText(COL_PATH, model.path);
+  setColText(COL_PATH, QDir::toNativeSeparators(model.path));
   setColText(COL_ERROR_MSG, model.errorText);
 
   auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toString(dateFormat);
