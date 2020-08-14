@@ -248,7 +248,7 @@ void Settings::onBrowseClicked() {
   auto filename = QFileDialog::getExistingDirectory(this, tr("Select a project directory"),
                                                     browseStart, QFileDialog::ShowDirsOnly);
   if (filename != nullptr) {
-    eviRepoTextBox->setText(filename);
+    eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
   }
 }
 
