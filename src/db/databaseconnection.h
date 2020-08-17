@@ -16,7 +16,7 @@
 #include "models/evidence.h"
 
 static QString dbPath =
-    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/screenshot.sqlite";
+    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/evidence.sqlite";
 
 class DBQuery {
  private:

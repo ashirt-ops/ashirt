@@ -50,7 +50,7 @@ class AppConfig {
   }
 
   QString saveLocation =
-      QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/screenshot.json";
+      QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/config.json";
 
   void readConfig() {
     QFile configFile(saveLocation);
