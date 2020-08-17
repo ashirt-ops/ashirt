@@ -2,7 +2,6 @@
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #include "credits.h"
-#include "ui_credits.h"
 
 #include <QDateTime>
 #include <QKeySequence>
@@ -120,26 +119,65 @@ static std::string bodyMarkdown() {
   // clang-format on
 }
 
-Credits::Credits(QWidget* parent) : QDialog(parent), ui(new Ui::Credits) {
-  ui->setupUi(this);
+Credits::Credits(QWidget* parent) : QDialog(parent) {
+  buildUi();
+  wireUi();
+}
 
-  ui->creditsArea->setMarkdown(bodyMarkdown().c_str());
+void Credits::buildUi() {
+  gridLayout = new QGridLayout(this);
+
+  creditsArea = new QTextBrowser(this);
+  creditsArea->setOpenExternalLinks(true);
+  creditsArea->setReadOnly(true);
+  creditsArea->setMarkdown(bodyMarkdown().c_str());
+
+  buttonBox = new QDialogButtonBox(this);
+  buttonBox->addButton(QDialogButtonBox::Close);
+
+  // Layout
+  /*                   0
+       +------------------------------------+
+       |                                    |
+    0  |       Credits Area                 |
+       |                                    |
+       +------------------------------------+
+    1  | Dialog button Box{close}           |
+       +------------------------------------+
+  */
+
+  // row 0
+  gridLayout->addWidget(creditsArea, 0, 0);
+
+  // row 1
+  gridLayout->addWidget(buttonBox, 1, 0);
+
+  closeWindowAction = new QAction(this);
+  closeWindowAction->setShortcut(QKeySequence::Close);
+  this->addAction(closeWindowAction);
+
+  this->setLayout(gridLayout);
+  this->resize(640, 480);
+  this->setWindowTitle("About");
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
   flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
            Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
+}
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
+void Credits::wireUi() {
   connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
 }
 
 Credits::~Credits() {
-  delete ui;
   delete closeWindowAction;
+
+  delete creditsArea;
+  delete buttonBox;
+
+  delete gridLayout;
 }
 
