@@ -8,9 +8,9 @@ labels: "bug, triage"
 Please fill in the following details to help us reproduce the bug:
 -->
 
-**Golang version** (`go version`):
+**OS version** (`uname -a` if on a Unix-like system. For windows run `winver` and copy the text starting "Version "):
 
-**OS version** (`uname -a` if on a Unix-like system):
+**QT version** *if dynamically linking* (`qtdiag |head -n 3`):
 
 **Description of the problem including expected versus actual behavior**:
 
