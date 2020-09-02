@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "appconfig.h"
+#include "request_builder.h"
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "helpers/file_helpers.h"
@@ -20,7 +21,6 @@
 #include "helpers/stopreply.h"
 #include "models/evidence.h"
 
-static auto NO_BODY = "";
 
 class NetMan : public QObject {
   Q_OBJECT
@@ -32,17 +32,13 @@ class NetMan : public QObject {
   }
   NetMan(NetMan const &) = delete;
   void operator=(NetMan const &) = delete;
-
-  enum RequestMethod { METHOD_GET = 0, METHOD_POST };
-  static QString RequestMethodToString(RequestMethod val) {
-    static QString names[] = {"GET", "POST"};
-    return names[val];
-  }
+  // type alias std::vector<dto::Operation> to provide shorter lines
+  using OperationVector = std::vector<dto::Operation>;
 
  signals:
+  void operationListUpdated(bool success, OperationVector  operations = OperationVector());
 
-  void operationListUpdated(bool success,
-                            std::vector<dto::Operation> operations = std::vector<dto::Operation>());
+  void releasesChecked(bool success, QByteArray data = QByteArray());
 
  private:
   QNetworkAccessManager *nam;
@@ -51,24 +47,61 @@ class NetMan : public QObject {
   ~NetMan() {
     delete nam;
     stopReply(&allOpsReply);
+    stopReply(&githubReleaseReply);
   }
 
-  // mkApiUrl creates a new URL with the appropriate request start
-  QString mkApiUrl(QString endpoint, QString host = "") {
-    QString base = (host == "") ? AppConfig::getInstance().apiURL : host;
-    if (base.size() == 0) {  // if a user hasn't set up the application, then base could be empty
-      return endpoint;
+  /// ashirtGet generates a basic GET request to the ashirt API server. No authentication is
+  /// provided (use addASHIRTAuth to do this)
+  /// Allows for an optional altHost parameter, in order to check for ashirt servers.
+  /// Normal usage should provide no value for this parameter.
+  RequestBuilder* ashirtGet(QString endpoint, const QString & altHost="") {
+    QString base = (altHost == "") ? AppConfig::getInstance().apiURL : altHost;
+    return RequestBuilder::newGet()
+        ->setHost(base)
+        ->setEndpoint(endpoint);
+  }
+
+  /// ashirtJSONPost generates a basic POST request with content type application/json. No
+  /// authentication is provided (use addASHIRTAuth to do this)
+  RequestBuilder* ashirtJSONPost(QString endpoint, QByteArray body) {
+    return RequestBuilder::newJSONPost()
+        ->setHost(AppConfig::getInstance().apiURL)
+        ->setEndpoint(endpoint)
+        ->setBody(body);
+  }
+
+  /// ashirtFormPost generates a basic POST request with content type multipart/form-data.
+  /// No authentication is provided (use addASHIRTAuth to do this)
+  RequestBuilder* ashirtFormPost(QString endpoint, QByteArray body, QString boundry) {
+    return RequestBuilder::newFormPost(boundry)
+        ->setHost(AppConfig::getInstance().apiURL)
+        ->setEndpoint(endpoint)
+        ->setBody(body);
+  }
+
+  /// addASHIRTAuth takes the provided RequestBuilder and adds on Authorization and Date headers
+  /// in order to properly authenticate with ASHIRT servers. Note that this should not be used for
+  /// non-ashirt requests
+  void addASHIRTAuth(RequestBuilder* reqBuilder, const QString& altApiKey = "",
+                     const QString& altSecretKey = "") {
+    auto now = QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy hh:mm:ss 'GMT'");
+    reqBuilder->addRawHeader("Date", now);
+
+    // load default key if not present
+    QString apiKeyCopy = QString(altApiKey);
+    if (apiKeyCopy.isEmpty()) {
+      apiKeyCopy = AppConfig::getInstance().accessKey;
     }
-    if (base.at(base.size() - 1) == '/') {
-      base.chop(1);
-    }
-    return base + endpoint;
+
+    auto code = generateHash(RequestMethodToString(reqBuilder->getMethod()),
+                             reqBuilder->getEndpoint(), now, reqBuilder->getBody(), altSecretKey);
+
+    auto authValue = apiKeyCopy + ":" + code;
+    reqBuilder->addRawHeader("Authorization", authValue);
   }
 
-  QString getRFC1123Date() {
-    return QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy hh:mm:ss 'GMT'");
-  }
 
+  /// generateHash provides a cryptographic hash for ASHIRT api server communication
   QString generateHash(QString method, QString path, QString date, QByteArray body = NO_BODY,
                        const QString &secretKey = "") {
     auto hashedBody = QCryptographicHash::hash(body, QCryptographicHash::Sha256);
@@ -88,66 +121,13 @@ class NetMan : public QObject {
     return code.result().toBase64();
   }
 
-  QNetworkReply *makeJsonRequest(RequestMethod method, QString endpoint, QByteArray body = NO_BODY,
-                                 const QString &host = "", const QString &apiKey = "",
-                                 const QString &secretKey = "") {
-    QNetworkRequest req = prepRequest(method, endpoint, body, host, apiKey, secretKey);
-
-    switch (method) {
-      case METHOD_GET:
-        return nam->get(req);
-      case METHOD_POST:
-        req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-        return nam->post(req, body);
-      default:
-        std::cerr << "makeRequest passed an unsupported method" << std::endl;
-    }
-    return nullptr;
-  }
-
-  QNetworkReply *makeFormRequest(RequestMethod method, QString endpoint, QString boundry,
-                                 QByteArray body = NO_BODY, QString host = "") {
-    QNetworkRequest req = prepRequest(method, endpoint, body, host);
-
-    switch (method) {
-      case METHOD_GET:
-        return nam->get(req);
-      case METHOD_POST:
-        req.setHeader(QNetworkRequest::ContentTypeHeader,
-                      "multipart/form-data; boundary=" + boundry);
-        return nam->post(req, body);
-      default:
-        std::cerr << "makeRequest passed an unsupported method" << std::endl;
-    }
-    return nullptr;
-  }
-
-  QNetworkRequest prepRequest(RequestMethod method, QString endpoint, QByteArray body, QString host,
-                              const QString &apiKey = "", const QString &secretKey = "") {
-    QNetworkRequest req;
-    auto now = getRFC1123Date();
-    QString reqMethod = RequestMethodToString(method);
-
-    QString apiKeyCopy = QString(apiKey);
-    if (apiKeyCopy.isEmpty()) {
-      apiKeyCopy = AppConfig::getInstance().accessKey;
-    }
-
-    auto code = generateHash(reqMethod, endpoint, now, body, secretKey);
-    auto authValue = apiKeyCopy + ":" + code;
-
-    req.setUrl(mkApiUrl(endpoint, host));
-    req.setRawHeader(QByteArray("Date"), FileHelpers::qstringToByteArray(now));
-    req.setRawHeader(QByteArray("Authorization"), FileHelpers::qstringToByteArray(authValue));
-
-    return req;
-  }
-
+  /// onGetOpsComplete is called when the network request associated with the method refreshOperationsList
+  /// completes. This will emit an operationListUpdated signal.
   void onGetOpsComplete() {
     bool isValid;
     auto data = extractResponse(allOpsReply, isValid);
     if (isValid) {
-      std::vector<dto::Operation> ops = dto::Operation::parseDataAsList(data);
+      OperationVector ops = dto::Operation::parseDataAsList(data);
       std::sort(ops.begin(), ops.end(),
                 [](dto::Operation i, dto::Operation j) { return i.name < j.name; });
 
@@ -159,7 +139,26 @@ class NetMan : public QObject {
     tidyReply(&allOpsReply);
   }
 
+  /// onGithubReleasesComplete is called when the network request associated with the method checkForNewRelease
+  /// completes. This will emit a releasesChecked signal
+  void onGithubReleasesComplete() {
+    bool isValid;
+    auto data = extractResponse(githubReleaseReply, isValid);
+    if (isValid) {
+      emit releasesChecked(true, data);
+    }
+    else {
+      emit releasesChecked(false);
+    }
+    tidyReply(&githubReleaseReply);
+  }
+
  public:
+
+  /// uploadAsset takes the given Evidence model, encodes it (and the file), and uploads this
+  /// to the configured ASHIRT API server. Returns a QNetworkReply to track the request
+  /// Note: does not specify the occurred_at field, so occurred_at will reflect the time of upload,
+  /// rather than the time of capture.
   QNetworkReply *uploadAsset(model::Evidence evidence) {
     MultipartParser parser;
     parser.AddParameter("notes", evidence.description.toStdString());
@@ -178,31 +177,63 @@ class NetMan : public QObject {
     parser.AddFile("file", evidence.path.toStdString());
 
     auto body = FileHelpers::stdStringToByteArray(parser.GenBodyContent());
-    return makeFormRequest(METHOD_POST, "/api/operations/" + evidence.operationSlug + "/evidence",
-                           parser.boundary().c_str(), body);
+
+    auto builder = ashirtFormPost("/api/operations/" + evidence.operationSlug + "/evidence", body, parser.boundary().c_str());
+    addASHIRTAuth(builder);
+    return builder->execute(nam);
   }
 
+  /// testConnection provides a mechanism to validate a given host, apikey and secret key, to test
+  /// a connection to the ASHIRT API server
   QNetworkReply *testConnection(QString host, QString apiKey, QString secretKey) {
-    return makeJsonRequest(METHOD_GET, "/api/operations", NO_BODY, host, apiKey, secretKey);
+    auto builder = ashirtGet("/api/operations", host);
+    addASHIRTAuth(builder, apiKey, secretKey);
+    return builder->execute(nam);
   }
 
-  QNetworkReply *getAllOperations() { return makeJsonRequest(METHOD_GET, "/api/operations"); }
+  /// getAllOperations retrieves all (user-visble) operations from the configured ASHIRT API server.
+  /// Note: normally you should opt to use refreshOperationsList and retrieve the results by listening
+  /// for the operationListUpdated signal.
+  QNetworkReply *getAllOperations() {
+    auto builder = ashirtGet("/api/operations");
+    addASHIRTAuth(builder);
+    return builder->execute(nam);
+  }
 
+  /// getGithubReleases retrieves the recent releases from github for the provided owner and repo.
+  /// Note that normally you should call checkForNewRelease
+  QNetworkReply *getGithubReleases(QString owner, QString repo) {
+    return RequestBuilder::newGet()
+        ->setHost("https://api.github.com")
+        ->setEndpoint("/repos/" + owner + "/" + repo + "/releases")
+        ->execute(nam);
+  }
+
+  /// refreshOperationsList retrieves the operations currently visible to the user. Results should be
+  /// retrieved by listening for the operationListUpdated signal
   void refreshOperationsList() {
     allOpsReply = getAllOperations();
     connect(allOpsReply, &QNetworkReply::finished, this, &NetMan::onGetOpsComplete);
   }
 
+  /// getOperationTags retrieves the tags for specified operation from the ASHIRT API server
   QNetworkReply *getOperationTags(QString operationSlug) {
-    auto url = "/api/operations/" + operationSlug + "/tags";
-    return makeJsonRequest(METHOD_GET, url);
+    auto builder = ashirtGet("/api/operations/" + operationSlug + "/tags");
+    addASHIRTAuth(builder);
+    return builder->execute(nam);
   }
 
+  /// createTag attempts to create a new tag for specified operation from the ASHIRT API server.
   QNetworkReply *createTag(dto::Tag tag, QString operationSlug) {
-    auto url = "/api/operations/" + operationSlug + "/tags";
-    return makeJsonRequest(METHOD_POST, url, dto::Tag::toJson(tag));
+    auto builder = ashirtJSONPost("/api/operations/" + operationSlug + "/tags", dto::Tag::toJson(tag));
+    addASHIRTAuth(builder);
+    return builder->execute(nam);
   }
 
+  /// extractResponse inspects the provided QNetworkReply and returns back the contents of the reply.
+  /// In addition, it will also indicated, via the provided valid flag, if the response was valid.
+  /// A Valid response is one that has a 200 or 201 response AND had no errors flaged from Qt
+  /// Note: this applies to ASHIRT responses only
   static QByteArray extractResponse(QNetworkReply *reply, bool &valid) {
     auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     auto reqErr = reply->error();
@@ -211,8 +242,16 @@ class NetMan : public QObject {
     return reply->readAll();
   }
 
+  /// checkForNewRelease retrieves the recent releases from github for the provided owner/repo project.
+  /// Callers should retrieve the result by listening for the releasesChecked signal
+  void checkForNewRelease(QString owner, QString repo) {
+    githubReleaseReply = getGithubReleases(owner, repo);
+    connect(githubReleaseReply, &QNetworkReply::finished, this, &NetMan::onGithubReleasesComplete);
+  }
+
  private:
   QNetworkReply *allOpsReply = nullptr;
+  QNetworkReply *githubReleaseReply = nullptr;
 };
 
 #endif  // NETMAN_H

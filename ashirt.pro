@@ -91,6 +91,7 @@ HEADERS += \
     src/forms/evidence_filter/evidencefilterform.h \
     src/forms/getinfo/getinfo.h \
     src/helpers/clipboard/clipboardhelper.h \
+    src/helpers/request_builder.h \
     src/helpers/ui_helpers.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
