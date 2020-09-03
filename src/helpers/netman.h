@@ -16,6 +16,7 @@
 #include "request_builder.h"
 #include "dtos/operation.h"
 #include "dtos/tag.h"
+#include "dtos/github_release.h"
 #include "helpers/file_helpers.h"
 #include "helpers/multipartparser.h"
 #include "helpers/stopreply.h"
@@ -38,7 +39,7 @@ class NetMan : public QObject {
  signals:
   void operationListUpdated(bool success, OperationVector  operations = OperationVector());
 
-  void releasesChecked(bool success, QByteArray data = QByteArray());
+  void releasesChecked(bool success, std::vector<dto::GithubRelease> releases = std::vector<dto::GithubRelease>());
 
  private:
   QNetworkAccessManager *nam;
@@ -145,7 +146,8 @@ class NetMan : public QObject {
     bool isValid;
     auto data = extractResponse(githubReleaseReply, isValid);
     if (isValid) {
-      emit releasesChecked(true, data);
+      auto releases = dto::GithubRelease::parseDataAsList(data);
+      emit releasesChecked(true, releases);
     }
     else {
       emit releasesChecked(false);

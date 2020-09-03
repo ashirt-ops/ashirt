@@ -8,6 +8,7 @@
 
 #include "db/databaseconnection.h"
 #include "dtos/operation.h"
+#include "dtos/github_release.h"
 #include "forms/credits/credits.h"
 #include "forms/evidence/evidencemanager.h"
 #include "forms/settings/settings.h"
@@ -52,6 +53,7 @@ class TrayManager : public QDialog {
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
+  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
 
  private:
   void createActions();

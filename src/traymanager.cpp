@@ -60,6 +60,7 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 
   // delayed so that windows can listen for get all ops signal
   NetMan::getInstance().refreshOperationsList();
+  NetMan::getInstance().checkForNewRelease("google", "go-github"); // this should probably be made dynamic, to support forking
 
   wireUi();
 
@@ -125,6 +126,7 @@ void TrayManager::wireUi() {
 
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
+  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
 }
@@ -315,6 +317,14 @@ void TrayManager::onOperationListUpdated(bool success,
   }
   else {
     chooseOpStatusAction->setText(tr("Unable to load operations"));
+  }
+}
+
+void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
+  std::cout << "Github Release Data (success? " << success << ")" << std::endl
+            << "Len: " << releases.size() << std::endl;
+  if (releases.size() > 0) {
+    std::cout << "[0]: " << releases[0].toStdString() << std::endl;
   }
 }
 
