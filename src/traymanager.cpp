@@ -321,10 +321,73 @@ void TrayManager::onOperationListUpdated(bool success,
 }
 
 void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
-  std::cout << "Github Release Data (success? " << success << ")" << std::endl
-            << "Len: " << releases.size() << std::endl;
-  if (releases.size() > 0) {
-    std::cout << "[0]: " << releases[0].toStdString() << std::endl;
+  if (!success) {
+    return; //doesn't matter if this fails
+  }
+
+  dto::SemVer currentVersion = dto::SemVer::parse("v29.0.0");
+
+  dto::GithubRelease latestMajRelease;
+  dto::SemVer latestMajVersion;
+  dto::GithubRelease latestMinRelease;
+  dto::SemVer latestMinVersion;
+  dto::GithubRelease latestPatRelease;
+  dto::SemVer latestPatVersion;
+
+  for (auto release : releases) {
+    auto releaseTag = dto::SemVer::parse(release.tagName);
+    auto diff = currentVersion.diff(releaseTag);
+    if (dto::SemVer::isUpgrade(diff)) {
+      if (diff.major > 0) {
+        if (latestMajRelease.id == 0) {
+          latestMajRelease = release;
+          latestMajVersion = releaseTag;
+        }
+        else {
+          if (dto::SemVer::isUpgrade( latestMajVersion.diff(dto::SemVer::parse(release.tagName)) )) {
+            latestMajRelease = release;
+            latestMajVersion = releaseTag;
+          }
+        }
+      }
+      else if (diff.minor > 0) {
+        if (latestMinRelease.id == 0) {
+          latestMinRelease = release;
+          latestMinVersion = releaseTag;
+        }
+        else {
+          if (dto::SemVer::isUpgrade( latestMinVersion.diff(dto::SemVer::parse(release.tagName)) )) {
+            latestMinRelease = release;
+            latestMinVersion = releaseTag;
+          }
+        }
+      }
+      else if (diff.patch > 0) {
+        if (latestPatRelease.id == 0) {
+          latestPatRelease = release;
+          latestPatVersion = releaseTag;
+        }
+        else {
+          if (dto::SemVer::isUpgrade( latestPatVersion.diff(dto::SemVer::parse(release.tagName)) )) {
+            latestPatRelease = release;
+            latestPatVersion = releaseTag;
+          }
+        }
+      }
+    }
+  }
+
+  if (latestMajRelease.id != 0) {
+    std::cout << "A new major release ("<< latestMajVersion.toString().toStdString() <<") "<<
+        "is available here: " << latestMajRelease.htmlURL.toStdString() << std::endl;
+  }
+  if (latestMinRelease.id != 0) {
+    std::cout << "A new minor release ("<< latestMinVersion.toString().toStdString() <<") "<<
+        "is available here: " << latestMinRelease.htmlURL.toStdString() << std::endl;
+  }
+  if (latestPatRelease.id != 0) {
+    std::cout << "A new patch release ("<< latestPatVersion.toString().toStdString() <<") "<<
+        "is available here: " << latestPatRelease.htmlURL.toStdString() << std::endl;
   }
 }
 

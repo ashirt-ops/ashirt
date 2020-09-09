@@ -11,7 +11,12 @@ namespace dto {
 // converted to ints, while the remainder is left untouched, in "extra".
 class SemVer {
  public:
-  SemVer() {}
+  SemVer() {
+    this->major = 0;
+    this->minor = 0;
+    this->patch = 0;
+    this->extra = "";
+  }
   SemVer(int major, int minor, int patch, QString extra) {
     this->major = major;
     this->minor = minor;
@@ -37,10 +42,23 @@ class SemVer {
   }
 
   QString toString() {
-    return QString("major: ") + QString::number(major)
-           + " minor: " + QString::number(minor)
-           + " patch: " + QString::number(patch)
-           + " extra: " + extra;
+    return QString("v") + QString::number(major)
+           + "." + QString::number(minor)
+           + "." + QString::number(patch)
+           + extra;
+  }
+
+  SemVer diff(SemVer other) {
+    int majDiff = other.major - this->major;
+    int minDiff = other.minor - this->minor;
+    int patDiff = other.patch - this->patch;
+    return SemVer(majDiff, minDiff, patDiff, "");
+  }
+
+  static bool isUpgrade(SemVer diff) {
+    return (diff.major > 0) ||
+           (diff.minor > 0 && diff.major == 0) ||
+           (diff.patch > 0 && diff.minor == 0 && diff.major == 0);
   }
 
   int major;
@@ -65,6 +83,10 @@ class GithubRelease {
   bool draft;
   QString publishedAt;
   qint64 id;
+
+  GithubRelease() {
+    this->id = 0;
+  }
 
   static GithubRelease parseData(QByteArray data) {
     return parseJSONItem<GithubRelease>(data, GithubRelease::fromJson);
