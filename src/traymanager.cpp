@@ -90,7 +90,6 @@ TrayManager::~TrayManager() {
   cleanChooseOpSubmenu();  // must be done before deleting chooseOpSubmenu/action
 
   delete chooseOpStatusAction;
-  delete refreshOperationListAction;
   delete chooseOpSubmenu;
 
   delete trayIconMenu;
@@ -104,11 +103,13 @@ TrayManager::~TrayManager() {
 }
 
 void TrayManager::cleanChooseOpSubmenu() {
+  // delete all of the existing events
   for (QAction* act : allOperationActions) {
     chooseOpSubmenu->removeAction(act);
     delete act;
   }
   allOperationActions.clear();
+  selectedAction = nullptr; // clear the selected action to ensure no funny business
 }
 
 void TrayManager::wireUi() {
@@ -169,14 +170,7 @@ void TrayManager::createActions() {
   chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
   chooseOpStatusAction->setEnabled(false);
 
-  refreshOperationListAction = new QAction(tr("Refresh Operations"), chooseOpSubmenu);
-  connect(refreshOperationListAction, &QAction::triggered, [this] {
-    chooseOpStatusAction->setText("Loading operations...");
-    NetMan::getInstance().refreshOperationsList();
-  });
-
   chooseOpSubmenu->addAction(chooseOpStatusAction);
-  chooseOpSubmenu->addAction(refreshOperationListAction);
   chooseOpSubmenu->addSeparator();
 }
 
@@ -254,6 +248,10 @@ void TrayManager::createTrayMenu() {
 
   trayIcon = new QSystemTrayIcon(this);
   trayIcon->setContextMenu(trayIconMenu);
+  connect(trayIcon, &QSystemTrayIcon::activated, [this]{
+    chooseOpStatusAction->setText("Loading operations...");
+    NetMan::getInstance().refreshOperationsList();
+  });
 }
 
 void TrayManager::onScreenshotCaptured(const QString& path) {
@@ -310,6 +308,10 @@ void TrayManager::onOperationListUpdated(bool success,
       allOperationActions.push_back(newAction);
       chooseOpSubmenu->addAction(newAction);
     }
+    if (selectedAction == nullptr) {
+      AppSettings::getInstance().setOperationDetails("", "");
+    }
+
   }
   else {
     chooseOpStatusAction->setText(tr("Unable to load operations"));

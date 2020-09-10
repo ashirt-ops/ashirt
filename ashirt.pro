@@ -113,10 +113,6 @@ HEADERS += \
     src/forms/evidence/evidencemanager.h \
     src/forms/settings/settings.h
 
-FORMS += \
-    src/forms/credits/credits.ui \
-    src/forms/evidence_filter/evidencefilterform.ui
-
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {

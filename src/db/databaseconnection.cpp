@@ -69,6 +69,9 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.recordedDate = query.value("recorded_date").toDateTime();
     rtn.uploadDate = query.value("upload_date").toDateTime();
 
+    rtn.recordedDate.setTimeSpec(Qt::UTC);
+    rtn.uploadDate.setTimeSpec(Qt::UTC);
+
     auto getTagQuery = executeQuery(&db,
                                     "SELECT"
                                     " id, tag_id, name"
@@ -153,8 +156,8 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
 
 DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters) {
   QString query =
-      "SELECT id, path, operation_slug, content_type, description, error, recorded_date, "
-      "upload_date"
+      "SELECT"
+      " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
       " FROM evidence";
   std::vector<QVariant> values;
   std::vector<QString> parts;
@@ -211,6 +214,9 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     evi.errorText = resultSet.value("error").toString();
     evi.recordedDate = resultSet.value("recorded_date").toDateTime();
     evi.uploadDate = resultSet.value("upload_date").toDateTime();
+
+    evi.recordedDate.setTimeSpec(Qt::UTC);
+    evi.uploadDate.setTimeSpec(Qt::UTC);
 
     allEvidence.push_back(evi);
   }
