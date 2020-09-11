@@ -58,12 +58,6 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   evidenceManagerWindow = new EvidenceManager(db, this);
   creditsWindow = new Credits(this);
 
-  // delayed so that windows can listen for get all ops signal
-  NetMan::getInstance().refreshOperationsList();
-  NetMan::getInstance().checkForNewRelease("google", "go-github"); // this should probably be made dynamic, to support forking
-
-  wireUi();
-
   createActions();
   createTrayMenu();
   QIcon icon = QIcon(ICON);
@@ -75,6 +69,12 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 
   setActiveOperationLabel();
   trayIcon->show();
+  wireUi();
+
+  // delayed so that windows can listen for get all ops signal
+  NetMan::getInstance().refreshOperationsList();
+  // this should probably be made dynamic, to support forking
+  NetMan::getInstance().checkForNewRelease("google", "go-github");
 }
 
 TrayManager::~TrayManager() {
@@ -129,6 +129,7 @@ void TrayManager::wireUi() {
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
+  connect(trayIcon, &QSystemTrayIcon::messageClicked, creditsWindow, &QWidget::show);
 }
 
 void TrayManager::closeEvent(QCloseEvent* event) {
@@ -267,7 +268,9 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  trayIcon->showMessage("Unable to Record Evidence", "No Operation has been selected. Please select an operation first.",QSystemTrayIcon::Warning);
+  trayIcon->showMessage("Unable to Record Evidence",
+                        "No Operation has been selected. Please select an operation first.",
+                        QSystemTrayIcon::Warning);
 }
 
 void TrayManager::setActiveOperationLabel() {
@@ -313,7 +316,6 @@ void TrayManager::onOperationListUpdated(bool success,
     if (selectedAction == nullptr) {
       AppSettings::getInstance().setOperationDetails("", "");
     }
-
   }
   else {
     chooseOpStatusAction->setText(tr("Unable to load operations"));
@@ -322,72 +324,13 @@ void TrayManager::onOperationListUpdated(bool success,
 
 void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
   if (!success) {
-    return; //doesn't matter if this fails
+    return;  // doesn't matter if this fails
   }
 
-  dto::SemVer currentVersion = dto::SemVer::parse("v29.0.0");
+  auto digest = dto::ReleaseDigest::fromReleases("v29.0.0", releases); // TODO: replace with proper verion
 
-  dto::GithubRelease latestMajRelease;
-  dto::SemVer latestMajVersion;
-  dto::GithubRelease latestMinRelease;
-  dto::SemVer latestMinVersion;
-  dto::GithubRelease latestPatRelease;
-  dto::SemVer latestPatVersion;
-
-  for (auto release : releases) {
-    auto releaseTag = dto::SemVer::parse(release.tagName);
-    auto diff = currentVersion.diff(releaseTag);
-    if (dto::SemVer::isUpgrade(diff)) {
-      if (diff.major > 0) {
-        if (latestMajRelease.id == 0) {
-          latestMajRelease = release;
-          latestMajVersion = releaseTag;
-        }
-        else {
-          if (dto::SemVer::isUpgrade( latestMajVersion.diff(dto::SemVer::parse(release.tagName)) )) {
-            latestMajRelease = release;
-            latestMajVersion = releaseTag;
-          }
-        }
-      }
-      else if (diff.minor > 0) {
-        if (latestMinRelease.id == 0) {
-          latestMinRelease = release;
-          latestMinVersion = releaseTag;
-        }
-        else {
-          if (dto::SemVer::isUpgrade( latestMinVersion.diff(dto::SemVer::parse(release.tagName)) )) {
-            latestMinRelease = release;
-            latestMinVersion = releaseTag;
-          }
-        }
-      }
-      else if (diff.patch > 0) {
-        if (latestPatRelease.id == 0) {
-          latestPatRelease = release;
-          latestPatVersion = releaseTag;
-        }
-        else {
-          if (dto::SemVer::isUpgrade( latestPatVersion.diff(dto::SemVer::parse(release.tagName)) )) {
-            latestPatRelease = release;
-            latestPatVersion = releaseTag;
-          }
-        }
-      }
-    }
-  }
-
-  if (latestMajRelease.id != 0) {
-    std::cout << "A new major release ("<< latestMajVersion.toString().toStdString() <<") "<<
-        "is available here: " << latestMajRelease.htmlURL.toStdString() << std::endl;
-  }
-  if (latestMinRelease.id != 0) {
-    std::cout << "A new minor release ("<< latestMinVersion.toString().toStdString() <<") "<<
-        "is available here: " << latestMinRelease.htmlURL.toStdString() << std::endl;
-  }
-  if (latestPatRelease.id != 0) {
-    std::cout << "A new patch release ("<< latestPatVersion.toString().toStdString() <<") "<<
-        "is available here: " << latestPatRelease.htmlURL.toStdString() << std::endl;
+  if (digest.hasUpgrade()) {
+    this->trayIcon->showMessage("Updates are available!", "Click for more info");
   }
 }
 
