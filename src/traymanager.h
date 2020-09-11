@@ -5,6 +5,7 @@
 #define WINDOW_H
 
 #include <QSystemTrayIcon>
+#include <QTimer>
 
 #include "db/databaseconnection.h"
 #include "dtos/operation.h"
@@ -63,6 +64,8 @@ class TrayManager : public QDialog {
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
 
+  void checkForUpdate();
+
  private:
   QAction *quitAction;
   QAction *showSettingsAction;
@@ -90,6 +93,7 @@ class TrayManager : public QDialog {
   HotkeyManager *hotkeyManager;
 
   DatabaseConnection *db;
+  QTimer *updateCheckTimer = nullptr;
 };
 
 #endif  // QT_NO_SYSTEMTRAYICON

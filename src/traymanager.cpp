@@ -22,6 +22,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <iostream>
+#include <QTimer>
 
 #include "appconfig.h"
 #include "appsettings.h"
@@ -30,6 +31,7 @@
 #include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
+#include "helpers/constants.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
 #include "tools/UGlobalHotkey/uglobalhotkeys.h"
@@ -69,12 +71,14 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 
   setActiveOperationLabel();
   trayIcon->show();
+  updateCheckTimer = new QTimer(this);
+  updateCheckTimer->start(24*60*60*1000); // every day
+
   wireUi();
 
   // delayed so that windows can listen for get all ops signal
   NetMan::getInstance().refreshOperationsList();
-  // this should probably be made dynamic, to support forking
-  NetMan::getInstance().checkForNewRelease("google", "go-github");
+  QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);
 }
 
 TrayManager::~TrayManager() {
@@ -93,6 +97,7 @@ TrayManager::~TrayManager() {
   delete chooseOpStatusAction;
   delete chooseOpSubmenu;
 
+  delete updateCheckTimer;
   delete trayIconMenu;
   delete trayIcon;
 
@@ -130,6 +135,7 @@ void TrayManager::wireUi() {
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
   connect(trayIcon, &QSystemTrayIcon::messageClicked, creditsWindow, &QWidget::show);
+  connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 }
 
 void TrayManager::closeEvent(QCloseEvent* event) {
@@ -322,12 +328,16 @@ void TrayManager::onOperationListUpdated(bool success,
   }
 }
 
+void TrayManager::checkForUpdate() {
+  NetMan::getInstance().checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
+}
+
 void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
   if (!success) {
     return;  // doesn't matter if this fails
   }
 
-  auto digest = dto::ReleaseDigest::fromReleases("v29.0.0", releases); // TODO: replace with proper verion
+  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases); // TODO: replace with proper verion
 
   if (digest.hasUpgrade()) {
     this->trayIcon->showMessage("Updates are available!", "Click for more info");
