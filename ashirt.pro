@@ -11,8 +11,7 @@ CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # App version number
-SOURCE_CONTROL_REPO_PLAIN = $$getenv(GITHUB_REPO)
-SOURCE_CONTROL_OWNER_PLAIN = $$getenv(GITHUB_OWNER)
+SOURCE_CONTROL_REPO_PLAIN = $$getenv(GITHUB_REPOSITORY)
 
 VERSION_TAG_PLAIN = $$getenv(GITHUB_REF)
 COMMIT_HASH_PLAIN = $$getenv(GITHUB_SHA)
@@ -28,23 +27,19 @@ equals(COMMIT_HASH_PLAIN, "") {
 }
 
 equals(SOURCE_CONTROL_REPO_PLAIN, "") {
-  message("Source control repo not specified. Please ensure GITHUB_REPO environment variable is set.")
-}
-
-equals(SOURCE_CONTROL_OWNER_PLAIN, "") {
-  message("Source control owner not specified. Please ensure GITHUB_OWNER environment variable is set.")
+  message("Source control repo not specified. Please ensure GITHUB_REPOSITORY environment variable is set.")
 }
 
 
 VERSION_TAG = \\\"$$VERSION_TAG_PLAIN\\\"
 COMMIT_HASH = \\\"$$COMMIT_HASH_PLAIN\\\"
-SOURCE_CONTROL_OWNER = \\\"$$SOURCE_CONTROL_OWNER_PLAIN\\\"
 SOURCE_CONTROL_REPO  = \\\"$$SOURCE_CONTROL_REPO_PLAIN\\\"
 
 message(Building version [$$VERSION_TAG_PLAIN])
 
 DEFINES += "VERSION_TAG=$$VERSION_TAG" \
-           "COMMIT_HASH=$$COMMIT_HASH"
+           "COMMIT_HASH=$$COMMIT_HASH" \
+           "SOURCE_CONTROL_REPO"
 
 INCLUDEPATH += src
 
