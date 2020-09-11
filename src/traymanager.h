@@ -63,7 +63,6 @@ class TrayManager : public QDialog {
   qint64 createNewEvidence(QString filepath, QString evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
-
   void checkForUpdate();
 
  private:

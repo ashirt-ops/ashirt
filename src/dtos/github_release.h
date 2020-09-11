@@ -98,20 +98,6 @@ class GithubRelease {
     return parseJSONList<GithubRelease>(data, GithubRelease::fromJson);
   }
 
-  std::string toStdString() {
-
-    auto rtn = QString("{ ")
-               + "name: " + releaseName + ", "
-               + "url:  " + url + ", "
-               + "desc: " + body + ", "
-               + "pubT: " + publishedAt + ", "
-               + "TagN: " + tagName + ", "
-               + "Ptag: " + SemVer::parse(tagName).toString() +
-               + "}";
-
-    return rtn.toStdString();
-  }
-
   bool isLegitimate() {
     return this->id != 0;
   }

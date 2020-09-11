@@ -334,10 +334,10 @@ void TrayManager::checkForUpdate() {
 
 void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
   if (!success) {
-    return;  // doesn't matter if this fails
+    return;  // doesn't matter if this fails -- another request will be made later.
   }
 
-  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases); // TODO: replace with proper verion
+  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
 
   if (digest.hasUpgrade()) {
     this->trayIcon->showMessage("Updates are available!", "Click for more info");

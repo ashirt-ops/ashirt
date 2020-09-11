@@ -28,7 +28,7 @@ static QString RequestMethodToString(RequestMethod val) {
  * @brief The RequestBuilder class is a small builder-style class to construct a valid HTTP request.
  *
  * Requests are built via the various mutators (setMethod, setHost, etc). Each mutator returns the
- * modified object, so that requests can be chained together (hence the builder pattern). Accessors
+ * modified object, so that requests can be chained together (following the builder pattern). Accessors
  * are provided to inspect set fields (all fields are empty by default). This class provides two
  * ways to "complete" the request building. The `build` function will genrate a QNetworkRequest object
  * while the `execute` function will interpret the set method, and actually submit the request, returning
