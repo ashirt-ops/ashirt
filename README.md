@@ -119,27 +119,27 @@ When applying only one date, the range is unbounded on the other end. That is, d
 
 You should never need to access these files outside of the application, however, for clarity, the following files are generate and maintained by this application:
 
-| File type      | Path                                                                | Notes                                                                                                                            |
-| -------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Screenshots    | `$eviRepo/$operationSlug/ashirt_screenshot_$randomCharacters.png`   | Presently, random (english) characters tacked on to the end of a screenshot, to add uniqueness and prevent overwriting           |
-| Codeblocks     | `$eviRepo/$operationSlug/ashirt_codeblock_$randomCharacters.json`   | Presently, random (english) characters tacked on to the end of the codeblock filename, to add uniqueness and prevent overwriting |
-| Configuration  | `$userSettingsDirectory/ashirt/screenshot.json`                     | Manages connection info / configuration in "settings" menu                                                                       |
-| Local Database | `$userSettingsDirectory/ashirt/evidence.sqlite`                   |                                                                                                                                  |
-| Settings       | `$userSettingsDirectory/Verizon Media Group/AShirt Screenshot.conf` | Manages state info -- e.g. last used operation ; Managed by Qt                                                                   |
+| File type      | Path                                                              | Notes                                                                                                                            |
+| -------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Screenshots    | `$eviRepo/$operationSlug/ashirt_screenshot_$randomCharacters.png` | Presently, random (english) characters tacked on to the end of a screenshot, to add uniqueness and prevent overwriting           |
+| Codeblocks     | `$eviRepo/$operationSlug/ashirt_codeblock_$randomCharacters.json` | Presently, random (english) characters tacked on to the end of the codeblock filename, to add uniqueness and prevent overwriting |
+| Configuration  | `$userDataDirectory/ashirt/config.json`                           | Manages connection info / configuration in "settings" menu                                                                       |
+| Local Database | `$userDataDirectory/ashirt/evidence.sqlite`                       |                                                                                                                                  |
+| Settings       | `$userDataDirectory/Unknown Organization/ashirt.conf`             | Manages state info -- e.g. last used operation ; Managed by Qt                                                                   |
 
 ### Variable locations
 
 The above paths reference some variables. Some of these values change depending on what operating system is being used (or in how it is configured). The exact paths are unknown, but this may help you find these files:
 
-| Path Variable            | Notes                                                                                                          |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `$userSettingsDirectory` | Where user-specific configuration/settings files are stored.                                                   |
-| [For Linux]              | On the command line, run `echo $XDG_CONFIG_HOME`  (by default, this is typically the `~/.config` directory)    |
-| [For Mac OSX]            | Check `/Users/(username)/Library/Preferences`                                                                  |
-| [For windows]            | This may be in the System Registry                                                                             |
-| `$eviRepo`               | The Evidence Repository value in the "settings" window                                                         |
-| `$operationSlug`         | The operation slug for a given operation. This is a unique representation of an operation name                 |
-| `$randomCharacters`      | Six random english characters, case-insensitive (for those operating systems that support this). e.g. `fTaNpS` |
+| Path Variable        | Notes                                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `$userDataDirectory` | Where user-specific data files are stored.                                                                     |
+| [For Linux]          | On the command line, run `echo $XDG_CONFIG_HOME`  (by default, this is typically the `~/.config` directory)    |
+| [For Mac OSX]        | Check `/Users/(username)/Application Support/`                                                                 |
+| [For windows]        | Check `C:\Users\(username)\AppData\Local\`                                                                     |
+| `$eviRepo`           | The Evidence Repository value in the "settings" window                                                         |
+| `$operationSlug`     | The operation slug for a given operation. This is a unique representation of an operation name                 |
+| `$randomCharacters`  | Six random english characters, case-insensitive (for those operating systems that support this). e.g. `fTaNpS` |
 
 ## Developer Notes
 
