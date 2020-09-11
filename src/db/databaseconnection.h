@@ -15,9 +15,6 @@
 #include "forms/evidence_filter/evidencefilter.h"
 #include "models/evidence.h"
 
-static QString dbPath =
-    QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/evidence.sqlite";
-
 class DBQuery {
  private:
   QString _query;
