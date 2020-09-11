@@ -6,6 +6,8 @@
 #include <QDateTime>
 #include <QKeySequence>
 
+#include "helpers/netman.h"
+
 struct Attribution {
   std::string library;
   std::string libraryUrl;
@@ -94,6 +96,10 @@ static QString CommitHash() {
   return QString("%1").arg(COMMIT_HASH);
 }
 
+static QString ReleaseTag() {
+  return QString("%1").arg(VERSION_TAG);
+}
+
 static std::string userGuideUrl = "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
 static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashirt/issues";
 
@@ -110,7 +116,7 @@ static std::string preambleMarkdown() {
   // clang-format on
 }
 
-static std::string bodyMarkdown() {
+static std::string normalBodyMarkdown() {
   // clang-format off
   return "# ASHIRT\n\n"
           + preambleMarkdown()
@@ -124,13 +130,37 @@ Credits::Credits(QWidget* parent) : QDialog(parent) {
   wireUi();
 }
 
+void Credits::updateBody() {
+  std::string base = normalBodyMarkdown();
+
+  auto releaseLink = [](dto::GithubRelease rel){return QString("[%1](%2)").arg(rel.tagName).arg(rel.htmlURL);};
+
+  if (updateDigest.hasUpgrade()) {
+    base = base + "\n\n"
+           + "## Updating\n"
+           + "Updates are available for this application.\n\n";
+    if (updateDigest.majorRelease.isLegitimate()) {
+      base = base + "* Next major release: "+ releaseLink(updateDigest.majorRelease).toStdString() +"\n";
+    }
+    if (updateDigest.minorRelease.isLegitimate()) {
+      base = base + "* Next minor release: "+ releaseLink(updateDigest.minorRelease).toStdString() +" \n";
+    }
+    if (updateDigest.patchRelease.isLegitimate()) {
+      base = base + "* Bug fixing release: "+ releaseLink(updateDigest.patchRelease).toStdString() +" \n";
+    }
+    base += "\n\n";
+  }
+
+  creditsArea->setMarkdown(base.c_str());
+}
+
 void Credits::buildUi() {
   gridLayout = new QGridLayout(this);
 
   creditsArea = new QTextBrowser(this);
   creditsArea->setOpenExternalLinks(true);
   creditsArea->setReadOnly(true);
-  creditsArea->setMarkdown(bodyMarkdown().c_str());
+  updateBody();
 
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Close);
@@ -170,6 +200,7 @@ void Credits::buildUi() {
 void Credits::wireUi() {
   connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
+  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
 }
 
 Credits::~Credits() {
@@ -181,3 +212,12 @@ Credits::~Credits() {
   delete gridLayout;
 }
 
+void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases) {
+  if (!success) {
+    return; //doesn't matter if this fails
+  }
+
+  auto digest = dto::ReleaseDigest::fromReleases(ReleaseTag(), releases);
+  updateDigest = digest;
+  updateBody();
+}

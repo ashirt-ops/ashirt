@@ -10,6 +10,8 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 
+#include "dtos/github_release.h"
+
 class Credits : public QDialog {
   Q_OBJECT
 
@@ -17,11 +19,15 @@ class Credits : public QDialog {
   explicit Credits(QWidget *parent = nullptr);
   ~Credits();
 
+ public slots:
+  void onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases);
+
  private:
   /// buildUi creates the window structure.
   void buildUi();
   /// wireUi connects the components to each other.
   void wireUi();
+  void updateBody();
 
  private:
   QAction* closeWindowAction = nullptr;
@@ -30,6 +36,8 @@ class Credits : public QDialog {
   QGridLayout* gridLayout = nullptr;
   QTextBrowser* creditsArea = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
+
+  dto::ReleaseDigest updateDigest;
 
 };
 
