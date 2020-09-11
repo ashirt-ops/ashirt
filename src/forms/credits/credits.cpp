@@ -7,6 +7,7 @@
 #include <QKeySequence>
 
 #include "helpers/netman.h"
+#include "helpers/constants.h"
 
 struct Attribution {
   std::string library;
@@ -81,24 +82,6 @@ static std::string copyrightDate() {
   }
   return rtn;
 }
-static QString versionData() {
-  QString tagPrefix = "tags/v";
-  auto rawVersion = QString("%1").arg(VERSION_TAG);
-  auto tagIndex = rawVersion.indexOf(tagPrefix);
-  if (tagIndex == -1) {
-    return rawVersion;
-  }
-
-  return rawVersion.right(rawVersion.size() - (tagIndex + tagPrefix.size()));
-}
-
-static QString CommitHash() {
-  return QString("%1").arg(COMMIT_HASH);
-}
-
-static QString ReleaseTag() {
-  return QString("%1").arg(VERSION_TAG);
-}
 
 static std::string userGuideUrl = "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
 static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashirt/issues";
@@ -106,8 +89,8 @@ static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashir
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
   // clang-format off
-  return "Version: " + versionData().toStdString() +
-         lf + "Commit Hash: " + CommitHash().toStdString() +
+  return "Version: " + Constants::releaseTag().toStdString() +
+         lf + "Commit Hash: " + Constants::commitHash().toStdString() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
          lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
          lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +
@@ -217,7 +200,7 @@ void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> rel
     return; //doesn't matter if this fails
   }
 
-  auto digest = dto::ReleaseDigest::fromReleases(ReleaseTag(), releases);
+  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
   updateDigest = digest;
   updateBody();
 }
