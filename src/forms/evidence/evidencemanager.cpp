@@ -332,12 +332,12 @@ EvidenceRow EvidenceManager::buildBaseEvidenceRow(qint64 evidenceID) {
 }
 
 void EvidenceManager::setRowText(int row, const model::Evidence& model) {
-  static QString dateFormat = "MMM dd, yyyy hh:mm";
+  static QString dateFormat = QLocale().dateTimeFormat(QLocale::ShortFormat);
 
   auto setColText = [this, row](int col, QString text) {
     evidenceTable->item(row, col)->setText(text);
   };
-  setColText(COL_DATE_CAPTURED, model.recordedDate.toString(dateFormat));
+  setColText(COL_DATE_CAPTURED, model.recordedDate.toLocalTime().toString(dateFormat));
   setColText(COL_DESCRIPTION, model.description);
   setColText(COL_OPERATION, model.operationSlug);
   setColText(COL_CONTENT_TYPE, model.contentType);
@@ -346,7 +346,7 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_PATH, QDir::toNativeSeparators(model.path));
   setColText(COL_ERROR_MSG, model.errorText);
 
-  auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toString(dateFormat);
+  auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toLocalTime().toString(dateFormat);
   setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 

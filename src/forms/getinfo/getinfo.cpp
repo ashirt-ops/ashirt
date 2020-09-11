@@ -11,46 +11,77 @@
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
-#include "ui_getinfo.h"
 
 GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
-    : QDialog(parent), ui(new Ui::GetInfo) {
-  ui->setupUi(this);
+    : QDialog(parent), db(db), evidenceID(evidenceID) {
   this->db = db;
   this->evidenceID = evidenceID;
-  this->setAttribute(Qt::WA_DeleteOnClose);
+
+  buildUi();
+  wireUi();
+}
+
+GetInfo::~GetInfo() {
+  delete evidenceEditor;
+  delete submitButton;
+  delete deleteButton;
+  delete closeWindowAction;
+
+  delete gridLayout;
+  stopReply(&uploadAssetReply);
+}
+
+void GetInfo::buildUi() {
+  gridLayout = new QGridLayout(this);
+
+  submitButton = new LoadingButton("Submit", this);
+  submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  submitButton->setAutoDefault(false);
+  deleteButton = new QPushButton("Delete", this);
+  deleteButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  deleteButton->setAutoDefault(false);
 
   evidenceEditor = new EvidenceEditor(evidenceID, db, this);
   evidenceEditor->setEnabled(true);
-  loadingButton = new LoadingButton(ui->submitButton->text(), this);
 
-  UiHelpers::replacePlaceholder(ui->evidenceEditorPlaceholder, evidenceEditor, ui->gridLayout);
-  UiHelpers::replacePlaceholder(ui->submitButton, loadingButton, ui->gridLayout);
+  // Layout
+  /*        0                 1            2
+       +---------------+-------------+------------+
+    0  |                                          |
+       |             Evidence Editor              |
+       |                                          |
+       +---------------+-------------+------------+
+    1  | Delete Btn    | <None>      | Submit Btn |
+       +---------------+-------------+------------+
+  */
+
+  // row 0
+  gridLayout->addWidget(evidenceEditor, 0, 0, 1, 3);
+
+  // row 1
+  gridLayout->addWidget(deleteButton, 1, 0);
+  gridLayout->addWidget(submitButton, 1, 2);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
   this->addAction(closeWindowAction);
 
-  wireUi();
+  this->setLayout(gridLayout);
+  this->setAttribute(Qt::WA_DeleteOnClose);
+  this->resize(720, 480);
+  this->setWindowTitle("Add Evidence Details");
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
   flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
            Qt::WindowCloseButtonHint;
   this->setWindowFlags(flags);
-}
-
-GetInfo::~GetInfo() {
-  delete ui;
-  delete evidenceEditor;
-  delete loadingButton;
-  delete closeWindowAction;
-  stopReply(&uploadAssetReply);
+  setFocus(); // ensure focus is not on the submit button
 }
 
 void GetInfo::wireUi() {
-  connect(loadingButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
-  connect(ui->deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
+  connect(submitButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
+  connect(deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
   connect(closeWindowAction, &QAction::triggered, this, &GetInfo::deleteButtonClicked);
 }
 
@@ -72,7 +103,7 @@ bool GetInfo::saveData() {
 }
 
 void GetInfo::submitButtonClicked() {
-  loadingButton->startAnimation();
+  submitButton->startAnimation();
   setActionButtonsEnabled(false);
   if (saveData()) {
     try {
@@ -120,8 +151,8 @@ void GetInfo::deleteButtonClicked() {
 }
 
 void GetInfo::setActionButtonsEnabled(bool enabled) {
-  loadingButton->setEnabled(enabled);
-  ui->deleteButton->setEnabled(enabled);
+  submitButton->setEnabled(enabled);
+  deleteButton->setEnabled(enabled);
 }
 
 void GetInfo::onUploadComplete() {
@@ -155,7 +186,7 @@ void GetInfo::onUploadComplete() {
   }
   // we don't actually need anything from the uploadAssets reply, so just clean it up.
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
-  loadingButton->stopAnimation();
+  submitButton->stopAnimation();
   setActionButtonsEnabled(true);
   tidyReply(&uploadAssetReply);
 }

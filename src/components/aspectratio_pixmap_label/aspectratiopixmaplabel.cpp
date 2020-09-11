@@ -19,8 +19,10 @@ int AspectRatioPixmapLabel::heightForWidth(int width) const {
 }
 
 QSize AspectRatioPixmapLabel::sizeHint() const {
-  int w = this->width();
-  return QSize(w, heightForWidth(w));
+  // int w = this->width();
+  // return QSize(w, heightForWidth(w));
+  // js: Forcing a predetermined size as frequently the image is too small.
+  return QSize(500, 500);
 }
 
 QPixmap AspectRatioPixmapLabel::scaledPixmap() const {
