@@ -115,9 +115,6 @@ HEADERS += \
     src/forms/evidence/evidencemanager.h \
     src/forms/settings/settings.h
 
-FORMS += \
-    src/forms/getinfo/getinfo.ui
-
 include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {

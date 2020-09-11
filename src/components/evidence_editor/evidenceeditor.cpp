@@ -28,10 +28,14 @@ EvidenceEditor::EvidenceEditor(DatabaseConnection *db, QWidget *parent) : QWidge
 
 EvidenceEditor::~EvidenceEditor() {
   delete _descriptionLabel;
-  delete tagEditor;
   delete descriptionTextBox;
+  delete descriptionAreaLayout;
+  delete descriptionArea;
+
   delete loadedPreview;
   delete splitter;
+  delete tagEditor;
+
   delete gridLayout;
 }
 
@@ -41,39 +45,46 @@ void EvidenceEditor::buildUi() {
 
   splitter = new QSplitter(this);
   splitter->setOrientation(Qt::Vertical);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   _descriptionLabel = new QLabel("Description", this);
   tagEditor = new TagEditor(this);
   descriptionTextBox = new QTextEdit(this);
 
+  descriptionAreaLayout = new QVBoxLayout();
+  descriptionArea = new QWidget(this);
+  descriptionArea->setLayout(descriptionAreaLayout);
+  descriptionAreaLayout->addWidget(_descriptionLabel);
+  descriptionAreaLayout->addWidget(descriptionTextBox);
+  descriptionAreaLayout->setMargin(0);
+
   // Layout
   /*        0
        +----------------------------------------+
-    0  | Desc Label                             |
-       +----------------------------------------+
-    1  | +------------Vert. Splitter---------+  |
-       | |             Desc Text box         |  |
+    0  | +------------Vert. Splitter---------+  |
        | |                                   |  |
-       | >===================================<  |
-       | |             Preview Area          |  |
-       | |               (reserved)          |  |
+       | |        Preview Area (reserved)    |  |
+       | +-----------------------------------+  |
+       | |  +-----------------------------+  |  |
+       | |  | description label           |  |  |
+       | |  +-----------------------------|  |  |
+       | |  |       Desc Text box         |  |  |
+       | |  |        (minimized)          |  |  |
+       | |  +-----------------------------|  |  |
        | +-----------------------------------+  |
        +----------------------------------------+
-    2  |                                        |
+    1  |                                        |
        |                 tagEditor              |
        |                                        |
        +----------------------------------------+
   */
 
   // row 0
-  gridLayout->addWidget(_descriptionLabel, 0, 0);
+  gridLayout->addWidget(splitter, 0, 0);
+  splitter->addWidget(descriptionArea);
 
   // row 1
-  gridLayout->addWidget(splitter, 1, 0);
-  splitter->addWidget(descriptionTextBox);
-
-  // row 2
-  gridLayout->addWidget(tagEditor, 2, 0);
+  gridLayout->addWidget(tagEditor, 1, 0);
 
   this->setLayout(gridLayout);
 }
@@ -112,9 +123,11 @@ void EvidenceEditor::loadData() {
 
     if (originalEvidenceData.contentType == "image") {
       loadedPreview = new ImageView(this);
+      loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
     else if (originalEvidenceData.contentType == "codeblock") {
       loadedPreview = new CodeBlockView(this);
+      loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
     else {
       loadedPreview =
@@ -129,7 +142,7 @@ void EvidenceEditor::loadData() {
   catch (QSqlError &e) {
     loadedPreview = new ErrorView("Unable to load evidence: " + e.text(), this);
   }
-  splitter->addWidget(loadedPreview);
+  splitter->insertWidget(0, loadedPreview);
 }
 
 void EvidenceEditor::updateEvidence(qint64 evidenceID, bool readonly) {

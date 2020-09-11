@@ -58,6 +58,8 @@ class EvidenceEditor : public QWidget {
 
   // UI components
   QGridLayout* gridLayout;
+  QWidget* descriptionArea;
+  QVBoxLayout* descriptionAreaLayout;
   QSplitter* splitter;
   QLabel* _descriptionLabel;
   QTextEdit* descriptionTextBox;

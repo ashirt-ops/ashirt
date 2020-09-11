@@ -4,6 +4,7 @@
 #ifndef GETINFO_H
 #define GETINFO_H
 
+#include <QGridLayout>
 #include <QAction>
 #include <QDialog>
 #include <QNetworkReply>
@@ -26,6 +27,7 @@ class GetInfo : public QDialog {
   ~GetInfo();
 
  private:
+  void buildUi();
   void wireUi();
   bool saveData();
   void setActionButtonsEnabled(bool enabled);
@@ -43,15 +45,20 @@ class GetInfo : public QDialog {
   void evidenceSubmitted(model::Evidence evidence);
 
  private:
-  Ui::GetInfo *ui;
   DatabaseConnection *db;
   qint64 evidenceID;
 
-  EvidenceEditor *evidenceEditor;
+  QNetworkReply *uploadAssetReply = nullptr;
+
+  // Actions
   QAction* closeWindowAction = nullptr;
 
-  QNetworkReply *uploadAssetReply = nullptr;
-  LoadingButton *loadingButton;
+  // Ui Components
+  QGridLayout* gridLayout;
+  QPushButton* deleteButton;
+  EvidenceEditor *evidenceEditor;
+  LoadingButton *submitButton;
+
 };
 
 #endif  // GETINFO_H
