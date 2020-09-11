@@ -148,6 +148,11 @@ class ReleaseDigest {
  public:
   static ReleaseDigest fromReleases(QString curVersion, const std::vector<GithubRelease> &borrowedReleases) {
 
+    if (curVersion == "v0.0.0-unversioned" || curVersion == "v0.0.0-development") {
+      std::cerr << "skipping unversioned/development release check" << std::endl;
+      return ReleaseDigest();
+    }
+
     std::vector<GithubRelease> upgrades;
     SemVer currentVersion = SemVer::parse(curVersion);
 
