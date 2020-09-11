@@ -3,6 +3,7 @@
 
 #include <QVariant>
 #include <QRegularExpression>
+#include <iostream>
 
 #include "helpers/jsonhelpers.h"
 
@@ -11,12 +12,7 @@ namespace dto {
 // converted to ints, while the remainder is left untouched, in "extra".
 class SemVer {
  public:
-  SemVer() {
-    this->major = 0;
-    this->minor = 0;
-    this->patch = 0;
-    this->extra = "";
-  }
+  SemVer(){}
   SemVer(int major, int minor, int patch, QString extra) {
     this->major = major;
     this->minor = minor;
@@ -42,29 +38,34 @@ class SemVer {
   }
 
   QString toString() {
-    return QString("v") + QString::number(major)
-           + "." + QString::number(minor)
-           + "." + QString::number(patch)
-           + extra;
+    return "v" + QString::number(this->major)
+                  + "." + QString::number(this->minor)
+                  + "." + QString::number(this->patch)
+                  + extra;
   }
 
-  SemVer diff(SemVer other) {
-    int majDiff = other.major - this->major;
-    int minDiff = other.minor - this->minor;
-    int patDiff = other.patch - this->patch;
-    return SemVer(majDiff, minDiff, patDiff, "");
+  static bool isUpgrade(SemVer cur, SemVer next) {
+    return isMajorUpgrade(cur, next) ||
+           isMinorUpgrade(cur, next) ||
+           isPatchUpgrade(cur, next);
+  }
+  static bool isMajorUpgrade(SemVer cur, SemVer next) {
+    return next.major > cur.major;
+  }
+  static bool isMinorUpgrade(SemVer cur, SemVer next) {
+    return next.major == cur.major &&
+           next.minor > cur.minor;
+  }
+  static bool isPatchUpgrade(SemVer cur, SemVer next) {
+    return next.major == cur.major &&
+           next.minor == cur.minor &&
+           next.patch > cur.patch;
   }
 
-  static bool isUpgrade(SemVer diff) {
-    return (diff.major > 0) ||
-           (diff.minor > 0 && diff.major == 0) ||
-           (diff.patch > 0 && diff.minor == 0 && diff.major == 0);
-  }
-
-  int major;
-  int minor;
-  int patch;
-  QString extra;
+  int major = 0;
+  int minor = 0;
+  int patch = 0;
+  QString extra = "";
 };
 
 class GithubRelease {
@@ -84,6 +85,7 @@ class GithubRelease {
   QString publishedAt;
   qint64 id;
 
+ public:
   GithubRelease() {
     this->id = 0;
   }
@@ -110,6 +112,10 @@ class GithubRelease {
     return rtn.toStdString();
   }
 
+  bool isLegitimate() {
+    return this->id != 0;
+  }
+
  private:
   static GithubRelease fromJson(QJsonObject obj) {
     GithubRelease release;
@@ -133,6 +139,62 @@ class GithubRelease {
     return release;
   }
 };
+
+class ReleaseDigest {
+
+ public:
+  ReleaseDigest(){}
+
+ public:
+  static ReleaseDigest fromReleases(QString curVersion, const std::vector<GithubRelease> &borrowedReleases) {
+
+    std::vector<GithubRelease> upgrades;
+    SemVer currentVersion = SemVer::parse(curVersion);
+
+    SemVer majorVer = SemVer(currentVersion);
+    SemVer minorVer = SemVer(currentVersion);
+    SemVer patchVer = SemVer(currentVersion);
+
+    for (auto release : borrowedReleases) {
+      if (SemVer::isUpgrade(currentVersion, SemVer::parse(release.tagName))) {
+        upgrades.push_back(release);
+      }
+    }
+
+    auto rtn = ReleaseDigest();
+
+    for (GithubRelease upgrade : upgrades) {
+      auto upgradeVersion = SemVer::parse(upgrade.tagName);
+      if (SemVer::isMajorUpgrade(currentVersion, upgradeVersion) && SemVer::isUpgrade(majorVer, upgradeVersion)) {
+        majorVer = upgradeVersion;
+        rtn.majorRelease = upgrade;
+      }
+      else if (SemVer::isMinorUpgrade(currentVersion, upgradeVersion) && SemVer::isUpgrade(minorVer, upgradeVersion)) {
+        minorVer = upgradeVersion;
+        rtn.minorRelease = upgrade;
+      }
+      else if (SemVer::isPatchUpgrade(currentVersion, upgradeVersion) && SemVer::isUpgrade(patchVer, upgradeVersion)) {
+        patchVer = upgradeVersion;
+        rtn.patchRelease = upgrade;
+      }
+    }
+
+    return rtn;
+  }
+
+  bool hasUpgrade() {
+    return majorRelease.isLegitimate()
+           || minorRelease.isLegitimate()
+           || patchRelease.isLegitimate();
+  }
+
+ public:
+  GithubRelease majorRelease = GithubRelease();
+  GithubRelease minorRelease = GithubRelease();
+  GithubRelease patchRelease = GithubRelease();
+
+};
+
 }
 
 #endif // GITHUB_RELEASE_H
