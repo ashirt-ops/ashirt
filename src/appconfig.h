@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 #include "exceptions/fileerror.h"
+#include "helpers/constants.h"
 
 // AppConfig is a singleton construct for accessing the application's configuration.
 // singleton design borrowed from:
@@ -49,8 +50,7 @@ class AppConfig {
     }
   }
 
-  QString saveLocation =
-      QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/screenshot.json";
+  QString saveLocation = Constants::configLocation();
 
   void readConfig() {
     QFile configFile(saveLocation);
@@ -93,7 +93,7 @@ class AppConfig {
   }
 
   void writeDefaultConfig() {
-    evidenceRepo = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/ashirt";
+    evidenceRepo = Constants::defaultEvidenceRepo();
 
 #ifdef Q_OS_MACOS
     screenshotExec = "screencapture -s %file";

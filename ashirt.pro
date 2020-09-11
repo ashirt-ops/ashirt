@@ -91,6 +91,7 @@ HEADERS += \
     src/forms/evidence_filter/evidencefilterform.h \
     src/forms/getinfo/getinfo.h \
     src/helpers/clipboard/clipboardhelper.h \
+    src/helpers/constants.h \
     src/helpers/ui_helpers.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
@@ -104,7 +105,6 @@ HEADERS += \
     src/helpers/jsonhelpers.h \
     src/helpers/multipartparser.h \
     src/helpers/netman.h \
-    src/helpers/pathseparator.h \
     src/helpers/screenshot.h \
     src/helpers/stopreply.h \
     src/dtos/tag.h \
