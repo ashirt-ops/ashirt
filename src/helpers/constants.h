@@ -55,7 +55,7 @@ class Constants {
     static QString parsedRepo = "";
     static QString parsedOwner = "";
 
-    if (parsedRepo != "") {
+    if (parsedRepo == "") {
       QRegularExpression ownerRegex("^([^/]+)/(.*)");
       auto rawRepo = QString("%1").arg(SOURCE_CONTROL_REPO);
       QRegularExpressionMatch match = ownerRegex.match(rawRepo);
