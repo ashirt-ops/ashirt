@@ -10,6 +10,7 @@
 
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
+#include "helpers/constants.h"
 
 // DatabaseConnection constructs a connection to the database, unsurpringly. Note that the
 // constructor can throw a error (see below). Additionally, many methods can throw a QSqlError,
@@ -18,6 +19,7 @@
 //
 // Throws: DBDriverUnavailable if the required database driver does not exist
 DatabaseConnection::DatabaseConnection() {
+  QString dbPath = Constants::dbLocation();
   const QString DRIVER("QSQLITE");
   if (QSqlDatabase::isDriverAvailable(DRIVER)) {
     db = QSqlDatabase::addDatabase(DRIVER);

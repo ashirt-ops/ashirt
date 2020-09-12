@@ -56,9 +56,7 @@ int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(res_migrations);
 
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-  QCoreApplication::setOrganizationName("Verizon Media Group");
-  QCoreApplication::setOrganizationDomain("verizon.com");
-  QCoreApplication::setApplicationName("AShirt Screenshot");
+  QCoreApplication::setApplicationName("ashirt");
 
   DatabaseConnection* conn;
   try {

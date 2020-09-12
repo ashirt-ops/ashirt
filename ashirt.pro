@@ -115,7 +115,6 @@ HEADERS += \
     src/helpers/jsonhelpers.h \
     src/helpers/multipartparser.h \
     src/helpers/netman.h \
-    src/helpers/pathseparator.h \
     src/helpers/screenshot.h \
     src/helpers/stopreply.h \
     src/dtos/tag.h \

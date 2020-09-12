@@ -9,7 +9,17 @@
 
 class Constants {
  public:
+  static QString configLocation() {
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/config.json";
+  }
 
+  static QString dbLocation() {
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/evidence.sqlite";
+  }
+
+  static QString defaultEvidenceRepo() {
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/evidence";
+  }
 
   static QString releaseOwner() {
     return parseRepo(RepoField::owner);
@@ -57,6 +67,5 @@ class Constants {
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }
 };
-
 
 #endif // CONSTANTS_H

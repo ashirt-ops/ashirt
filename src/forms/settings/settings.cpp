@@ -12,7 +12,6 @@
 #include "appsettings.h"
 #include "helpers/http_status.h"
 #include "helpers/netman.h"
-#include "helpers/pathseparator.h"
 #include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
@@ -185,7 +184,7 @@ void Settings::showEvent(QShowEvent *evt) {
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
-  eviRepoTextBox->setText(inst.evidenceRepo);
+  eviRepoTextBox->setText(QDir::toNativeSeparators(inst.evidenceRepo));
   accessKeyTextBox->setText(inst.accessKey);
   secretKeyTextBox->setText(inst.secretKey);
   hostPathTextBox->setText(inst.apiURL);
@@ -216,7 +215,7 @@ void Settings::onSaveClicked() {
 
   AppConfig &inst = AppConfig::getInstance();
 
-  inst.evidenceRepo = eviRepoTextBox->text();
+  inst.evidenceRepo = QDir::fromNativeSeparators(eviRepoTextBox->text());
   inst.accessKey = accessKeyTextBox->text();
   inst.secretKey = secretKeyTextBox->text();
 
@@ -249,7 +248,7 @@ void Settings::onBrowseClicked() {
   auto filename = QFileDialog::getExistingDirectory(this, tr("Select a project directory"),
                                                     browseStart, QFileDialog::ShowDirsOnly);
   if (filename != nullptr) {
-    eviRepoTextBox->setText(filename);
+    eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
   }
 }
 

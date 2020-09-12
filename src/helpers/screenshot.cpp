@@ -15,7 +15,6 @@
 
 #include "appconfig.h"
 #include "helpers/file_helpers.h"
-#include "helpers/pathseparator.h"
 
 Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
 
@@ -39,11 +38,10 @@ void Screenshot::basicScreenshot(QString cmdProto) {
   auto hasPath = QDir().mkpath(root);
 
   if (hasPath) {
-    auto tempPath = FileHelpers::randomFilename(QDir::tempPath() + PATH_SEPARATOR +
-                                                "ashirt_screenshot_XXXXXX.png");
+    auto tempPath = FileHelpers::randomFilename(QDir::tempPath() + "/ashirt_screenshot_XXXXXX.png");
 
     QString cmd = formatScreenshotCmd(std::move(cmdProto), tempPath);
-    auto lastSlash = tempPath.lastIndexOf(PATH_SEPARATOR) + 1;
+    auto lastSlash = tempPath.lastIndexOf("/") + 1;
     QString tempName = tempPath.right(tempPath.length() - lastSlash);
 
     system(cmd.toStdString().c_str());
