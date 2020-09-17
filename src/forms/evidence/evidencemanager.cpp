@@ -58,6 +58,7 @@ EvidenceManager::~EvidenceManager() {
   delete submitEvidenceAction;
   delete deleteEvidenceAction;
   delete copyPathToClipboardAction;
+  delete deleteTableContentsAction;
   delete closeWindowAction;
   delete evidenceTableContextMenu;
   delete filterForm;
@@ -87,6 +88,7 @@ void EvidenceManager::buildEvidenceTableUi() {
   evidenceTable->horizontalHeader()->setStretchLastSection(true);
   evidenceTable->horizontalHeader()->setSortIndicatorShown(true);
   evidenceTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  evidenceTable->setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 }
 
 void EvidenceManager::buildUi() {
@@ -99,6 +101,9 @@ void EvidenceManager::buildUi() {
   evidenceTableContextMenu->addAction(deleteEvidenceAction);
   copyPathToClipboardAction = new QAction("Copy Path", evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(copyPathToClipboardAction);
+  evidenceTableContextMenu->addSeparator();
+  deleteTableContentsAction = new QAction("Delete All from table", evidenceTableContextMenu);
+  evidenceTableContextMenu->addAction(deleteTableContentsAction);
 
   filterTextBox = new QLineEdit(this);
   editFiltersButton = new QPushButton("Edit Filters", this);
@@ -178,6 +183,7 @@ void EvidenceManager::wireUi() {
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
   connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
   connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
+  connect(deleteTableContentsAction, actionTriggered, this, &EvidenceManager::deleteAllTriggered);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
 
@@ -213,29 +219,74 @@ void EvidenceManager::submitEvidenceTriggered() {
 }
 
 void EvidenceManager::deleteEvidenceTriggered() {
+  std::vector<qint64> ids = selectedRowEvidenceIDs();
+  QString thisMuch = ids.size() > 1 ? QString("these %1 pieces of").arg(ids.size()) : "this";
   auto reply = QMessageBox::question(this, "Discard Evidence",
-                                     "Are you sure you want to discard this evidence? This will "
-                                     "only delete this evidence on your computer.",
+                            QString("Are you sure you want to discard ") + thisMuch +
+                                " evidence? This will only delete this evidence on your computer.",
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+  if (reply == QMessageBox::Yes) {
+    deleteSet(ids);
+  }
+}
+
+void EvidenceManager::deleteAllTriggered() {
+  auto reply = QMessageBox::question(this, "Delete All Evidence", "Warning: This will delete ALL "
+                                     "evidence currently listed in this table. Do you want to continue?",
                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
-    auto deleteResp = evidenceEditor->deleteEvidence();
-    auto evi = deleteResp.model;
+    std::vector<qint64> ids;
+    for(int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
+      ids.push_back(evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong());
+    }
+    deleteSet(ids);
+  }
+}
 
-    if (!deleteResp.dbDeleteSuccess) {
-      std::cout << "Could not delete evidence from internal database. Error: "
-                << deleteResp.errorText.toStdString() << std::endl;
-    }
-    else if (!deleteResp.fileDeleteSuccess) {
-      QMessageBox::warning(this, "Could not delete",
-                           "Unable to delete evidence file.\n"
-                           "You can try deleting the file directly. File Location:\n" +
-                               evi.path);
-    }
-    else {
-      loadEvidence();
+/// parentDir returns the parent directory for a given file path.
+/// example: Input: path/to/file.txt Output: path/to
+static QString parentDir(QString path) {
+  auto lastSlash = path.lastIndexOf("/");
+  return path.left(lastSlash);
+}
+
+void EvidenceManager::deleteSet(std::vector<qint64> ids) {
+  std::vector<DeleteEvidenceResponse> responses = evidenceEditor->deleteEvidence(ids);
+  bool allFilesDeleted = true;
+  bool removedAllDbRecords = true;
+  QStringList paths;
+  for(auto response : responses) {
+    allFilesDeleted = allFilesDeleted && response.fileDeleteSuccess;
+    removedAllDbRecords = removedAllDbRecords && response.dbDeleteSuccess;
+    auto parentPath = parentDir(response.model.path);
+    if (!paths.contains(parentPath)) {
+      paths << parentPath;
     }
   }
+
+  if (!removedAllDbRecords) {
+    std::cerr << "Could not delete evidence from internal database. Errors: " << std::endl;
+    for (auto resp : responses) {
+      if (!resp.dbDeleteSuccess) {
+        std::cerr << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText.toStdString() << std::endl;
+      }
+    }
+  }
+
+  if (!allFilesDeleted) {
+    QMessageBox::warning(this, "Could not delete", "Some files could not be deleted.");
+  }
+
+  for (auto p : paths) {
+    auto path = QDir(p);
+    auto dirName = path.dirName();
+    path.cdUp();
+    path.rmdir(dirName);
+  }
+
+  loadEvidence();
 }
 
 void EvidenceManager::copyPathTriggered() {
@@ -439,4 +490,15 @@ void EvidenceManager::onUploadComplete() {
 
 qint64 EvidenceManager::selectedRowEvidenceID() {
   return evidenceTable->currentItem()->data(Qt::UserRole).toLongLong();
+}
+
+std::vector<qint64> EvidenceManager::selectedRowEvidenceIDs() {
+  std::vector<qint64> rtn;
+
+  // relies on the fact that entire rows are selected
+  auto itemList = evidenceTable->selectionModel()->selectedRows();
+  for (auto item : itemList) {
+    rtn.push_back(item.data(Qt::UserRole).toLongLong());
+  }
+  return  rtn;
 }

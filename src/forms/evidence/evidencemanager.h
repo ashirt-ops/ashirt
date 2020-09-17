@@ -68,6 +68,8 @@ class EvidenceManager : public QDialog {
   void showEvent(QShowEvent* evt) override;
   /// selectedRowEvidenceID is a small helper to get the evidence id for the currently selected row.
   qint64 selectedRowEvidenceID();
+  /// selectedRowEvidenceIDs is a small helper to retrieve the id for all the selected rows
+  std::vector<qint64> selectedRowEvidenceIDs();
 
  signals:
   /**
@@ -84,6 +86,13 @@ class EvidenceManager : public QDialog {
   void deleteEvidenceTriggered();
   /// resetFilterButtonClicked recieves the reset filter button clicked event
   void resetFilterButtonClicked();
+  /// deleteAllTriggered recieves the triggered event from the delete table action
+  void deleteAllTriggered();
+  
+  /// deleteSet is a small helper to iterate through the provided list, delete the ids, and process
+  /// the result
+  void deleteSet(std::vector<qint64> ids);
+
   /// applyFilterForm updates the filter textbox to reflect the filter options chosen in the filter
   /// menu
   void applyFilterForm(const EvidenceFilters& filter);
@@ -113,6 +122,7 @@ class EvidenceManager : public QDialog {
   QAction* deleteEvidenceAction = nullptr;
   QAction* closeWindowAction = nullptr;
   QAction* copyPathToClipboardAction = nullptr;
+  QAction* deleteTableContentsAction = nullptr;
 
   // UI Elements
   QGridLayout* gridLayout = nullptr;
