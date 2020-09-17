@@ -301,7 +301,8 @@ void EvidenceManager::openTableContextMenu(QPoint pos) {
   }
   bool singleItemSelected = selectedRowCount == 1;
   copyPathToClipboardAction->setEnabled(singleItemSelected);
-  submitEvidenceAction->setEnabled(singleItemSelected );
+  bool wasSubmitted = !evidenceEditor->encodeEvidence().uploadDate.isNull();
+  submitEvidenceAction->setEnabled(singleItemSelected && !wasSubmitted);
 
   evidenceTableContextMenu->popup(evidenceTable->viewport()->mapToGlobal(pos));
 }
