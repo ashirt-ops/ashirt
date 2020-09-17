@@ -254,11 +254,13 @@ static QString parentDir(QString path) {
 
 void EvidenceManager::deleteSet(std::vector<qint64> ids) {
   std::vector<DeleteEvidenceResponse> responses = evidenceEditor->deleteEvidence(ids);
-  bool allFilesDeleted = true;
+  QStringList undeletedFiles;
   bool removedAllDbRecords = true;
   QStringList paths;
   for(auto response : responses) {
-    allFilesDeleted = allFilesDeleted && response.fileDeleteSuccess;
+    if (!response.fileDeleteSuccess) {
+      undeletedFiles << response.model.path;
+    }
     removedAllDbRecords = removedAllDbRecords && response.dbDeleteSuccess;
     auto parentPath = parentDir(response.model.path);
     if (!paths.contains(parentPath)) {
@@ -275,8 +277,24 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
     }
   }
 
-  if (!allFilesDeleted) {
-    QMessageBox::warning(this, "Could not delete", "Some files could not be deleted.");
+  if (undeletedFiles.length() > 0) {
+    bool logWritten = true;
+    auto today = QDateTime::currentDateTime();
+    auto errLogPath = AppConfig::getInstance().evidenceRepo + "/" +QString("%1.log").arg(today.toMSecsSinceEpoch());
+    try {
+      FileHelpers::writeFile(errLogPath,
+                             "Paths to files that could not be deleted: \n\n" +
+                                    undeletedFiles.join("\n"));
+    }
+    catch(FileError e) {
+      logWritten = false;
+    }
+    QString msg = "Some files could not be deleted.";
+
+    if (logWritten) {
+      msg += " A list of the excluded files can be found here: \n" + errLogPath;
+    }
+    QMessageBox::warning(this, "Could not complete evidence deletion", msg);
   }
 
   for (auto p : paths) {
