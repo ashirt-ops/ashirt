@@ -43,6 +43,7 @@ class NetMan : public QObject {
 
   void operationListUpdated(bool success,
                             std::vector<dto::Operation> operations = std::vector<dto::Operation>());
+  void testConnectionComplete(bool connected, int statusCode);
 
  private:
   QNetworkAccessManager *nam;
@@ -183,7 +184,7 @@ class NetMan : public QObject {
   }
 
   QNetworkReply *testConnection(QString host, QString apiKey, QString secretKey) {
-    return makeJsonRequest(METHOD_GET, "/api/operations", NO_BODY, host, apiKey, secretKey);
+    return makeJsonRequest(METHOD_GET, "/api/checkconnection", NO_BODY, host, apiKey, secretKey);
   }
 
   QNetworkReply *getAllOperations() { return makeJsonRequest(METHOD_GET, "/api/operations"); }
