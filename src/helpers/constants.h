@@ -9,6 +9,13 @@
 
 class Constants {
  public:
+  static QString UnknownRepoValue() {
+    return "???";
+  }
+  static QString UnknownOwnerValue() {
+    return "???";
+  }
+
   static QString configLocation() {
     return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/config.json";
   }
@@ -56,13 +63,13 @@ class Constants {
     static QString parsedOwner = "";
 
     if (parsedRepo == "") {
-      QRegularExpression ownerRegex("^([^/]+)/(.*)");
       auto rawRepo = QString("%1").arg(SOURCE_CONTROL_REPO);
+      QRegularExpression ownerRegex("^([^/]+)/(.*)");
       QRegularExpressionMatch match = ownerRegex.match(rawRepo);
       // Note that the specific values for the error cases below don't matter
       // They are set to avoid rerunning the parsing (since these values won't change mid-run)
-      parsedOwner = match.hasMatch() ? match.captured(1) : "???";
-      parsedRepo = match.hasMatch() ? match.captured(2) : "???";
+      parsedOwner = match.hasMatch() ? match.captured(1) : UnknownOwnerValue();
+      parsedRepo = match.hasMatch() ? match.captured(2) : UnknownRepoValue();
     }
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }
