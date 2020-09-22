@@ -23,6 +23,7 @@
 #include <QVBoxLayout>
 #include <iostream>
 #include <QTimer>
+#include <QDesktopServices>
 
 #include "appconfig.h"
 #include "appsettings.h"
@@ -134,7 +135,7 @@ void TrayManager::wireUi() {
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
-  connect(trayIcon, &QSystemTrayIcon::messageClicked, creditsWindow, &QWidget::show);
+  connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 }
 
@@ -340,7 +341,7 @@ void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> r
   auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
 
   if (digest.hasUpgrade()) {
-    this->trayIcon->showMessage("Updates are available!", "Click for more info");
+    this->trayIcon->showMessage("A new version is available!", "Click for more info");
   }
 }
 
