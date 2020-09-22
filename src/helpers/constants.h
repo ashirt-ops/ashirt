@@ -61,6 +61,10 @@ class Constants {
     return "https://www.github.com/theparanoids/ashirt/issues";
   }
 
+  static QString releasePageUrl() {
+    return "https://github.com/theparanoids/ashirt/releases";
+  }
+
  private:
   enum RepoField {
     owner = 0,

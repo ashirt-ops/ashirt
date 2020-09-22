@@ -110,37 +110,28 @@ Credits::Credits(QWidget* parent) : QDialog(parent) {
   wireUi();
 }
 
-void Credits::updateBody() {
-  std::string base = normalBodyMarkdown();
-
-  auto releaseLink = [](dto::GithubRelease rel){return QString("[%1](%2)").arg(rel.tagName).arg(rel.htmlURL);};
-
+void Credits::updateRelease() {
+  static QString baseUpdateText = "A new update is available! Click <a href=\"%1\">here</a> for more details.";
   if (updateDigest.hasUpgrade()) {
-    base = base + "\n\n"
-           + "## Updating\n"
-           + "Updates are available for this application.\n\n";
-    if (updateDigest.majorRelease.isLegitimate()) {
-      base = base + "* Next major release: "+ releaseLink(updateDigest.majorRelease).toStdString() +"\n";
-    }
-    if (updateDigest.minorRelease.isLegitimate()) {
-      base = base + "* Next minor release: "+ releaseLink(updateDigest.minorRelease).toStdString() +" \n";
-    }
-    if (updateDigest.patchRelease.isLegitimate()) {
-      base = base + "* Bug fixing release: "+ releaseLink(updateDigest.patchRelease).toStdString() +" \n";
-    }
-    base += "\n\n";
+    updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl()));
   }
-
-  creditsArea->setMarkdown(base.c_str());
+  else {
+    updateLabel->setText("");
+  }
 }
 
 void Credits::buildUi() {
   gridLayout = new QGridLayout(this);
 
+  updateLabel = new QLabel("");
+  updateLabel->setOpenExternalLinks(true);
+  updateLabel->setTextFormat(Qt::RichText);
+  updateLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+
   creditsArea = new QTextBrowser(this);
   creditsArea->setOpenExternalLinks(true);
   creditsArea->setReadOnly(true);
-  updateBody();
+  creditsArea->setMarkdown(normalBodyMarkdown().c_str());
 
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Close);
@@ -148,26 +139,31 @@ void Credits::buildUi() {
   // Layout
   /*                   0
        +------------------------------------+
+    0  |         update label               |
+       +------------------------------------+
        |                                    |
-    0  |       Credits Area                 |
+    1  |       Credits Area                 |
        |                                    |
        +------------------------------------+
-    1  | Dialog button Box{close}           |
+    2  | Dialog button Box{close}           |
        +------------------------------------+
   */
 
   // row 0
-  gridLayout->addWidget(creditsArea, 0, 0);
+  gridLayout->addWidget(updateLabel, 0, 0);
 
   // row 1
-  gridLayout->addWidget(buttonBox, 1, 0);
+  gridLayout->addWidget(creditsArea, 1, 0);
+
+  // row 2
+  gridLayout->addWidget(buttonBox, 2, 0);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
   this->addAction(closeWindowAction);
 
   this->setLayout(gridLayout);
-  this->resize(640, 480);
+  this->resize(640, 500);
   this->setWindowTitle("About");
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
@@ -185,7 +181,7 @@ void Credits::wireUi() {
 
 Credits::~Credits() {
   delete closeWindowAction;
-
+  delete updateLabel;
   delete creditsArea;
   delete buttonBox;
 
@@ -199,5 +195,5 @@ void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> rel
 
   auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
   updateDigest = digest;
-  updateBody();
+  updateRelease();
 }

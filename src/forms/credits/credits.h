@@ -6,6 +6,7 @@
 
 #include <QAction>
 #include <QDialog>
+#include <QLabel>
 #include <QTextBrowser>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -27,7 +28,9 @@ class Credits : public QDialog {
   void buildUi();
   /// wireUi connects the components to each other.
   void wireUi();
-  void updateBody();
+  /// updateRelease waits for an update on a new version, if any. If called, and a new version does exist
+  /// this will update the updateLabel to have a link to the new release
+  void updateRelease();
 
  private:
   QAction* closeWindowAction = nullptr;
@@ -36,6 +39,7 @@ class Credits : public QDialog {
   QGridLayout* gridLayout = nullptr;
   QTextBrowser* creditsArea = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
+  QLabel* updateLabel = nullptr;
 
   dto::ReleaseDigest updateDigest;
 
