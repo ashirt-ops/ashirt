@@ -52,6 +52,15 @@ class Constants {
 
     return parsedReleaseTag;
   }
+
+  static QString userGuideUrl() {
+    return "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
+  }
+
+  static QString reportAnIssueUrl() {
+    return "https://www.github.com/theparanoids/ashirt/issues";
+  }
+
  private:
   enum RepoField {
     owner = 0,

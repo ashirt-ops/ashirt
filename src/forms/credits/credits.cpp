@@ -83,9 +83,6 @@ static std::string copyrightDate() {
   return rtn;
 }
 
-static std::string userGuideUrl = "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
-static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashirt/issues";
-
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
   // clang-format off
@@ -93,8 +90,8 @@ static std::string preambleMarkdown() {
          lf + "Commit Hash: " + Constants::commitHash().toStdString() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
          lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
-         lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +
-         lf + "Report issues " + hyperlinkMd("here", reportAnIssueUrl) +
+         lf + "A short user guide can be found " + hyperlinkMd("here", Constants::userGuideUrl().toStdString()) +
+         lf + "Report issues " + hyperlinkMd("here", Constants::reportAnIssueUrl().toStdString()) +
          lf;
   // clang-format on
 }
