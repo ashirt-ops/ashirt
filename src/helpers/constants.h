@@ -9,10 +9,10 @@
 
 class Constants {
  public:
-  static QString UnknownRepoValue() {
+  static QString unknownRepoValue() {
     return "???";
   }
-  static QString UnknownOwnerValue() {
+  static QString unknownOwnerValue() {
     return "???";
   }
 
@@ -68,8 +68,8 @@ class Constants {
       QRegularExpressionMatch match = ownerRegex.match(rawRepo);
       // Note that the specific values for the error cases below don't matter
       // They are set to avoid rerunning the parsing (since these values won't change mid-run)
-      parsedOwner = match.hasMatch() ? match.captured(1) : UnknownOwnerValue();
-      parsedRepo = match.hasMatch() ? match.captured(2) : UnknownRepoValue();
+      parsedOwner = match.hasMatch() ? match.captured(1) : unknownOwnerValue();
+      parsedRepo = match.hasMatch() ? match.captured(2) : unknownRepoValue();
     }
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }
