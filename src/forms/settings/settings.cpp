@@ -10,6 +10,7 @@
 
 #include "appconfig.h"
 #include "appsettings.h"
+#include "dtos/checkConnection.h"
 #include "helpers/http_status.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
@@ -272,12 +273,20 @@ void Settings::onTestRequestComplete() {
       currentTestReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(&ok);
 
   if (ok) {
+    dto::CheckConnection connectionCheckResp;
+
     switch (statusCode) {
       case HttpStatus::StatusOK:
-        connStatusLabel->setText("Connected");
+        connectionCheckResp = dto::CheckConnection::parseJson(currentTestReply->readAll());
+        if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
+          connStatusLabel->setText("Connected");
+        }
+        else {
+          connStatusLabel->setText("Unable to connect: Wrong or outdated server");
+        }
         break;
       case HttpStatus::StatusUnauthorized:
-        connStatusLabel->setText("Could not connect: Unauthorized (check api key and secret)");
+        connStatusLabel->setText("Could not connect: Unauthorized (check access key and secret)");
         break;
       case HttpStatus::StatusNotFound:
         connStatusLabel->setText("Could not connect: Not Found (check URL)");
