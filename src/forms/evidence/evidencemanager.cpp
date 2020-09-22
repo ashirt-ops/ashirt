@@ -286,7 +286,7 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
                              "Paths to files that could not be deleted: \n\n" +
                                     undeletedFiles.join("\n"));
     }
-    catch(FileError e) {
+    catch(FileError &e) {
       logWritten = false;
     }
     QString msg = "Some files could not be deleted.";
