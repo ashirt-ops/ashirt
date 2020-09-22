@@ -38,8 +38,8 @@ class NetMan : public QObject {
 
  signals:
   void operationListUpdated(bool success, OperationVector  operations = OperationVector());
-
   void releasesChecked(bool success, std::vector<dto::GithubRelease> releases = std::vector<dto::GithubRelease>());
+  void testConnectionComplete(bool connected, int statusCode);
 
  private:
   QNetworkAccessManager *nam;
@@ -188,7 +188,7 @@ class NetMan : public QObject {
   /// testConnection provides a mechanism to validate a given host, apikey and secret key, to test
   /// a connection to the ASHIRT API server
   QNetworkReply *testConnection(QString host, QString apiKey, QString secretKey) {
-    auto builder = ashirtGet("/api/operations", host);
+    auto builder = ashirtGet("/api/checkconnection", host);
     addASHIRTAuth(builder, apiKey, secretKey);
     return builder->execute(nam);
   }

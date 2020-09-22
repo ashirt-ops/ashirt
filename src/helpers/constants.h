@@ -17,7 +17,11 @@ class Constants {
   }
 
   static QString configLocation() {
+#ifdef Q_OS_MACOS
     return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/config.json";
+#else
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/config.json";
+#endif
   }
 
   static QString dbLocation() {

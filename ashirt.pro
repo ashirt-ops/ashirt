@@ -94,6 +94,7 @@ HEADERS += \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
     src/dtos/github_release.h \
+    src/dtos/checkConnection.h \
     src/exceptions/databaseerr.h \
     src/exceptions/fileerror.h \
     src/forms/evidence_filter/evidencefilter.h \
