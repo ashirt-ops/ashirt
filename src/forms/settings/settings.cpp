@@ -253,6 +253,12 @@ void Settings::onBrowseClicked() {
 }
 
 void Settings::onTestConnectionClicked() {
+  if (hostPathTextBox->text().isEmpty()
+      || accessKeyTextBox->text().isEmpty()
+      || secretKeyTextBox->text().isEmpty()) {
+    connStatusLabel->setText("Please set Access Key, Secret key and Host Path first.");
+    return;
+  }
   testConnectionButton->startAnimation();
   testConnectionButton->setEnabled(false);
   currentTestReply = NetMan::getInstance().testConnection(
