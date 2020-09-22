@@ -10,7 +10,7 @@ class CheckConnection {
  public:
   CheckConnection(){}
 
-  bool ashirtConnected;
+  bool ok;
   bool parsedCorrectly;
 
   static CheckConnection parseJson(QByteArray data) {
@@ -20,10 +20,10 @@ class CheckConnection {
 
     cc.parsedCorrectly = false;
     if (err.error == QJsonParseError::NoError) {
-      QJsonValue val = doc["ashirtConnected"];
+      QJsonValue val = doc["ok"];
       if (!val.isUndefined()) {
         cc.parsedCorrectly = true;
-        cc.ashirtConnected = val.toBool();
+        cc.ok = val.toBool();
       }
     }
 

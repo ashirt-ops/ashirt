@@ -272,7 +272,7 @@ void Settings::onTestRequestComplete() {
     switch (statusCode) {
       case HttpStatus::StatusOK:
         connectionCheckResp = dto::CheckConnection::parseJson(currentTestReply->readAll());
-        if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ashirtConnected) {
+        if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
           connStatusLabel->setText("Connected");
         }
         else {
