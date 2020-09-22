@@ -188,30 +188,32 @@ SaveEvidenceResponse EvidenceEditor::saveEvidence() {
   return resp;
 }
 
-// deleteEvidence is a helper method to delete both the database record and
-// file location of the currently loaded evidence.
-DeleteEvidenceResponse EvidenceEditor::deleteEvidence() {
-  auto evi = encodeEvidence();
-  auto resp = DeleteEvidenceResponse(evi);
-  try {
-    db->deleteEvidence(evi.id);
-    resp.dbDeleteSuccess = true;
-  }
-  catch (QSqlError &e) {
-    resp.dbDeleteSuccess = false;
-    resp.errorText = e.text();
-  }
+std::vector<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(std::vector<qint64> evidenceIDs) {
+  std::vector<DeleteEvidenceResponse> responses;
 
-  auto localFile = new QFile(evi.path);
-  if (!localFile->remove()) {
-    resp.fileDeleteSuccess = false;
-    resp.errorText += "\n" + localFile->errorString();
+  for (qint64 id : evidenceIDs) {
+    model::Evidence evi = db->getEvidenceDetails(id);
+    DeleteEvidenceResponse resp(evi);
+    try {
+      db->deleteEvidence(evi.id);
+      resp.dbDeleteSuccess = true;
+    }
+    catch(QSqlError &e) {
+      resp.dbDeleteSuccess = false;
+      resp.errorText = e.text();
+    }
+    auto localFile = new QFile(evi.path);
+    if (!localFile->remove()) {
+      resp.fileDeleteSuccess = false;
+      resp.errorText += "\n" + localFile->errorString();
+    }
+    else {
+      resp.fileDeleteSuccess = true;
+    }
+    localFile->deleteLater(); // deletes the pointer, not the file
+    resp.errorText = resp.errorText.trimmed();
+    responses.push_back(resp);
   }
-  else {
-    resp.fileDeleteSuccess = true;
-  }
-  localFile->deleteLater();  // deletes the pointer, not the file
-
-  resp.errorText = resp.errorText.trimmed();
-  return resp;
+  
+  return responses;
 }
