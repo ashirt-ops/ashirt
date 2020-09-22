@@ -5,9 +5,11 @@
 #define WINDOW_H
 
 #include <QSystemTrayIcon>
+#include <QTimer>
 
 #include "db/databaseconnection.h"
 #include "dtos/operation.h"
+#include "dtos/github_release.h"
 #include "forms/credits/credits.h"
 #include "forms/evidence/evidencemanager.h"
 #include "forms/settings/settings.h"
@@ -52,6 +54,7 @@ class TrayManager : public QDialog {
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
+  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
 
  private:
   void createActions();
@@ -60,6 +63,7 @@ class TrayManager : public QDialog {
   qint64 createNewEvidence(QString filepath, QString evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
+  void checkForUpdate();
 
  private:
   QAction *quitAction;
@@ -88,6 +92,7 @@ class TrayManager : public QDialog {
   HotkeyManager *hotkeyManager;
 
   DatabaseConnection *db;
+  QTimer *updateCheckTimer = nullptr;
 };
 
 #endif  // QT_NO_SYSTEMTRAYICON

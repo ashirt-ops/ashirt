@@ -1,14 +1,32 @@
 # Developer Notes
 
-## Build Requirements
+## Building and Build Requirements
 
 This application is built off of Qt 5, and utilizes's Qt's networking and Sql featuresets. To build, your specific system may need the following:
 
 1. Qt 5, `qmake`, and possibly Qt Creator IDE.
-   1. Binaries located [here](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4). You may need to alter which downloader you install. 
+   1. Binaries located [here](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4). You may need to alter which downloader you install.
 2. SQLite C driver (for SQLite version 3)
    1. On Fedora, this can be installed with `yum install sqlite-devel`
    2. On Arch systems, this can be installed with `pacman -S sqlite-doc`
+
+## Versioning and Update Checks
+
+This application has the ability to check for updates, and present a notification to the user that an update exists. In order to do this, the application needs to know a few key pieces of data. First, the application needs to know what version it is currently running. Second, it needs to know where to ask for new versions. Currently, the version check is accomplished by asking Github -- where this project is stored -- if there are any releases, and then manually checking those results against its stored version. The [Adding Versioning](#adding-versioning) section below details how these values are populated. Note, however, that for any user that wishes to fork this project, these sections will need to be modified in order to either point to your own service or repository, or disabled altogether.
+
+This code is found by tracing its usage from it's initial request. Currently, this request started in `NetMan::checkForNewRelease`.
+
+### Adding Versioning
+
+This application attempts to add versioning data when building. This is accomplished by leveraging qmake's ability to add in preprocessor macros. This can be seen by looking in the `ashirt.pro` file, specifically looking for the `DEFINES` definition/updates, and tracing those additions back. For this project in particular a few fields are defined:
+
+| Field                 | default Value      | Meaning                                                                                                                                                                                  |
+| --------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VERSION_TAG`         | v0.0.0-development | Contains the release tag, if any. Expects a Semantic Version. Displayed to the user, and used for update checks.                                                                         |
+| `COMMIT_HASH`         | Unknown            | Contains the commit hash used when building this release. Displayed to the user                                                                                                          |
+| `SOURCE_CONTROL_REPO` | (empty string)     | Contains the path to source control, relative to source control's domain. As this relates to github, this should be of the form `owner/repo`, or, for this project `theparanoids/ashirt` |
+
+Currently, these fields are populated by looking at environment variables that GitHub Actions provides. If forking, these environment variables can be replaced by looking for `$$getenv(GITHUB_` prefixes in the `ashirt.pro` file
 
 ## Adding a db migration
 

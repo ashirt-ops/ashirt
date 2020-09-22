@@ -6,6 +6,9 @@
 #include <QDateTime>
 #include <QKeySequence>
 
+#include "helpers/netman.h"
+#include "helpers/constants.h"
+
 struct Attribution {
   std::string library;
   std::string libraryUrl;
@@ -79,38 +82,21 @@ static std::string copyrightDate() {
   }
   return rtn;
 }
-static QString versionData() {
-  QString tagPrefix = "tags/v";
-  auto rawVersion = QString("%1").arg(VERSION_TAG);
-  auto tagIndex = rawVersion.indexOf(tagPrefix);
-  if (tagIndex == -1) {
-    return rawVersion;
-  }
-
-  return rawVersion.right(rawVersion.size() - (tagIndex + tagPrefix.size()));
-}
-
-static QString CommitHash() {
-  return QString("%1").arg(COMMIT_HASH);
-}
-
-static std::string userGuideUrl = "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
-static std::string reportAnIssueUrl = "https://www.github.com/theparanoids/ashirt/issues";
 
 static std::string preambleMarkdown() {
   const std::string lf = "\n\n";  // double linefeed to add in linebreaks in markdown
   // clang-format off
-  return "Version: " + versionData().toStdString() +
-         lf + "Commit Hash: " + CommitHash().toStdString() +
+  return "Version: " + Constants::releaseTag().toStdString() +
+         lf + "Commit Hash: " + Constants::commitHash().toStdString() +
          lf + "Copyright " + copyrightDate() + ", Verizon Media" +
          lf + "Licensed under the terms of [MIT](https://github.com/theparanoids/ashirt/blob/master/LICENSE)" +
-         lf + "A short user guide can be found " + hyperlinkMd("here", userGuideUrl) +
-         lf + "Report issues " + hyperlinkMd("here", reportAnIssueUrl) +
+         lf + "A short user guide can be found " + hyperlinkMd("here", Constants::userGuideUrl().toStdString()) +
+         lf + "Report issues " + hyperlinkMd("here", Constants::reportAnIssueUrl().toStdString()) +
          lf;
   // clang-format on
 }
 
-static std::string bodyMarkdown() {
+static std::string normalBodyMarkdown() {
   // clang-format off
   return "# ASHIRT\n\n"
           + preambleMarkdown()
@@ -124,13 +110,28 @@ Credits::Credits(QWidget* parent) : QDialog(parent) {
   wireUi();
 }
 
+void Credits::updateRelease() {
+  static QString baseUpdateText = "A new update is available! Click <a href=\"%1\">here</a> for more details.";
+  if (updateDigest.hasUpgrade()) {
+    updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl()));
+  }
+  else {
+    updateLabel->setText("");
+  }
+}
+
 void Credits::buildUi() {
   gridLayout = new QGridLayout(this);
+
+  updateLabel = new QLabel("");
+  updateLabel->setOpenExternalLinks(true);
+  updateLabel->setTextFormat(Qt::RichText);
+  updateLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
   creditsArea = new QTextBrowser(this);
   creditsArea->setOpenExternalLinks(true);
   creditsArea->setReadOnly(true);
-  creditsArea->setMarkdown(bodyMarkdown().c_str());
+  creditsArea->setMarkdown(normalBodyMarkdown().c_str());
 
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Close);
@@ -138,26 +139,31 @@ void Credits::buildUi() {
   // Layout
   /*                   0
        +------------------------------------+
+    0  |         update label               |
+       +------------------------------------+
        |                                    |
-    0  |       Credits Area                 |
+    1  |       Credits Area                 |
        |                                    |
        +------------------------------------+
-    1  | Dialog button Box{close}           |
+    2  | Dialog button Box{close}           |
        +------------------------------------+
   */
 
   // row 0
-  gridLayout->addWidget(creditsArea, 0, 0);
+  gridLayout->addWidget(updateLabel, 0, 0);
 
   // row 1
-  gridLayout->addWidget(buttonBox, 1, 0);
+  gridLayout->addWidget(creditsArea, 1, 0);
+
+  // row 2
+  gridLayout->addWidget(buttonBox, 2, 0);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
   this->addAction(closeWindowAction);
 
   this->setLayout(gridLayout);
-  this->resize(640, 480);
+  this->resize(640, 500);
   this->setWindowTitle("About");
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
@@ -170,14 +176,24 @@ void Credits::buildUi() {
 void Credits::wireUi() {
   connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
+  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
 }
 
 Credits::~Credits() {
   delete closeWindowAction;
-
+  delete updateLabel;
   delete creditsArea;
   delete buttonBox;
 
   delete gridLayout;
 }
 
+void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases) {
+  if (!success) {
+    return; //doesn't matter if this fails
+  }
+
+  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
+  updateDigest = digest;
+  updateRelease();
+}

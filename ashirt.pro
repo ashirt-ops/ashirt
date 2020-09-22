@@ -11,27 +11,35 @@ CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # App version number
+SOURCE_CONTROL_REPO_PLAIN = $$getenv(GITHUB_REPOSITORY)
+
 VERSION_TAG_PLAIN = $$getenv(GITHUB_REF)
 COMMIT_HASH_PLAIN = $$getenv(GITHUB_SHA)
 
 !contains(VERSION_TAG_PLAIN, .*tags/v.*) {
   message("Ref appears to not be a tag (Value: $$VERSION_TAG_PLAIN). Using non-version instead.")
-  VERSION_TAG_PLAIN = 0.0.0-Unversioned
+  VERSION_TAG_PLAIN = v0.0.0-development
 }
 
 equals(COMMIT_HASH_PLAIN, "") {
-  message("commit hash specified. Please ensure GITHUB_SHA environment variable is set.")
+  message("commit hash not specified. Please ensure GITHUB_SHA environment variable is set.")
   COMMIT_HASH_PLAIN = Unknown
+}
+
+equals(SOURCE_CONTROL_REPO_PLAIN, "") {
+  message("Source control repo not specified. Please ensure GITHUB_REPOSITORY environment variable is set.")
 }
 
 
 VERSION_TAG = \\\"$$VERSION_TAG_PLAIN\\\"
 COMMIT_HASH = \\\"$$COMMIT_HASH_PLAIN\\\"
+SOURCE_CONTROL_REPO = \\\"$$SOURCE_CONTROL_REPO_PLAIN\\\"
 
-message(Building version [$$VERSION_TAG_PLAIN])
+message(Building with version: [$$VERSION_TAG]; Hash: [$$COMMIT_HASH]; Source Control: [$$SOURCE_CONTROL_REPO])
 
 DEFINES += "VERSION_TAG=$$VERSION_TAG" \
-           "COMMIT_HASH=$$COMMIT_HASH"
+           "COMMIT_HASH=$$COMMIT_HASH" \
+           "SOURCE_CONTROL_REPO=$$SOURCE_CONTROL_REPO"
 
 INCLUDEPATH += src
 
@@ -85,6 +93,7 @@ HEADERS += \
     src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
+    src/dtos/github_release.h \
     src/dtos/checkConnection.h \
     src/exceptions/databaseerr.h \
     src/exceptions/fileerror.h \
@@ -93,6 +102,7 @@ HEADERS += \
     src/forms/getinfo/getinfo.h \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
+    src/helpers/request_builder.h \
     src/helpers/ui_helpers.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
