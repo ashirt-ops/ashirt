@@ -1,6 +1,6 @@
 # ASHIRT
 
-A Qt tray-type application that allows for capturing (via user-selectable area or entire window) screenshots, or codeblocks associated with a particular ASHIRT instance.
+A Qt tray-type application that allows for capturing (via user-selectable area or entire window) screenshots, or codeblocks associated with a particular ASHIRT instance. This repo contains just the client. If you are looking for the server you can find it [here](https://www.github.com/theparanoids/ashirt-server).
 
 ## Table of Contents
 
