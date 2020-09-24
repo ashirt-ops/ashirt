@@ -65,6 +65,10 @@ class TrayManager : public QDialog {
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
 
+  void onSystemTrayActivated();
+ public:
+  void setTrayMenu();
+
  private:
   QAction *quitAction;
   QAction *showSettingsAction;

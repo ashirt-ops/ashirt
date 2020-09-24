@@ -63,6 +63,7 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 
   createActions();
   createTrayMenu();
+  setTrayMenu();
   QIcon icon = QIcon(ICON);
   // TODO: figure out if any other environments support masking
 #ifdef Q_OS_MACOS
@@ -80,6 +81,11 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   // delayed so that windows can listen for get all ops signal
   NetMan::getInstance().refreshOperationsList();
   QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);
+}
+
+void TrayManager::setTrayMenu() {
+  trayIcon->setContextMenu(trayIconMenu);
+  connect(trayIcon, &QSystemTrayIcon::activated, this, &TrayManager::onSystemTrayActivated);
 }
 
 TrayManager::~TrayManager() {
@@ -257,11 +263,12 @@ void TrayManager::createTrayMenu() {
   trayIconMenu->addAction(this->quitAction);
 
   trayIcon = new QSystemTrayIcon(this);
-  trayIcon->setContextMenu(trayIconMenu);
-  connect(trayIcon, &QSystemTrayIcon::activated, [this]{
-    chooseOpStatusAction->setText("Loading operations...");
-    NetMan::getInstance().refreshOperationsList();
-  });
+}
+
+void TrayManager::onSystemTrayActivated() {
+  std::cout<<"tray activated" << std::endl;
+  chooseOpStatusAction->setText("Loading operations...");
+  NetMan::getInstance().refreshOperationsList();
 }
 
 void TrayManager::onScreenshotCaptured(const QString& path) {

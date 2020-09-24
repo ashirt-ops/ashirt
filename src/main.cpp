@@ -11,6 +11,7 @@ void handleCLI(std::vector<std::string> args);
 #ifndef QT_NO_SYSTEMTRAYICON
 #include <QApplication>
 #include <QMessageBox>
+#include <QScreen>
 
 #include "appconfig.h"
 #include "appsettings.h"
@@ -98,6 +99,54 @@ int main(int argc, char* argv[]) {
     QApplication::setQuitOnLastWindowClosed(false);
 
     auto window = new TrayManager(conn);
+
+    auto screens = app.screens();
+    auto ps = app.primaryScreen();
+    int i = 0;
+    auto printRect = [](QRect r){
+      auto rtn = QString("QRect(%1, %2, %3, %4)").arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
+      return rtn;
+    };
+
+    for (auto s : screens) {
+      i++;
+      std::cout<< "details for screen: " << i << std::endl;
+      std::cout << "Primary? " << (s == ps) << std::endl;
+      std::cout << "name: " << s->name().toStdString() << std::endl;
+      std::cout << "width: " << s->geometry().width() << "  height: " << s->geometry().height()<< std::endl;
+
+      app.connect(s, &QScreen::availableGeometryChanged, [i, printRect](QRect geo){
+        std::cout << "Screen[" << i <<"]::availableGeometryChanged("<< printRect(geo).toStdString() <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::geometryChanged, [i, printRect](QRect geo){
+        std::cout << "Screen[" << i <<"]::geometryChanged("<< printRect(geo).toStdString() <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::logicalDotsPerInchChanged, [i](qreal dpi){
+        std::cout << "Screen[" << i <<"]::logicalDotsPerInchChanged("<< dpi <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::orientationChanged, [i, window](Qt::ScreenOrientation ori){
+        window->setTrayMenu();
+        std::cout << "Screen[" << i <<"]::orientationChanged("<< ori <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::physicalDotsPerInchChanged, [i](qreal dpi){
+        std::cout << "Screen[" << i <<"]::physicalDotsPerInchChanged("<< dpi <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::physicalSizeChanged, [i](const QSizeF &size){
+        std::cout << "Screen[" << i <<"]::physicalSizeChanged(???)" << std::endl;
+      });
+      app.connect(s, &QScreen::primaryOrientationChanged, [i](Qt::ScreenOrientation ori){
+        std::cout << "Screen[" << i <<"]::primaryOrientationChanged("<< ori <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::refreshRateChanged, [i](qreal refreshRate){
+        std::cout << "Screen[" << i <<"]::refreshRateChanged("<< refreshRate <<")" << std::endl;
+      });
+      app.connect(s, &QScreen::virtualGeometryChanged, [i, printRect](const QRect& geo){
+        std::cout << "Screen[" << i <<"]::virtualGeometryChanged("<< printRect(geo).toStdString() <<")" << std::endl;
+      });
+
+    }
+
+
     rtn = app.exec();
     AppSettings::getInstance().sync();
     delete window;
