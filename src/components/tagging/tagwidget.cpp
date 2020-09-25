@@ -39,6 +39,8 @@ void TagWidget::buildTag() {
   QFont labelFont;
 #ifdef Q_OS_MACOS
   labelFont = QFont("Arial", 14);
+#elif defined(Q_OS_LINUX)
+  labelFont = QFont("Liberation Sans", 12);
 #else
   labelFont = QFont("Sans", 12);
 #endif
