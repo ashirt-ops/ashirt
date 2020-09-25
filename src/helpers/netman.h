@@ -214,8 +214,10 @@ class NetMan : public QObject {
   /// refreshOperationsList retrieves the operations currently visible to the user. Results should be
   /// retrieved by listening for the operationListUpdated signal
   void refreshOperationsList() {
-    allOpsReply = getAllOperations();
-    connect(allOpsReply, &QNetworkReply::finished, this, &NetMan::onGetOpsComplete);
+    if (allOpsReply == nullptr) {
+      allOpsReply = getAllOperations();
+      connect(allOpsReply, &QNetworkReply::finished, this, &NetMan::onGetOpsComplete);
+    }
   }
 
   /// getOperationTags retrieves the tags for specified operation from the ASHIRT API server
