@@ -69,6 +69,14 @@ class Constants {
     return "https://github.com/theparanoids/ashirt/releases";
   }
 
+  static QString codeFont() {
+    #ifdef Q_OS_MACX
+    return "monaco";
+    #endif
+
+    return "source code pro";
+  }
+
  private:
   enum RepoField {
     owner = 0,
