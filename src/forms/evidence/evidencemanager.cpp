@@ -35,7 +35,6 @@ enum ColumnIndexes {
 static QStringList columnNames() {
   static QStringList names;
   if (names.count() == 0) {
-    names.insert(COL_ERROR_MSG, "Error");
     names.insert(COL_DATE_CAPTURED, "Date Captured");
     names.insert(COL_OPERATION, "Operation");
     names.insert(COL_PATH, "Path");
@@ -44,6 +43,7 @@ static QStringList columnNames() {
     names.insert(COL_SUBMITTED, "Submitted");
     names.insert(COL_DATE_SUBMITTED, "Date Submitted");
     names.insert(COL_FAILED, "Failed");
+    names.insert(COL_ERROR_MSG, "Error");
   }
   return names;
 }
