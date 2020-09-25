@@ -38,7 +38,7 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
 void TagWidget::buildTag() {
   QFont labelFont;
 #ifdef Q_OS_MACOS
-  labelFont = QFont("Sans", 14);
+  labelFont = QFont("Arial", 14);
 #else
   labelFont = QFont("Sans", 12);
 #endif
