@@ -58,6 +58,8 @@
 #include <QPainter>
 #include <QTextBlock>
 
+#include "helpers/constants.h"
+
 QColor currentLineHighlightColor = QColor(115, 191, 255);
 
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
@@ -70,7 +72,7 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
   // customize for text/code editing
   setLineWrapMode(LineWrapMode::NoWrap);
   setTabChangesFocus(false);
-  QFont font("source code pro");
+  QFont font(Constants::codeFont());
   font.setStyleHint(QFont::TypeWriter);
   setFont(font);
 

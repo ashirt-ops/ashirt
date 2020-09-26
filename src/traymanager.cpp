@@ -152,11 +152,17 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 }
 
 void TrayManager::createActions() {
+  auto toTop = [](QDialog* window) {
+    window->show(); // display the window
+    window->raise(); // bring to the top (mac)
+    window->activateWindow(); // alternate bring to the top (windows)
+  };
+
   quitAction = new QAction(tr("Quit"), this);
   connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
   showSettingsAction = new QAction(tr("Settings"), this);
-  connect(showSettingsAction, &QAction::triggered, settingsWindow, &QWidget::show);
+  connect(showSettingsAction, &QAction::triggered, [this, toTop](){toTop(settingsWindow);});
 
   currentOperationMenuAction = new QAction(this);
   currentOperationMenuAction->setEnabled(false);
@@ -168,10 +174,10 @@ void TrayManager::createActions() {
   connect(captureWindowAction, &QAction::triggered, this, &TrayManager::captureWindowActionTriggered);
 
   showEvidenceManagerAction = new QAction(tr("View Accumulated Evidence"), this);
-  connect(showEvidenceManagerAction, &QAction::triggered, evidenceManagerWindow, &QWidget::show);
+  connect(showEvidenceManagerAction, &QAction::triggered, [this, toTop](){toTop(evidenceManagerWindow);});
 
   showCreditsAction = new QAction(tr("About"), this);
-  connect(showCreditsAction, &QAction::triggered, creditsWindow, &QWidget::show);
+  connect(showCreditsAction, &QAction::triggered, [this, toTop](){toTop(creditsWindow);});
 
   addCodeblockAction = new QAction(tr("Add Codeblock from Clipboard"), this);
   connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::captureCodeblockActionTriggered);
