@@ -17,7 +17,7 @@
 #include "components/tagging/tagginglineediteventfilter.h"
 #include "models/tag.h"
 
-#include "tagcache.h"
+#include "tag_cache/tagcache.h"
 
 class TagEditor : public QWidget {
   Q_OBJECT
