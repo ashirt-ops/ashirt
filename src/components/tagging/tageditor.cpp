@@ -11,14 +11,11 @@
 
 TagEditor::TagEditor(QWidget *parent) : QWidget(parent) {
   buildUi();
-
+  tagCache = new TagCache();
   wireUi();
 }
 
 TagEditor::~TagEditor() {
-  if (getTagsReply != nullptr ) {
-    disconnect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
-  }
   delete couldNotCreateTagMsg;
   delete loading;
   delete tagCompleteTextBox;
@@ -27,7 +24,10 @@ TagEditor::~TagEditor() {
   delete gridLayout;
   delete completer;
 
-  stopReply(&getTagsReply);
+  delete tagCache;
+  for (auto entry : activeRequests) {
+    stopReply(&(entry.second));
+  }
   stopReply(&createTagReply);
 }
 
@@ -89,6 +89,9 @@ void TagEditor::wireUi() {
       tagCompleteTextBox->completer()->setCompletionPrefix("");
     }
   });
+
+  connect(tagCache, &TagCache::tagResponse, this, &TagEditor::tagsUpdated);
+  connect(tagCache, &TagCache::failedLookup, this, &TagEditor::tagsNotFound);
 }
 
 void TagEditor::completerActivated(const QString &text) {
@@ -129,7 +132,6 @@ void TagEditor::updateCompleterModel() {
 }
 
 void TagEditor::clear() {
-  stopReply(&getTagsReply);
   stopReply(&createTagReply);
   tagCompleteTextBox->clear();
   errorLabel->setText("");
@@ -140,17 +142,11 @@ void TagEditor::loadTags(const QString &operationSlug, std::vector<model::Tag> i
   this->operationSlug = operationSlug;
   this->initialTags = initialTags;
 
-  getTagsReply = NetMan::getInstance().getOperationTags(operationSlug);
-  connect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
+  tagCache->requestTags(operationSlug);
 }
 
-void TagEditor::onGetTagsComplete() {
-  bool isValid;
-  auto data = NetMan::extractResponse(getTagsReply, isValid);
-  tagMap.clear();
-  tagNames.clear();
-  if (isValid) {
-    std::vector<dto::Tag> tags = dto::Tag::parseDataAsList(data);
+void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
+  if (this->operationSlug == operationSlug) {
     for (auto tag : tags) {
       addTag(tag);
 
@@ -162,21 +158,23 @@ void TagEditor::onGetTagsComplete() {
       }
     }
     updateCompleterModel();
+    emit tagsLoaded(true);
   }
-  else {
+}
+
+void TagEditor::tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdatedTags) {
+  if (this->operationSlug == operationSlug) {
     errorLabel->setText(
         tr("Unable to fetch tags."
            " Please check your connection."
            " (Tags names and colors may be incorrect)"));
     tagCompleteTextBox->setEnabled(false);
+    // todo: factor in outdated data?
     for (auto tag : initialTags) {
       tagView->addTag(dto::Tag::fromModelTag(tag, TagWidget::randomColor()));
     }
+    emit tagsLoaded(false);
   }
-
-  disconnect(getTagsReply, &QNetworkReply::finished, this, &TagEditor::onGetTagsComplete);
-  tidyReply(&getTagsReply);
-  emit tagsLoaded(isValid);
 }
 
 void TagEditor::createTag(QString tagName) {
