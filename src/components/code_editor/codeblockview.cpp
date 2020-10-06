@@ -75,6 +75,7 @@ void CodeBlockView::loadFromFile(QString filepath) {
 void CodeBlockView::saveEvidence() {
   loadedCodeblock.source = sourceTextBox->text();
   loadedCodeblock.subtype = languageComboBox->currentData().toString();
+  loadedCodeblock.content = codeEditor->toPlainText();
   if (loadedCodeblock.filePath() != "") {
     try {
       Codeblock::saveCodeblock(loadedCodeblock);
