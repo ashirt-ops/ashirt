@@ -66,32 +66,32 @@ class TrayManager : public QDialog {
   void checkForUpdate();
 
  private:
-  QAction *quitAction;
-  QAction *showSettingsAction;
-  QAction *currentOperationMenuAction;
-  QAction *captureScreenAreaAction;
-  QAction *captureWindowAction;
-  QAction *showEvidenceManagerAction;
-  QAction *showCreditsAction;
-  QAction *addCodeblockAction;
+  QAction *quitAction = nullptr;
+  QAction *showSettingsAction = nullptr;
+  QAction *currentOperationMenuAction = nullptr;
+  QAction *captureScreenAreaAction = nullptr;
+  QAction *captureWindowAction = nullptr;
+  QAction *showEvidenceManagerAction = nullptr;
+  QAction *showCreditsAction = nullptr;
+  QAction *addCodeblockAction = nullptr;
 
   void cleanChooseOpSubmenu();
-  QMenu *chooseOpSubmenu;
-  QAction *chooseOpStatusAction;
+  QMenu *chooseOpSubmenu = nullptr;
+  QAction *chooseOpStatusAction = nullptr;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
 
-  QSystemTrayIcon *trayIcon;
-  QMenu *trayIconMenu;
+  QSystemTrayIcon *trayIcon = nullptr;
+  QMenu *trayIconMenu = nullptr;
 
-  Settings *settingsWindow;
-  EvidenceManager *evidenceManagerWindow;
-  Credits *creditsWindow;
+  Settings *settingsWindow = nullptr;
+  EvidenceManager *evidenceManagerWindow = nullptr;
+  Credits *creditsWindow = nullptr;
 
-  Screenshot *screenshotTool;
-  HotkeyManager *hotkeyManager;
+  Screenshot *screenshotTool = nullptr;
+  HotkeyManager *hotkeyManager = nullptr;
 
-  DatabaseConnection *db;
+  DatabaseConnection *db = nullptr;
   QTimer *updateCheckTimer = nullptr;
 };
 
