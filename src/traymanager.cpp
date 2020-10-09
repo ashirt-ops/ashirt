@@ -150,22 +150,20 @@ void TrayManager::wireUi() {
     window->raise(); // bring to the top (mac)
     window->activateWindow(); // alternate bring to the top (windows)
   };
-  connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-  connect(showSettingsAction, &QAction::triggered, [this, toTop](){toTop(settingsWindow);});
-  connect(captureScreenAreaAction, &QAction::triggered, this, &TrayManager::captureAreaActionTriggered);
-  connect(captureWindowAction, &QAction::triggered, this, &TrayManager::captureWindowActionTriggered);
-  connect(showEvidenceManagerAction, &QAction::triggered, [this, toTop](){toTop(evidenceManagerWindow);});
-  connect(showCreditsAction, &QAction::triggered, [this, toTop](){toTop(creditsWindow);});
-  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::captureCodeblockActionTriggered);
-
-  connect(trayIcon, &QSystemTrayIcon::activated, [this]{
-    chooseOpStatusAction->setText("Loading operations...");
-    NetMan::getInstance().refreshOperationsList();
-  });
+  auto actTriggered = &QAction::triggered;
+  // connect actions
+  connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
+  connect(showSettingsAction, actTriggered, [this, toTop](){toTop(settingsWindow);});
+  connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
+  connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);
+  connect(showEvidenceManagerAction, actTriggered, [this, toTop](){toTop(evidenceManagerWindow);});
+  connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
+  connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
 
+  // connect to hotkey signals
   connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
           &TrayManager::captureCodeblockActionTriggered);
   connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
@@ -173,12 +171,19 @@ void TrayManager::wireUi() {
   connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
           &TrayManager::captureWindowActionTriggered);
 
+  // connect to network signals
   connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
           &TrayManager::onOperationListUpdated);
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
+  
   connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
+  connect(trayIcon, &QSystemTrayIcon::activated, [this] {
+    chooseOpStatusAction->setText("Loading operations...");
+    NetMan::getInstance().refreshOperationsList();
+  });
+
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 }
 
