@@ -42,9 +42,8 @@ class TrayManager : public QDialog {
   ~TrayManager();
 
  private:
+  void buildUi();
   void wireUi();
-  void createActions();
-  void createTrayMenu();
   qint64 createNewEvidence(QString filepath, QString evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
