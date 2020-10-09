@@ -56,21 +56,10 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   screenshotTool = new Screenshot();
   hotkeyManager = new HotkeyManager();
   hotkeyManager->updateHotkeys();
-
-  buildUi();
-
-  setActiveOperationLabel();
   updateCheckTimer = new QTimer(this);
   updateCheckTimer->start(24*60*60*1000); // every day
 
-  QIcon icon = QIcon(ICON);
-  // TODO: figure out if any other environments support masking
-#ifdef Q_OS_MACOS
-  icon.setIsMask(true);
-#endif
-
-  trayIcon->setIcon(icon);
-  trayIcon->show();
+  buildUi();
   wireUi();
 
   // delayed so that windows can listen for get all ops signal
@@ -140,8 +129,18 @@ void TrayManager::buildUi() {
   chooseOpSubmenu->addAction(chooseOpStatusAction);
   chooseOpSubmenu->addSeparator();
 
+  setActiveOperationLabel();
+
+  QIcon icon = QIcon(ICON);
+  // TODO: figure out if any other environments support masking
+#ifdef Q_OS_MACOS
+  icon.setIsMask(true);
+#endif
+
   trayIcon = new QSystemTrayIcon(this);
   trayIcon->setContextMenu(trayIconMenu);
+  trayIcon->setIcon(icon);
+  trayIcon->show();
 }
 
 void TrayManager::wireUi() {
