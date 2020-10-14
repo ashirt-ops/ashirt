@@ -41,8 +41,18 @@ class TrayManager : public QDialog {
   TrayManager(DatabaseConnection *);
   ~TrayManager();
 
- protected:
-  void closeEvent(QCloseEvent *event) override;
+ private:
+  void buildUi();
+  void wireUi();
+  qint64 createNewEvidence(QString filepath, QString evidenceType);
+  void spawnGetInfoWindow(qint64 evidenceID);
+  void showNoOperationSetTrayMessage();
+  void checkForUpdate();
+  void cleanChooseOpSubmenu();
+
+ private slots:
+  void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
+  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
 
  public slots:
   void onScreenshotCaptured(const QString &filepath);
@@ -52,47 +62,37 @@ class TrayManager : public QDialog {
   void captureWindowActionTriggered();
   void captureCodeblockActionTriggered();
 
- private slots:
-  void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
-  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
+ protected:
+  void closeEvent(QCloseEvent *event) override;
 
  private:
-  void createActions();
-  void createTrayMenu();
-  void wireUi();
-  qint64 createNewEvidence(QString filepath, QString evidenceType);
-  void spawnGetInfoWindow(qint64 evidenceID);
-  void showNoOperationSetTrayMessage();
-  void checkForUpdate();
+  DatabaseConnection *db = nullptr;
+  HotkeyManager *hotkeyManager = nullptr;
+  Screenshot *screenshotTool = nullptr;
+  QTimer *updateCheckTimer = nullptr;
 
- private:
-  QAction *quitAction;
-  QAction *showSettingsAction;
-  QAction *currentOperationMenuAction;
-  QAction *captureScreenAreaAction;
-  QAction *captureWindowAction;
-  QAction *showEvidenceManagerAction;
-  QAction *showCreditsAction;
-  QAction *addCodeblockAction;
+  // Subwindows
+  Settings *settingsWindow = nullptr;
+  EvidenceManager *evidenceManagerWindow = nullptr;
+  Credits *creditsWindow = nullptr;
 
-  void cleanChooseOpSubmenu();
-  QMenu *chooseOpSubmenu;
-  QAction *chooseOpStatusAction;
+  // UI Elements
+  QSystemTrayIcon *trayIcon = nullptr;
+  QMenu *trayIconMenu = nullptr;
+
+  QAction *quitAction = nullptr;
+  QAction *showSettingsAction = nullptr;
+  QAction *currentOperationMenuAction = nullptr;
+  QAction *captureScreenAreaAction = nullptr;
+  QAction *captureWindowAction = nullptr;
+  QAction *showEvidenceManagerAction = nullptr;
+  QAction *showCreditsAction = nullptr;
+  QAction *addCodeblockAction = nullptr;
+
+  QMenu *chooseOpSubmenu = nullptr;
+  QAction *chooseOpStatusAction = nullptr;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
-
-  QSystemTrayIcon *trayIcon;
-  QMenu *trayIconMenu;
-
-  Settings *settingsWindow;
-  EvidenceManager *evidenceManagerWindow;
-  Credits *creditsWindow;
-
-  Screenshot *screenshotTool;
-  HotkeyManager *hotkeyManager;
-
-  DatabaseConnection *db;
-  QTimer *updateCheckTimer = nullptr;
 };
 
 #endif  // QT_NO_SYSTEMTRAYICON

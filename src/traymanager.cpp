@@ -56,25 +56,10 @@ TrayManager::TrayManager(DatabaseConnection* db) {
   screenshotTool = new Screenshot();
   hotkeyManager = new HotkeyManager();
   hotkeyManager->updateHotkeys();
-
-  settingsWindow = new Settings(hotkeyManager, this);
-  evidenceManagerWindow = new EvidenceManager(db, this);
-  creditsWindow = new Credits(this);
-
-  createActions();
-  createTrayMenu();
-  QIcon icon = QIcon(ICON);
-  // TODO: figure out if any other environments support masking
-#ifdef Q_OS_MACOS
-  icon.setIsMask(true);
-#endif
-  trayIcon->setIcon(icon);
-
-  setActiveOperationLabel();
-  trayIcon->show();
   updateCheckTimer = new QTimer(this);
   updateCheckTimer->start(24*60*60*1000); // every day
 
+  buildUi();
   wireUi();
 
   // delayed so that windows can listen for get all ops signal
@@ -109,6 +94,98 @@ TrayManager::~TrayManager() {
   delete creditsWindow;
 }
 
+void TrayManager::buildUi() {
+  // create subwindows
+  settingsWindow = new Settings(hotkeyManager, this);
+  evidenceManagerWindow = new EvidenceManager(db, this);
+  creditsWindow = new Credits(this);
+
+  trayIconMenu = new QMenu(this);
+  chooseOpSubmenu = new QMenu(tr("Select Operation"));
+
+  // small helper to create an action and assign it to the tray
+  auto addToTray = [this](QString text, QAction** act){
+    *act = new QAction(text, this);
+    trayIconMenu->addAction(*act);
+  };
+
+  // Tray Ordering
+  addToTray(tr("Add Codeblock from Clipboard"), &addCodeblockAction);
+  addToTray(tr("Capture Screen Area"), &captureScreenAreaAction);
+  addToTray(tr("Capture Window"), &captureWindowAction);
+  addToTray(tr("View Accumulated Evidence"), &showEvidenceManagerAction);
+  addToTray(tr("Settings"), &showSettingsAction);
+  trayIconMenu->addSeparator();
+  addToTray(tr(""), &currentOperationMenuAction);
+  trayIconMenu->addMenu(chooseOpSubmenu);
+  trayIconMenu->addSeparator();
+  addToTray(tr("About"), &showCreditsAction);
+  addToTray(tr("Quit"), &quitAction);
+
+  // finish action config
+  currentOperationMenuAction->setEnabled(false);
+  chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
+  chooseOpStatusAction->setEnabled(false);
+  chooseOpSubmenu->addAction(chooseOpStatusAction);
+  chooseOpSubmenu->addSeparator();
+
+  setActiveOperationLabel();
+
+  QIcon icon = QIcon(ICON);
+  // TODO: figure out if any other environments support masking
+#ifdef Q_OS_MACOS
+  icon.setIsMask(true);
+#endif
+
+  trayIcon = new QSystemTrayIcon(this);
+  trayIcon->setContextMenu(trayIconMenu);
+  trayIcon->setIcon(icon);
+  trayIcon->show();
+}
+
+void TrayManager::wireUi() {
+  auto toTop = [](QDialog* window) {
+    window->show(); // display the window
+    window->raise(); // bring to the top (mac)
+    window->activateWindow(); // alternate bring to the top (windows)
+  };
+  auto actTriggered = &QAction::triggered;
+  // connect actions
+  connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
+  connect(showSettingsAction, actTriggered, [this, toTop](){toTop(settingsWindow);});
+  connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
+  connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);
+  connect(showEvidenceManagerAction, actTriggered, [this, toTop](){toTop(evidenceManagerWindow);});
+  connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
+  connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
+
+  connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
+          &TrayManager::onScreenshotCaptured);
+
+  // connect to hotkey signals
+  connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
+          &TrayManager::captureCodeblockActionTriggered);
+  connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
+          &TrayManager::captureAreaActionTriggered);
+  connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
+          &TrayManager::captureWindowActionTriggered);
+
+  // connect to network signals
+  connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
+          &TrayManager::onOperationListUpdated);
+  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
+  connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
+          &TrayManager::setActiveOperationLabel);
+  
+  connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
+  connect(trayIcon, &QSystemTrayIcon::activated, [this] {
+    chooseOpStatusAction->setText("Loading operations...");
+    NetMan::getInstance().refreshOperationsList();
+  });
+
+  connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
+}
+
 void TrayManager::cleanChooseOpSubmenu() {
   // delete all of the existing events
   for (QAction* act : allOperationActions) {
@@ -117,26 +194,6 @@ void TrayManager::cleanChooseOpSubmenu() {
   }
   allOperationActions.clear();
   selectedAction = nullptr; // clear the selected action to ensure no funny business
-}
-
-void TrayManager::wireUi() {
-  connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
-          &TrayManager::onScreenshotCaptured);
-
-  connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
-          &TrayManager::captureCodeblockActionTriggered);
-  connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
-          &TrayManager::captureAreaActionTriggered);
-  connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
-          &TrayManager::captureWindowActionTriggered);
-
-  connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
-          &TrayManager::onOperationListUpdated);
-  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
-  connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
-          &TrayManager::setActiveOperationLabel);
-  connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
-  connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 }
 
 void TrayManager::closeEvent(QCloseEvent* event) {
@@ -149,45 +206,6 @@ void TrayManager::closeEvent(QCloseEvent* event) {
     hide();
     event->ignore();
   }
-}
-
-void TrayManager::createActions() {
-  auto toTop = [](QDialog* window) {
-    window->show(); // display the window
-    window->raise(); // bring to the top (mac)
-    window->activateWindow(); // alternate bring to the top (windows)
-  };
-
-  quitAction = new QAction(tr("Quit"), this);
-  connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-
-  showSettingsAction = new QAction(tr("Settings"), this);
-  connect(showSettingsAction, &QAction::triggered, [this, toTop](){toTop(settingsWindow);});
-
-  currentOperationMenuAction = new QAction(this);
-  currentOperationMenuAction->setEnabled(false);
-
-  captureScreenAreaAction = new QAction(tr("Capture Screen Area"), this);
-  connect(captureScreenAreaAction, &QAction::triggered, this, &TrayManager::captureAreaActionTriggered);
-
-  captureWindowAction = new QAction(tr("Capture Window"), this);
-  connect(captureWindowAction, &QAction::triggered, this, &TrayManager::captureWindowActionTriggered);
-
-  showEvidenceManagerAction = new QAction(tr("View Accumulated Evidence"), this);
-  connect(showEvidenceManagerAction, &QAction::triggered, [this, toTop](){toTop(evidenceManagerWindow);});
-
-  showCreditsAction = new QAction(tr("About"), this);
-  connect(showCreditsAction, &QAction::triggered, [this, toTop](){toTop(creditsWindow);});
-
-  addCodeblockAction = new QAction(tr("Add Codeblock from Clipboard"), this);
-  connect(addCodeblockAction, &QAction::triggered, this, &TrayManager::captureCodeblockActionTriggered);
-
-  chooseOpSubmenu = new QMenu(tr("Select Operation"));
-  chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
-  chooseOpStatusAction->setEnabled(false);
-
-  chooseOpSubmenu->addAction(chooseOpStatusAction);
-  chooseOpSubmenu->addSeparator();
 }
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
@@ -245,29 +263,6 @@ void TrayManager::onCodeblockCapture() {
       std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
     }
   }
-}
-
-void TrayManager::createTrayMenu() {
-  trayIconMenu = new QMenu(this);
-
-  trayIconMenu->addAction(this->addCodeblockAction);
-  trayIconMenu->addAction(this->captureScreenAreaAction);
-  trayIconMenu->addAction(this->captureWindowAction);
-  trayIconMenu->addAction(this->showEvidenceManagerAction);
-  trayIconMenu->addAction(this->showSettingsAction);
-  trayIconMenu->addSeparator();
-  trayIconMenu->addAction(this->currentOperationMenuAction);
-  trayIconMenu->addMenu(chooseOpSubmenu);
-  trayIconMenu->addSeparator();
-  trayIconMenu->addAction(this->showCreditsAction);
-  trayIconMenu->addAction(this->quitAction);
-
-  trayIcon = new QSystemTrayIcon(this);
-  trayIcon->setContextMenu(trayIconMenu);
-  connect(trayIcon, &QSystemTrayIcon::activated, [this]{
-    chooseOpStatusAction->setText("Loading operations...");
-    NetMan::getInstance().refreshOperationsList();
-  });
 }
 
 void TrayManager::onScreenshotCaptured(const QString& path) {
