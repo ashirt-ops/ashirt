@@ -17,6 +17,8 @@
 #include "components/tagging/tagginglineediteventfilter.h"
 #include "models/tag.h"
 
+#include "tag_cache/tagcache.h"
+
 class TagEditor : public QWidget {
   Q_OBJECT
  public:
@@ -35,10 +37,12 @@ class TagEditor : public QWidget {
   QString standardizeTagKey(const QString &tagName);
 
  private slots:
-  void onGetTagsComplete();
   void onCreateTagComplete();
   void tagEditReturnPressed();
   void completerActivated(const QString& text);
+
+  void tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags);
+  void tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdatedTags);
 
  public:
   void clear();
@@ -55,6 +59,8 @@ class TagEditor : public QWidget {
 
   QNetworkReply* getTagsReply = nullptr;
   QNetworkReply* createTagReply = nullptr;
+  std::unordered_map<QString, QNetworkReply*> activeRequests;
+  TagCache* tagCache = nullptr;
 
   QErrorMessage* couldNotCreateTagMsg = nullptr;
 
