@@ -21,6 +21,7 @@ void handleCLI(std::vector<std::string> args);
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
 #include "models/type_streams.h"
+#include "migrations/migration.h"
 
 void initResources() {
   Q_INIT_RESOURCE(res_icons);
@@ -71,8 +72,10 @@ DatabaseConnection* readySupportSystems() {
   if (conn == nullptr) {
     throw std::runtime_error("Unable to create a database connection");
   }
-    std::cout << "Unable to load config file: " << configError << std::endl;
-    return -1;
+
+  // apply System migrations
+  Migration::applyMigrations(conn);
+
   }
 
   return conn;
