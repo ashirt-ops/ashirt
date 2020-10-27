@@ -126,6 +126,7 @@ HEADERS += \
     src/helpers/system_helpers.h \
     src/helpers/ui_helpers.h \
     src/migrations/migration.h \
+    src/migrations/multi_server_migration.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
     src/helpers/http_status.h \

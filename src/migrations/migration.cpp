@@ -2,8 +2,12 @@
 
 #include <vector>
 
+#include "migrations/multi_server_migration.h"
+
 bool Migration::applyMigrations(DatabaseConnection* conn) {
   std::vector<Migration*> toApply = {
+      new MultiServerMigration(),
+      // new migrations go below, as these are executed in sequential order
   };
 
   for (Migration* task : toApply) {
