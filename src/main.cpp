@@ -22,6 +22,7 @@ void handleCLI(std::vector<std::string> args);
 #include "traymanager.h"
 #include "models/type_streams.h"
 #include "migrations/migration.h"
+#include "helpers/netman.h"
 
 void initResources() {
   Q_INIT_RESOURCE(res_icons);
@@ -89,6 +90,7 @@ int guiMain(int argc, char* argv[]) {
   setApplicationAttributes();
   TypeStreams::registerTypes();
   DatabaseConnection* conn = readySupportSystems();
+  NetMan::getInstance().setDatabaseConnection(conn); // Do not make any network requests before this
 
   int exitCode;
   try {
