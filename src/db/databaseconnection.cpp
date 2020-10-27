@@ -14,12 +14,6 @@
 #include "exceptions/fileerror.h"
 #include "helpers/file_helpers.h"
 
-// DatabaseConnection constructs a connection to the database, unsurpringly. Note that the
-// constructor can throw a error (see below). Additionally, many methods can throw a QSqlError,
-// though are not marked as such in their comments. Other errors are listed in throw comments, or
-// are marked as noexcept if no error is possible.
-//
-// Throws: DBDriverUnavailable if the required database driver does not exist
 DatabaseConnection::DatabaseConnection(const QString& dbPath, QString databaseName) {
   const static QString dbDriver = "QSQLITE";
   if (QSqlDatabase::isDriverAvailable(dbDriver)) {
@@ -136,8 +130,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   return rtn;
 }
 
-void DatabaseConnection::updateEvidenceDescription(const QString &newDescription,
-                                                   qint64 evidenceID) {
+void DatabaseConnection::updateEvidenceDescription(const QString &newDescription, qint64 evidenceID) {
   executeQuery(getDB(), "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
 }
 
@@ -319,7 +312,7 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
 }
 
 std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
-    const QString& pathToExport, const EvidenceFilters& filters, DatabaseConnection *runningDB) {
+    const QString &pathToExport, const EvidenceFilters &filters, DatabaseConnection *runningDB) {
   std::vector<model::Evidence> exportEvidence;
 
   auto exportViewAction = [runningDB, filters, &exportEvidence](DatabaseConnection exportDB) {
@@ -329,7 +322,7 @@ std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
     std::vector<qint64> evidenceIds;
     evidenceIds.resize(exportEvidence.size());
     std::transform(exportEvidence.begin(), exportEvidence.end(), evidenceIds.begin(),
-                   [](const model::Evidence& e) { return e.id; });
+                   [](const model::Evidence &e) { return e.id; });
     std::vector<model::Tag> tags = runningDB->getFullTagsForEvidenceIDs(evidenceIds);
     exportDB.batchCopyTags(tags);
   };
@@ -339,10 +332,23 @@ std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
   return exportEvidence;
 }
 
-// migrateDB checks the migration status and then performs the full migration for any
-// lacking update.
-//
-// Throws exceptions/FileError if a migration file cannot be found.
+bool DatabaseConnection::hasAppliedSystemMigration(QString systemMigrationName) {
+  auto db = getDB();
+  QString query = "SELECT count(migration_name) FROM system_migrations WHERE migration_name=?";
+
+  auto resultSet = executeQuery(db, query, {systemMigrationName});
+  if (resultSet.next()) {
+    return (resultSet.value(0).toULongLong() > 0);
+  }
+  return false;
+}
+
+qint64 DatabaseConnection::applySystemMigration(QString systemMigrationName) {
+  auto db = getDB();
+  return doInsert(db, "INSERT INTO system_migrations (migration_name) VALUES (?)",
+                  {systemMigrationName});
+}
+
 void DatabaseConnection::migrateDB() {
   auto db = getDB();
   std::cout << "Checking database state" << std::endl;
@@ -358,24 +364,21 @@ void DatabaseConnection::migrateDB() {
     auto content = QString(migrationFile.readAll());
     migrationFile.close();
 
-    std::cout << "Applying Migration: " << newMigration.toStdString() << std::endl;
+    std::cout << "Applying DB Migration: " << newMigration.toStdString() << std::endl;
     auto upScript = extractMigrateUpContent(content);
-    executeQuery(db, upScript);
+    for (QString stmt : upScript) {
+      if (stmt.trimmed() == "") {  // skip blank statements
+        continue;
+      }
+      executeQuery(db, stmt);
+    }
     executeQuery(db,
                  "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
                  {newMigration});
   }
-  std::cout << "All migrations applied" << std::endl;
+  std::cout << "All DB migrations applied" << std::endl;
 }
 
-// getUnappliedMigrations retrieves a list of all of the migrations that have not been applied
-// to the local database.
-//
-// Note: All sql files must end in ".sql" to be picked up
-//
-// Throws:
-//   * BadDatabaseStateError if some migrations have been applied that are not known
-//   * QSqlError if database queries fail
 QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
   QDir migrationsDir(":/migrations");
 
@@ -407,9 +410,8 @@ QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
   return migrationsToApply;
 }
 
-// extractMigrateUpContent parses the given migration content and retrieves only
-// the portion that applies to the "up" / apply logic. The "down" section is ignored.
-QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) noexcept {
+QStringList DatabaseConnection::extractMigrateUpContent(const QString &allContent) noexcept {
+  auto statementSplitter = QString("\n;");
   auto copying = false;
   QString upContent;
   for (const QString &line : allContent.split("\n")) {
@@ -426,13 +428,9 @@ QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) n
       upContent.append(line + "\n");
     }
   }
-  return upContent;
+  return upContent.split(statementSplitter);
 }
 
-// executeQuery simply attempts to execute the given stmt with the passed args. The statement is
-// first prepared, and arg placements can be specified with "?"
-//
-// Throws: QSqlError when a query error occurs
 QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString &stmt,
                                            const std::vector<QVariant> &args) {
   auto result = executeQueryNoThrow(db, stmt, args);
@@ -458,10 +456,6 @@ QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, cons
   return QueryResult(query);
 }
 
-// doInsert is a version of executeQuery that returns the last inserted id, rather than the
-// underlying query/response
-//
-// Throws: QSqlError when a query error occurs
 qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
                                     const std::vector<QVariant> &args) {
   auto query = executeQuery(db, stmt, args);
