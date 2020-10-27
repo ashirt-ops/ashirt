@@ -52,8 +52,7 @@ class Settings : public QDialog {
   /// closeEvent extends the native closeEvent handler. Saves data prior to closing.
   void closeEvent(QCloseEvent* event) override;
 
-  /// onCheckConnectionPressed acts upon the "test connection" button press.
-  void onCheckConnectionPressed();
+  /// onBrowseClicked triggers when the "browse" button is pressed. Shows a file dialog to the user.
   void onBrowseClicked();
 
  private:
@@ -67,9 +66,6 @@ class Settings : public QDialog {
   // UI components
   QGridLayout* gridLayout = nullptr;
   QLabel* _eviRepoLabel = nullptr;
-  QLabel* _accessKeyLabel = nullptr;
-  QLabel* _secretKeyLabel = nullptr;
-  QLabel* _hostPathLabel = nullptr;
   QLabel* _captureAreaCmdLabel = nullptr;
   QLabel* _captureAreaShortcutLabel = nullptr;
   QLabel* _captureWindowCmdLabel = nullptr;
@@ -77,9 +73,6 @@ class Settings : public QDialog {
   QLabel* _recordCodeblockShortcutLabel = nullptr;
 
   QLineEdit* eviRepoTextBox = nullptr;
-  QLineEdit* accessKeyTextBox = nullptr;
-  QLineEdit* secretKeyTextBox = nullptr;
-  QLineEdit* hostPathTextBox = nullptr;
   QLineEdit* captureAreaCmdTextBox = nullptr;
   QKeySequenceEdit* captureAreaShortcutTextBox = nullptr;
   QLineEdit* captureWindowCmdTextBox = nullptr;
@@ -87,7 +80,6 @@ class Settings : public QDialog {
   QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
-  ConnectionChecker* connectionStatus = nullptr;
 
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
   QSpacerItem* spacer = nullptr;

@@ -22,9 +22,6 @@ Settings::Settings(DatabaseConnection* db, HotkeyManager *hotkeyManager, QWidget
 
 Settings::~Settings() {
   delete _eviRepoLabel;
-  delete _accessKeyLabel;
-  delete _secretKeyLabel;
-  delete _hostPathLabel;
   delete _captureAreaCmdLabel;
   delete _captureAreaShortcutLabel;
   delete _captureWindowCmdLabel;
@@ -32,15 +29,11 @@ Settings::~Settings() {
   delete _recordCodeblockShortcutLabel;
 
   delete eviRepoTextBox;
-  delete accessKeyTextBox;
-  delete secretKeyTextBox;
-  delete hostPathTextBox;
   delete captureAreaCmdTextBox;
   delete captureAreaShortcutTextBox;
   delete captureWindowCmdTextBox;
   delete captureWindowShortcutTextBox;
   delete recordCodeblockShortcutTextBox;
-  delete connectionStatus;
   delete eviRepoBrowseButton;
   delete buttonBox;
 
@@ -53,9 +46,6 @@ Settings::~Settings() {
 void Settings::buildUi() {
   gridLayout = new QGridLayout(this);
   _eviRepoLabel = new QLabel("Evidence Repository", this);
-  _accessKeyLabel = new QLabel("Access Key", this);
-  _secretKeyLabel = new QLabel("Secret Key", this);
-  _hostPathLabel = new QLabel("Host Path", this);
   _captureAreaCmdLabel = new QLabel("Capture Area Command", this);
   _captureAreaShortcutLabel = new QLabel("Shortcut", this);
   _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
@@ -63,16 +53,12 @@ void Settings::buildUi() {
   _recordCodeblockShortcutLabel = new QLabel("Record Codeblock Shortcut", this);
 
   eviRepoTextBox = new QLineEdit(this);
-  accessKeyTextBox = new QLineEdit(this);
-  secretKeyTextBox = new QLineEdit(this);
-  hostPathTextBox = new QLineEdit(this);
   captureAreaCmdTextBox = new QLineEdit(this);
   captureAreaShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   captureWindowCmdTextBox = new QLineEdit(this);
   captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   eviRepoBrowseButton = new QPushButton("Browse", this);
-  connectionStatus = new ConnectionChecker(this);
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Save);
   buttonBox->addButton(QDialogButtonBox::Cancel);
@@ -85,67 +71,50 @@ void Settings::buildUi() {
        +---------------+-------------+------------+-------------+
     0  | Evi Repo Lbl  |    [Evi Repo TB]         | browseBtn   |
        +---------------+-------------+------------+-------------+
-    1  | A. Key Label  |  [A. Key TB]                           |
+    1  | Cap A Cmd Lbl | [CapACmdTB] | CapASh lbl | [CapASh TB] |
        +---------------+-------------+------------+-------------+
-    2  | S. Key Label  |  [S. Key TB]                           |
+    2  | Cap W Cmd Lbl | [CapWCmdTB] | CapWSh lbl | [CapWSh TB] |
        +---------------+-------------+------------+-------------+
-    3  | Host Label    |  [Host TB]                             |
+    3  | CodeblkSh Lbl | [CodeblkSh TB] |                       |
        +---------------+-------------+------------+-------------+
-    4  | Cap A Cmd Lbl | [CapACmdTB] | CapASh lbl | [CapASh TB] |
+    4  | Vertical spacer                                        |
        +---------------+-------------+------------+-------------+
-    5  | Cap W Cmd Lbl | [CapWCmdTB] | CapWSh lbl | [CapWSh TB] |
-       +---------------+-------------+------------+-------------+
-    6  | CodeblkSh Lbl | [CodeblkSh TB] |                       |
-       +---------------+-------------+------------+-------------+
-    7  | Test Conn Btn |  StatusLabel                           |
-       +---------------+-------------+------------+-------------+
-    8  | Vertical spacer                                        |
-       +---------------+-------------+------------+-------------+
-    9  | Dialog button Box{save, cancel}                        |
+    5  | Dialog button Box{save, cancel}                        |
        +---------------+-------------+------------+-------------+
   */
 
   // row 0
-  gridLayout->addWidget(_eviRepoLabel, 0, 0);
-  gridLayout->addWidget(eviRepoTextBox, 0, 1, 1, 3);
-  gridLayout->addWidget(eviRepoBrowseButton, 0, 4);
+  int row = 0;
+  gridLayout->addWidget(_eviRepoLabel, row, 0);
+  gridLayout->addWidget(eviRepoTextBox, row, 1, 1, 3);
+  gridLayout->addWidget(eviRepoBrowseButton, row, 4);
 
   // row 1
-  gridLayout->addWidget(_accessKeyLabel, 1, 0);
-  gridLayout->addWidget(accessKeyTextBox, 1, 1, 1, 4);
+  row++;
+  gridLayout->addWidget(_captureAreaCmdLabel, row, 0);
+  gridLayout->addWidget(captureAreaCmdTextBox, row, 1);
+  gridLayout->addWidget(_captureAreaShortcutLabel, row, 2);
+  gridLayout->addWidget(captureAreaShortcutTextBox, row, 3, 1, 2);
 
   // row 2
-  gridLayout->addWidget(_secretKeyLabel, 2, 0);
-  gridLayout->addWidget(secretKeyTextBox, 2, 1, 1, 4);
+  row++;
+  gridLayout->addWidget(_captureWindowCmdLabel, row, 0);
+  gridLayout->addWidget(captureWindowCmdTextBox, row, 1);
+  gridLayout->addWidget(_captureWindowShortcutLabel, row, 2);
+  gridLayout->addWidget(captureWindowShortcutTextBox, row, 3, 1, 2);
 
   // row 3
-  gridLayout->addWidget(_hostPathLabel, 3, 0);
-  gridLayout->addWidget(hostPathTextBox, 3, 1, 1, 4);
+  row++;
+  gridLayout->addWidget(_recordCodeblockShortcutLabel, row, 0);
+  gridLayout->addWidget(recordCodeblockShortcutTextBox, row, 1);
 
   // row 4
-  gridLayout->addWidget(_captureAreaCmdLabel, 4, 0);
-  gridLayout->addWidget(captureAreaCmdTextBox, 4, 1);
-  gridLayout->addWidget(_captureAreaShortcutLabel, 4, 2);
-  gridLayout->addWidget(captureAreaShortcutTextBox, 4, 3, 1, 2);
+  row++;
+  gridLayout->addItem(spacer, row, 0, 1, gridLayout->columnCount());
 
   // row 5
-  gridLayout->addWidget(_captureWindowCmdLabel, 5, 0);
-  gridLayout->addWidget(captureWindowCmdTextBox, 5, 1);
-  gridLayout->addWidget(_captureWindowShortcutLabel, 5, 2);
-  gridLayout->addWidget(captureWindowShortcutTextBox, 5, 3, 1, 2);
-
-  // row 6 (reserved for codeblocks)
-  gridLayout->addWidget(_recordCodeblockShortcutLabel, 6, 0);
-  gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
-
-  // row 7
-  gridLayout->addWidget(connectionStatus, 7, 0, 1, gridLayout->columnCount());
-
-  // row 8
-  gridLayout->addItem(spacer, 8, 0, 1, gridLayout->columnCount());
-
-  // row 9
-  gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
+  row++;
+  gridLayout->addWidget(buttonBox, row, 0, 1, gridLayout->columnCount());
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -153,7 +122,7 @@ void Settings::buildUi() {
 
   this->setLayout(gridLayout);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  this->resize(760, 300);
+  this->resize(760, 175);
   this->setWindowTitle("Settings");
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
@@ -166,7 +135,6 @@ void Settings::buildUi() {
 void Settings::wireUi() {
   connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
-  connect(connectionStatus, &ConnectionChecker::pressed, this, &Settings::onCheckConnectionPressed);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
 }
@@ -178,16 +146,11 @@ void Settings::showEvent(QShowEvent *evt) {
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
   eviRepoTextBox->setText(QDir::toNativeSeparators(cfg.evidenceRepo()));
-  accessKeyTextBox->setText(db->accessKey());
-  secretKeyTextBox->setText(db->secretKey());
-  hostPathTextBox->setText(db->hostPath());
   captureAreaCmdTextBox->setText(cfg.captureScreenAreaCmd());
   captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenAreaShortcut()));
   captureWindowCmdTextBox->setText(cfg.captureScreenWindowCmd());
   captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenWindowShortcut()));
   recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureCodeblockShortcut()));
-
-  connectionStatus->clearStatus();
 }
 
 void Settings::closeEvent(QCloseEvent *event) {
@@ -196,13 +159,10 @@ void Settings::closeEvent(QCloseEvent *event) {
 }
 
 void Settings::onCancelClicked() {
-  connectionStatus->abortRequest();
   reject();
 }
 
 void Settings::onSaveClicked() {
-  connectionStatus->abortRequest();
-
   auto &cfg = AppConfig::getInstance();
 
   cfg.setEvidenceRepo(QDir::fromNativeSeparators(eviRepoTextBox->text()));
@@ -214,7 +174,6 @@ void Settings::onSaveClicked() {
 
   try {
     AppConfig::getInstance().writeConfig();
-    db->updateServerDetails(accessKeyTextBox->text(), secretKeyTextBox->text(), hostPathTextBox->text());
   }
   catch (std::exception &e) {
     couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
@@ -232,10 +191,4 @@ void Settings::onBrowseClicked() {
   if (filename != nullptr) {
     eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
   }
-}
-
-void Settings::onCheckConnectionPressed() {
-  connectionStatus->setConnectionTestFields(hostPathTextBox->text(),
-                                            accessKeyTextBox->text(),
-                                            secretKeyTextBox->text());
 }
