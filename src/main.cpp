@@ -80,6 +80,9 @@ DatabaseConnection* readySupportSystems() {
   // Upgrade Settings
   AppSettings::getInstance().upgrade();
 
+  // Upgrade config
+  if (AppConfig::getInstance().upgrade() ) {
+    AppConfig::getInstance().writeConfig();
   }
 
   return conn;
