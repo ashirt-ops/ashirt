@@ -124,6 +124,7 @@ HEADERS += \
     src/porting/evidence_manifest.h \
     src/porting/system_manifest.h \
     src/porting/system_porting_options.h \
+    src/models/type_streams.h \
     src/traymanager.h \
     src/appconfig.h \
     src/appsettings.h \
