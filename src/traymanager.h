@@ -64,14 +64,18 @@ class TrayManager : public QDialog {
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
-  /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,
+  void cleanChooseServerSubmenu();
+  /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a
+  /// message type,
   /// providing a mechanism to smartly route the click to an action.
-  void setTrayMessage(MessageType type, const QString& title, const QString& message,
-                      QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
+  void setTrayMessage(MessageType type, const QString &title, const QString &message,
+                      QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information,
+                      int millisecondsTimeoutHint = 10000);
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
-  void onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases);
+  void onReleaseCheck(bool success, const std::vector<dto::GithubRelease> &releases);
+  void onTrayMenuOpened();
   void onTrayMessageClicked();
 
  public slots:
@@ -125,6 +129,10 @@ class TrayManager : public QDialog {
   QAction *newOperationAction = nullptr;
   QAction *selectedOperationAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
+
+  QMenu *chooseServerSubmenu = nullptr;
+  std::vector<QAction *> allServerActions;
+  QAction *selectedServerAction = nullptr;  // note: do not delete; for reference only
 };
 
 #endif  // QT_NO_SYSTEMTRAYICON

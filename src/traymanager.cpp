@@ -121,6 +121,7 @@ void TrayManager::buildUi() {
   trayIconMenu->addSeparator();
   addToMenu(tr(""), &currentOperationMenuAction, &trayIconMenu);
   addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
+  addMenuToMenu(tr("Select Server"), &chooseServerSubmenu, &trayIconMenu);
   trayIconMenu->addSeparator();
   addMenuToMenu(tr("Import/Export"), &importExportSubmenu, &trayIconMenu);
   addToMenu(tr("Settings"), &showSettingsAction, &trayIconMenu);
@@ -199,13 +200,9 @@ void TrayManager::wireUi() {
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
-  
+
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
-  connect(trayIcon, &QSystemTrayIcon::activated, [this] {
-    chooseOpStatusAction->setText("Loading operations...");
-    newOperationAction->setEnabled(false);
-    NetMan::getInstance().refreshOperationsList();
-  });
+  connect(trayIcon, &QSystemTrayIcon::activated, this, &TrayManager::onTrayMenuOpened);
 
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 }
@@ -218,6 +215,15 @@ void TrayManager::cleanChooseOpSubmenu() {
   }
   allOperationActions.clear();
   selectedOperationAction = nullptr; // clear the selected action to ensure no funny business
+}
+
+void TrayManager::cleanChooseServerSubmenu() {
+  for (QAction* act : allServerActions) {
+    chooseServerSubmenu->removeAction(act);
+    delete act;
+  }
+  allServerActions.clear();
+  selectedServerAction = nullptr; // clear the selected action to ensure no funny business
 }
 
 void TrayManager::closeEvent(QCloseEvent* event) {
@@ -306,12 +312,57 @@ void TrayManager::showNoOperationSetTrayMessage() {
 }
 
 void TrayManager::setActiveOperationLabel() {
+  auto serverName = db->serverName();
   auto opName = AppSettings::getInstance().operationName();
 
-  QString opLabel = tr("Operation: ");
+  QString opLabel = tr("Using: ");
   opLabel += (opName == "") ? tr("<None>") : opName;
 
+  if (serverName != "") {
+    opLabel += " @ " + serverName;
+  }
+
   currentOperationMenuAction->setText(opLabel);
+}
+
+void TrayManager::onTrayMenuOpened() {
+  chooseOpStatusAction->setText("Loading operations...");
+  newOperationAction->setEnabled(false);
+  NetMan::getInstance().refreshOperationsList();
+
+  cleanChooseServerSubmenu();
+  std::vector<model::Server> allConnections = db->getServers();
+  QString currentServerUuid = AppSettings::getInstance().serverUuid();
+
+  for (auto item : allConnections) {
+    const QString serverUuid = item.serverUuid;
+    auto newAction = new QAction(item.serverName, chooseServerSubmenu);
+
+    if (currentServerUuid == serverUuid) {
+      newAction->setCheckable(true);
+      newAction->setChecked(true);
+      selectedServerAction = newAction;
+    }
+
+    connect(newAction, &QAction::triggered, [this, newAction, serverUuid] {
+      if (selectedServerAction != nullptr) {
+        selectedServerAction->setChecked(false);
+        selectedServerAction->setCheckable(false);
+      }
+      newAction->setCheckable(true);
+      newAction->setChecked(true);
+
+      //switchServer
+      cleanChooseOpSubmenu();
+      AppSettings::getInstance().setServerUuid(serverUuid);
+      NetMan::getInstance().refreshOperationsList();
+
+      selectedServerAction = newAction;
+    });
+
+    allServerActions.push_back(newAction);
+    chooseServerSubmenu->addAction(newAction);
+  }
 }
 
 void TrayManager::onOperationListUpdated(bool success,

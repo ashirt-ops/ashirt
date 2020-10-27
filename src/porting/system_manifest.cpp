@@ -49,7 +49,7 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
           if (importRecord.id == 0) {
             continue; // in the odd situation that evidence doesn't match up, just skip it
           }
-          QString newEvidencePath = AppConfig::getInstance().evidenceRepo + "/" +
+          QString newEvidencePath = AppConfig::getInstance().evidenceRepo() + "/" +
                                     importRecord.operationSlug + "/" +
                                     contentSensitiveFilename(importRecord.contentType);
           QString newEviPathLastFour = newEvidencePath.right(4);

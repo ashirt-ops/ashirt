@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "helpers/jsonhelpers.h"
+#include "helpers/constants.h"
 
 class ConfigV1 : public Config {
 

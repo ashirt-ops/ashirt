@@ -18,6 +18,7 @@
 #include "config/no_config.h"
 #include "exceptions/fileerror.h"
 #include "helpers/constants.h"
+#include "helpers/file_helpers.h"
 
 // AppConfig is a singleton construct for accessing the application's configuration.
 // singleton design borrowed from:
