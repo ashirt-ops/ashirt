@@ -387,6 +387,11 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
     parts.emplace_back(" operation_slug = ? ");
     values.emplace_back(filters.operationSlug);
   }
+  if (!filters.serverUuid.isEmpty()) {
+    parts.emplace_back(" server_uuid = ?");
+    values.emplace_back(filters.serverUuid);
+  }
+
   if (!filters.contentType.isEmpty()) {
     parts.emplace_back(" content_type = ? ");
     values.emplace_back(filters.contentType);

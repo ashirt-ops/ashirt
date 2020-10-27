@@ -23,8 +23,9 @@ static void initializeDateEdit(QDateEdit *dateEdit) {
   dateEdit->setEnabled(false);
 }
 
-EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
+EvidenceFilterForm::EvidenceFilterForm(DatabaseConnection* db, QWidget *parent)
     : QDialog(parent) {
+  this->db = db;
   buildUi();
   wireUi();
 }
@@ -38,8 +39,10 @@ EvidenceFilterForm::~EvidenceFilterForm() {
   delete _wasSubmittedLabel;
   delete _fromDateLabel;
   delete _toDateLabel;
+  delete _severLabel;
 
   delete operationComboBox;
+  delete serverComboBox;
   delete submittedComboBox;
   delete erroredComboBox;
   delete contentTypeComboBox;
@@ -55,6 +58,7 @@ EvidenceFilterForm::~EvidenceFilterForm() {
 void EvidenceFilterForm::buildUi() {
   gridLayout = new QGridLayout(this);
 
+  _severLabel = new QLabel("Server", this);
   _operationLabel = new QLabel("Operation", this);
   _contentTypeLabel = new QLabel("Content Type", this);
   _hadErrorLabel = new QLabel("Had Error", this);
@@ -66,6 +70,10 @@ void EvidenceFilterForm::buildUi() {
   operationComboBox->setEditable(false);
   operationComboBox->setEnabled(false);
   operationComboBox->addItem("Loading...", "");
+
+  serverComboBox = new QComboBox(this);
+  serverComboBox->setEditable(false);
+  populateServerComboBox();
 
   submittedComboBox = new QComboBox(this);
   submittedComboBox->setEditable(false);
@@ -97,48 +105,63 @@ void EvidenceFilterForm::buildUi() {
        +---------------+-------------+--------------+
     0  | Op  Lbl       | Op CB                      |
        +---------------+-------------+--------------+
-    1  | C. Type Lbl   | Content Type CB            |
+    1  | Op  Lbl       | Op CB                      |
        +---------------+-------------+--------------+
-    2  | hadErr Lbl    | had Error CB               |
+    2  | C. Type Lbl   | Content Type CB            |
        +---------------+-------------+--------------+
-    3  | Submit Lbl    | Was Submitted CB           |
+    3  | hadErr Lbl    | had Error CB               |
        +---------------+-------------+--------------+
-    4  | From Lbl      | From DtSel  | incl From CB |
+    4  | Submit Lbl    | Was Submitted CB           |
        +---------------+-------------+--------------+
-    5  | To Lbl        | To DtSel    | incl To CB   |
+    5  | From Lbl      | From DtSel  | incl From CB |
        +---------------+-------------+--------------+
-    6  | Dialog button Box{ok}                      |
+    6  | To Lbl        | To DtSel    | incl To CB   |
+       +---------------+-------------+--------------+
+    7  | Dialog button Box{ok}                      |
        +---------------+-------------+--------------+
   */
 
+  int row = 0;
   // row 0
-  gridLayout->addWidget(_operationLabel, 0, 0);
-  gridLayout->addWidget(operationComboBox, 0, 1, 1, 2);
+  gridLayout->addWidget(_severLabel, row, 0);
+  gridLayout->addWidget(serverComboBox, row, 1, 1, 2);
+  row++;
 
-  // row 1
-  gridLayout->addWidget(_contentTypeLabel, 1, 0);
-  gridLayout->addWidget(contentTypeComboBox, 1, 1, 1, 2);
+  // row 0
+  gridLayout->addWidget(_operationLabel, row, 0);
+  gridLayout->addWidget(operationComboBox, row, 1, 1, 2);
+  row++;
 
   // row 2
-  gridLayout->addWidget(_hadErrorLabel, 2, 0);
-  gridLayout->addWidget(erroredComboBox, 2, 1, 1, 2);
+  gridLayout->addWidget(_contentTypeLabel, row, 0);
+  gridLayout->addWidget(contentTypeComboBox, row, 1, 1, 2);
+  row++;
 
   // row 3
-  gridLayout->addWidget(_wasSubmittedLabel, 3, 0);
-  gridLayout->addWidget(submittedComboBox, 3, 1, 1, 2);
+  gridLayout->addWidget(_hadErrorLabel, row, 0);
+  gridLayout->addWidget(erroredComboBox, row, 1, 1, 2);
+  row++;
 
   // row 4
-  gridLayout->addWidget(_fromDateLabel, 4, 0);
-  gridLayout->addWidget(fromDateEdit, 4, 1);
-  gridLayout->addWidget(includeStartDateCheckBox, 4, 2);
+  gridLayout->addWidget(_wasSubmittedLabel, row, 0);
+  gridLayout->addWidget(submittedComboBox, row, 1, 1, 2);
+  row++;
 
   // row 5
-  gridLayout->addWidget(_toDateLabel, 5, 0);
-  gridLayout->addWidget(toDateEdit, 5, 1);
-  gridLayout->addWidget(includeEndDateCheckBox, 5, 2);
+  gridLayout->addWidget(_fromDateLabel, row, 0);
+  gridLayout->addWidget(fromDateEdit, row, 1);
+  gridLayout->addWidget(includeStartDateCheckBox, row, 2);
+  row++;
 
   // row 6
-  gridLayout->addWidget(buttonBox, 6, 0, 1, gridLayout->columnCount());
+  gridLayout->addWidget(_toDateLabel, row, 0);
+  gridLayout->addWidget(toDateEdit, row, 1);
+  gridLayout->addWidget(includeEndDateCheckBox, row, 2);
+  row++;
+
+  // row 7
+  gridLayout->addWidget(buttonBox, row, 0, 1, gridLayout->columnCount());
+  row++;
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -152,6 +175,7 @@ void EvidenceFilterForm::buildUi() {
 void EvidenceFilterForm::wireUi() {
   erroredComboBox->installEventFilter(this);
   operationComboBox->installEventFilter(this);
+  serverComboBox->installEventFilter(this);
   submittedComboBox->installEventFilter(this);
   contentTypeComboBox->installEventFilter(this);
 
@@ -183,6 +207,7 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
   filter.hasError = EvidenceFilters::parseTri(erroredComboBox->currentText());
   filter.submitted = EvidenceFilters::parseTri(submittedComboBox->currentText());
   filter.operationSlug = operationComboBox->currentData().toString();
+  filter.serverUuid = serverComboBox->currentData().toString();
   filter.contentType = contentTypeComboBox->currentData().toString();
 
   // swap dates so smaller date is always "from" / after
@@ -204,6 +229,7 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
 }
 
 void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
+  UiHelpers::setComboBoxValue(serverComboBox, model.serverUuid);
   UiHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
   UiHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
   erroredComboBox->setCurrentText(EvidenceFilters::triToString(model.hasError));
@@ -242,4 +268,19 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   }
   UiHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
   operationComboBox->setEnabled(true);
+}
+
+void EvidenceFilterForm::populateServerComboBox() {
+  std::vector<model::Server> servers;
+  serverComboBox->addItem("<None>", "");
+  try {
+    servers = db->getServers(true);
+
+    for (auto s : servers) {
+      serverComboBox->addItem(s.serverName, s.serverUuid);
+    }
+  }
+  catch(const std::exception& e) {
+    std::cerr << "Unable to get server details: " << e.what() << std::endl;
+  }
 }

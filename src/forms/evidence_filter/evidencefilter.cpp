@@ -27,6 +27,9 @@ QString EvidenceFilters::standardizeFilterKey(QString key) {
   if (FILTER_KEYS_CONTENT_TYPE.contains(key, Qt::CaseInsensitive)) {
     return FILTER_KEY_CONTENT_TYPE;
   }
+  if (FILTER_KEYS_SERVER_UUID.contains(key, Qt::CaseInsensitive)) {
+    return FILTER_KEY_SERVER_UUID;
+  }
   return key;
 }
 
@@ -71,6 +74,9 @@ QString EvidenceFilters::toString() const {
   if (submitted != Any) {
     rtn.append(" " + FILTER_KEY_SUBMITTED + ": " + triToText(submitted));
   }
+  if (!serverUuid.isEmpty()) {
+    rtn.append(" " + FILTER_KEY_SERVER_UUID + ": " + serverUuid);
+  }
 
   return rtn.trimmed();
 }
@@ -97,6 +103,9 @@ EvidenceFilters EvidenceFilters::parseFilter(const QString& text) {
     }
     else if (key == FILTER_KEY_OPERATION) {
       filter.operationSlug = value;
+    }
+    else if (key == FILTER_KEY_SERVER_UUID) {
+      filter.serverUuid = value;
     }
     else if (key == FILTER_KEY_TO) {
       filter.endDate = parseDateString(value);

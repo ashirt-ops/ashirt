@@ -21,7 +21,7 @@ class EvidenceFilterForm : public QDialog {
   Q_OBJECT
 
  public:
-  explicit EvidenceFilterForm(QWidget *parent = nullptr);
+  explicit EvidenceFilterForm(DatabaseConnection* db, QWidget *parent = nullptr);
   ~EvidenceFilterForm();
 
  private:
@@ -33,6 +33,9 @@ class EvidenceFilterForm : public QDialog {
   void writeForm();
   /// writeAndClose is shorthand for WriteForm and close the window
   void writeAndClose();
+
+  /// populateServerComboBox clears the server combo box and re-populates it with currently known servers
+  void populateServerComboBox();
 
  public:
   /// setForm updates the editor to match the provided filter model
@@ -52,6 +55,9 @@ class EvidenceFilterForm : public QDialog {
  private:
   QAction* closeWindowAction = nullptr;
 
+  // borrowed -- do not delete
+  DatabaseConnection* db = nullptr;
+
   // UI Components
   QGridLayout* gridLayout = nullptr;
   QLabel* _operationLabel = nullptr;
@@ -60,8 +66,10 @@ class EvidenceFilterForm : public QDialog {
   QLabel* _wasSubmittedLabel = nullptr;
   QLabel* _fromDateLabel = nullptr;
   QLabel* _toDateLabel = nullptr;
+  QLabel* _severLabel = nullptr;
 
   QComboBox* operationComboBox = nullptr;
+  QComboBox* serverComboBox = nullptr;
   QComboBox* submittedComboBox = nullptr;
   QComboBox* erroredComboBox = nullptr;
   QComboBox* contentTypeComboBox = nullptr;
