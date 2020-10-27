@@ -10,8 +10,10 @@
 #include <utility>
 #include <vector>
 
+#include "appsettings.h"
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
+#include "helpers/constants.h"
 #include "helpers/file_helpers.h"
 
 DatabaseConnection::DatabaseConnection(const QString& dbPath, QString databaseName) {
@@ -180,13 +182,13 @@ QString DatabaseConnection::serverName(QString serverUuid) {
 }
 
 qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString &operationSlug,
-                                          const QString &contentType) {
+                                          const QString &serverUuid, const QString &contentType) {
   return doInsert(getDB(),
                   "INSERT INTO evidence"
-                  " (path, operation_slug, content_type, recorded_date)"
+                  " (path, operation_slug, server_uuid, content_type, recorded_date)"
                   " VALUES"
-                  " (?, ?, ?, datetime('now'))",
-                  {filepath, operationSlug, contentType});
+                  " (?, ?, ?, ?, datetime('now'))",
+                  {filepath, operationSlug, serverUuid, contentType});
 }
 
 qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {

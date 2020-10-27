@@ -217,7 +217,7 @@ void TrayManager::cleanChooseOpSubmenu() {
     delete act;
   }
   allOperationActions.clear();
-  selectedAction = nullptr; // clear the selected action to ensure no funny business
+  selectedOperationAction = nullptr; // clear the selected action to ensure no funny business
 }
 
 void TrayManager::closeEvent(QCloseEvent* event) {
@@ -242,7 +242,7 @@ void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
 
 qint64 TrayManager::createNewEvidence(const QString& filepath, const QString& evidenceType) {
   AppSettings& inst = AppSettings::getInstance();
-  auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), evidenceType);
+  auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), inst.serverUuid(), evidenceType);
   auto tags = inst.getLastUsedTags();
   if (!tags.empty()) {
     db->setEvidenceTags(tags, evidenceID);
@@ -329,24 +329,24 @@ void TrayManager::onOperationListUpdated(bool success,
       if (currentOp == op.slug) {
         newAction->setCheckable(true);
         newAction->setChecked(true);
-        selectedAction = newAction;
+        selectedOperationAction = newAction;
       }
 
       connect(newAction, &QAction::triggered, [this, newAction, op] {
         AppSettings::getInstance().setLastUsedTags(std::vector<model::Tag>{}); // clear last used tags
         AppSettings::getInstance().setOperationDetails(op.slug, op.name);
-        if (selectedAction != nullptr) {
-          selectedAction->setChecked(false);
-          selectedAction->setCheckable(false);
+        if (selectedOperationAction != nullptr) {
+          selectedOperationAction->setChecked(false);
+          selectedOperationAction->setCheckable(false);
         }
         newAction->setCheckable(true);
         newAction->setChecked(true);
-        selectedAction = newAction;
+        selectedOperationAction = newAction;
       });
       allOperationActions.push_back(newAction);
       chooseOpSubmenu->addAction(newAction);
     }
-    if (selectedAction == nullptr) {
+    if (selectedOperationAction == nullptr) {
       AppSettings::getInstance().setOperationDetails("", "");
     }
   }
@@ -389,5 +389,4 @@ void TrayManager::onTrayMessageClicked() {
       break;
   }
 }
-
 #endif

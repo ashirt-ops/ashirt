@@ -91,7 +91,8 @@ class DatabaseConnection {
   model::Evidence getEvidenceDetails(qint64 evidenceID);
   std::vector<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
 
-  qint64 createEvidence(const QString &filepath, const QString &operationSlug, const QString &contentType);
+  qint64 createEvidence(const QString &filepath, const QString &operationSlug,
+                        const QString &serverUuid, const QString &contentType);
   qint64 createFullEvidence(const model::Evidence &evidence);
   void batchCopyFullEvidence(const std::vector<model::Evidence> &evidence);
   qint64 copyFullEvidence(const model::Evidence &evidence);
@@ -127,6 +128,7 @@ class DatabaseConnection {
   QString dbName = "";
   QString _dbPath = "";
 
+  /// currentServer is a small helper to access AppSettings::getInstance().serverUuid()
   QString currentServer();
 
   QString valueOrCurrentServer(QString maybeServerUuid);
