@@ -29,7 +29,7 @@ void SystemManifest::migrateConfig() {
         src.remove(key);
       }
     }
-    AppConfig::getInstance().applyConfig(src);
+    AppConfig::getInstance().applyConfig(src); // TODO: figure out how this will work now
     return "";
   });
   AppConfig::getInstance().writeConfig(); // save updated config

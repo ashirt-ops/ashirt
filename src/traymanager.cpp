@@ -15,7 +15,6 @@
 #include <QDesktopServices>
 #include <iostream>
 
-#include "appconfig.h"
 #include "appsettings.h"
 #include "db/databaseconnection.h"
 #include "forms/getinfo/getinfo.h"
@@ -85,6 +84,7 @@ TrayManager::~TrayManager() {
   delete screenshotTool;
   delete hotkeyManager;
   delete settingsWindow;
+  delete connEditorWindow;
   delete evidenceManagerWindow;
   delete importWindow;
   delete exportWindow;
@@ -99,6 +99,7 @@ void TrayManager::buildUi() {
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
   createOperationWindow = new CreateOperation(this);
+  connEditorWindow = new ConnectionEditor(db, this);
 
   trayIconMenu = new QMenu(this);
 
@@ -141,6 +142,8 @@ void TrayManager::buildUi() {
 
   addToMenu(tr("Export Data"), &exportAction, &importExportSubmenu);
   addToMenu(tr("Import Data"), &importAction, &importExportSubmenu);
+  addToMenu(tr("Edit Connections"), &openConnEditorAction, &chooseServerSubmenu);
+  chooseServerSubmenu->addSeparator();
 
   setActiveOperationLabel();
 
@@ -174,6 +177,7 @@ void TrayManager::wireUi() {
   connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
+  connect(openConnEditorAction, actTriggered, [this, toTop]() { toTop(connEditorWindow); });
 
   connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
     openServicesPath = path;
