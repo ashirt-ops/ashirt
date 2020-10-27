@@ -19,6 +19,7 @@
 #include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
+#include "appconfig.h"
 
 enum ColumnIndexes {
   COL_DATE_CAPTURED = 0,
@@ -278,13 +279,13 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
   if (undeletedFiles.length() > 0) {
     bool logWritten = true;
     auto today = QDateTime::currentDateTime();
-    auto errLogPath = AppConfig::getInstance().evidenceRepo + "/" +QString("%1.log").arg(today.toMSecsSinceEpoch());
+    auto errLogPath = AppConfig::getInstance().evidenceRepo() + "/" + QString("%1.log").arg(today.toMSecsSinceEpoch());
     try {
       FileHelpers::writeFile(errLogPath,
                              "Paths to files that could not be deleted: \n\n" +
                                     undeletedFiles.join("\n"));
     }
-    catch(FileError &e) {
+    catch (FileError &e) {
       logWritten = false;
     }
     QString msg = "Some files could not be deleted.";

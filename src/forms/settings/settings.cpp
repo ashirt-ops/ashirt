@@ -18,7 +18,8 @@
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 
-Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
+Settings::Settings(DatabaseConnection* db, HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
+  this->db = db;
   this->hotkeyManager = hotkeyManager;
   buildUi();
   wireUi();
@@ -181,19 +182,19 @@ void Settings::wireUi() {
 
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
-  AppConfig &inst = AppConfig::getInstance();
+  auto& cfg = AppConfig::getInstance();
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
-  eviRepoTextBox->setText(QDir::toNativeSeparators(inst.evidenceRepo));
-  accessKeyTextBox->setText(inst.accessKey);
-  secretKeyTextBox->setText(inst.secretKey);
-  hostPathTextBox->setText(inst.apiURL);
-  captureAreaCmdTextBox->setText(inst.screenshotExec);
-  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.screenshotShortcutCombo));
-  captureWindowCmdTextBox->setText(inst.captureWindowExec);
-  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureWindowShortcut));
-  recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureCodeblockShortcut));
+  eviRepoTextBox->setText(QDir::toNativeSeparators(cfg.evidenceRepo()));
+  accessKeyTextBox->setText(db->accessKey());
+  secretKeyTextBox->setText(db->secretKey());
+  hostPathTextBox->setText(db->hostPath());
+  captureAreaCmdTextBox->setText(cfg.captureScreenAreaCmd());
+  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenAreaShortcut()));
+  captureWindowCmdTextBox->setText(cfg.captureScreenWindowCmd());
+  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenWindowShortcut()));
+  recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureCodeblockShortcut()));
 
   // re-enable form
   connStatusLabel->setText("");
@@ -214,26 +215,18 @@ void Settings::onSaveClicked() {
   stopReply(&currentTestReply);
   connStatusLabel->setText("");
 
-  AppConfig &inst = AppConfig::getInstance();
+  auto &cfg = AppConfig::getInstance();
 
-  inst.evidenceRepo = QDir::fromNativeSeparators(eviRepoTextBox->text());
-  inst.accessKey = accessKeyTextBox->text();
-  inst.secretKey = secretKeyTextBox->text();
-
-  QString originalApiUrl = inst.apiURL;
-  inst.apiURL = hostPathTextBox->text();
-  if (originalApiUrl != hostPathTextBox->text()) {
-    NetMan::getInstance().refreshOperationsList();
-  }
-
-  inst.screenshotExec = captureAreaCmdTextBox->text();
-  inst.screenshotShortcutCombo = captureAreaShortcutTextBox->keySequence().toString();
-  inst.captureWindowExec = captureWindowCmdTextBox->text();
-  inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
-  inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->keySequence().toString();
+  cfg.setEvidenceRepo(QDir::fromNativeSeparators(eviRepoTextBox->text()));
+  cfg.setCaptureScreenAreaCmd(captureAreaCmdTextBox->text());
+  cfg.setCaptureScreenAreaShortcut(captureAreaShortcutTextBox->keySequence().toString());
+  cfg.setCaptureScreenWindowCmd(captureWindowCmdTextBox->text());
+  cfg.setCaptureScreenWindowShortcut(captureWindowShortcutTextBox->keySequence().toString());
+  cfg.setCaptureCodeblockShortcut(recordCodeblockShortcutTextBox->keySequence().toString());
 
   try {
-    inst.writeConfig();
+    AppConfig::getInstance().writeConfig();
+    db->updateServerDetails(accessKeyTextBox->text(), secretKeyTextBox->text(), hostPathTextBox->text());
   }
   catch (std::exception &e) {
     couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));

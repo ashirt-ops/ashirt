@@ -33,7 +33,7 @@ class Settings : public QDialog {
    * @param hotkeyManager a handle to the HotkeyManager, so hotkeys may be updated upon saving.
    * @param parent
    */
-  explicit Settings(HotkeyManager* hotkeyManager, QWidget* parent = nullptr);
+  explicit Settings(DatabaseConnection* db, HotkeyManager* hotkeyManager, QWidget* parent = nullptr);
   ~Settings();
 
  private:
@@ -62,8 +62,9 @@ class Settings : public QDialog {
  private:
   /// hotkeyManager is a (shared) reference to the HotkeyManager. Not to be deleted.
   HotkeyManager* hotkeyManager;
+  /// db is a shared reference to the database. Do not delete
+  DatabaseConnection* db;
 
-  QNetworkReply* currentTestReply = nullptr;
   QAction* closeWindowAction = nullptr;
 
   // UI components

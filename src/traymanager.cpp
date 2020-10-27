@@ -93,7 +93,7 @@ TrayManager::~TrayManager() {
 
 void TrayManager::buildUi() {
   // create subwindows
-  settingsWindow = new Settings(hotkeyManager, this);
+  settingsWindow = new Settings(db, hotkeyManager, this);
   evidenceManagerWindow = new EvidenceManager(db, this);
   creditsWindow = new Credits(this);
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
