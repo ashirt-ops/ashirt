@@ -9,11 +9,6 @@
 #include <QString>
 
 #include "appconfig.h"
-#include "appsettings.h"
-#include "dtos/checkConnection.h"
-#include "helpers/http_status.h"
-#include "helpers/netman.h"
-#include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
@@ -35,7 +30,6 @@ Settings::~Settings() {
   delete _captureWindowCmdLabel;
   delete _captureWindowShortcutLabel;
   delete _recordCodeblockShortcutLabel;
-  delete connStatusLabel;
 
   delete eviRepoTextBox;
   delete accessKeyTextBox;
@@ -46,14 +40,13 @@ Settings::~Settings() {
   delete captureWindowCmdTextBox;
   delete captureWindowShortcutTextBox;
   delete recordCodeblockShortcutTextBox;
-  delete testConnectionButton;
+  delete connectionStatus;
   delete eviRepoBrowseButton;
   delete buttonBox;
 
   delete gridLayout;
 
   delete couldNotSaveSettingsMsg;
-  stopReply(&currentTestReply);
   delete closeWindowAction;
 }
 
@@ -68,7 +61,6 @@ void Settings::buildUi() {
   _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
   _captureWindowShortcutLabel = new QLabel("Shortcut", this);
   _recordCodeblockShortcutLabel = new QLabel("Record Codeblock Shortcut", this);
-  connStatusLabel = new QLabel("", this);
 
   eviRepoTextBox = new QLineEdit(this);
   accessKeyTextBox = new QLineEdit(this);
@@ -80,7 +72,7 @@ void Settings::buildUi() {
   captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   eviRepoBrowseButton = new QPushButton("Browse", this);
-  testConnectionButton = new LoadingButton("Test Connection", this);
+  connectionStatus = new ConnectionChecker(this);
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Save);
   buttonBox->addButton(QDialogButtonBox::Cancel);
@@ -147,8 +139,7 @@ void Settings::buildUi() {
   gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
 
   // row 7
-  gridLayout->addWidget(testConnectionButton, 7, 0);
-  gridLayout->addWidget(connStatusLabel, 7, 1, 1, 4);
+  gridLayout->addWidget(connectionStatus, 7, 0, 1, gridLayout->columnCount());
 
   // row 8
   gridLayout->addItem(spacer, 8, 0, 1, gridLayout->columnCount());
@@ -175,7 +166,7 @@ void Settings::buildUi() {
 void Settings::wireUi() {
   connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
-  connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
+  connect(connectionStatus, &ConnectionChecker::pressed, this, &Settings::onCheckConnectionPressed);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
 }
@@ -196,9 +187,7 @@ void Settings::showEvent(QShowEvent *evt) {
   captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenWindowShortcut()));
   recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureCodeblockShortcut()));
 
-  // re-enable form
-  connStatusLabel->setText("");
-  testConnectionButton->setEnabled(true);
+  connectionStatus->clearStatus();
 }
 
 void Settings::closeEvent(QCloseEvent *event) {
@@ -207,13 +196,12 @@ void Settings::closeEvent(QCloseEvent *event) {
 }
 
 void Settings::onCancelClicked() {
-  stopReply(&currentTestReply);
+  connectionStatus->abortRequest();
   reject();
 }
 
 void Settings::onSaveClicked() {
-  stopReply(&currentTestReply);
-  connStatusLabel->setText("");
+  connectionStatus->abortRequest();
 
   auto &cfg = AppConfig::getInstance();
 
@@ -246,55 +234,8 @@ void Settings::onBrowseClicked() {
   }
 }
 
-void Settings::onTestConnectionClicked() {
-  if (hostPathTextBox->text().isEmpty()
-      || accessKeyTextBox->text().isEmpty()
-      || secretKeyTextBox->text().isEmpty()) {
-    connStatusLabel->setText("Please set Access Key, Secret key and Host Path first.");
-    return;
-  }
-  testConnectionButton->startAnimation();
-  testConnectionButton->setEnabled(false);
-  currentTestReply = NetMan::getInstance().testConnection(
-      hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
-  connect(currentTestReply, &QNetworkReply::finished, this, &Settings::onTestRequestComplete);
-}
-
-void Settings::onTestRequestComplete() {
-  bool ok = true;
-  auto statusCode =
-      currentTestReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(&ok);
-
-  if (ok) {
-    dto::CheckConnection connectionCheckResp;
-
-    switch (statusCode) {
-      case HttpStatus::StatusOK:
-        connectionCheckResp = dto::CheckConnection::parseJson(currentTestReply->readAll());
-        if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
-          connStatusLabel->setText("Connected");
-        }
-        else {
-          connStatusLabel->setText("Unable to connect: Wrong or outdated server");
-        }
-        break;
-      case HttpStatus::StatusUnauthorized:
-        connStatusLabel->setText("Could not connect: Unauthorized (check access key and secret)");
-        break;
-      case HttpStatus::StatusNotFound:
-        connStatusLabel->setText("Could not connect: Not Found (check URL)");
-        break;
-      default:
-        QString msg = "Could not connect: Unexpected Error (code: %1)";
-        connStatusLabel->setText(msg.arg(statusCode));
-    }
-  }
-  else {
-    connStatusLabel->setText(
-        "Could not connect: Unexpected Error (check network connection and URL)");
-  }
-
-  testConnectionButton->stopAnimation();
-  testConnectionButton->setEnabled(true);
-  tidyReply(&currentTestReply);
+void Settings::onCheckConnectionPressed() {
+  connectionStatus->setConnectionTestFields(hostPathTextBox->text(),
+                                            accessKeyTextBox->text(),
+                                            secretKeyTextBox->text());
 }

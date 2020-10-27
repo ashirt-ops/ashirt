@@ -12,12 +12,12 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QNetworkReply>
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QKeySequenceEdit>
 
-#include "components/loading_button/loadingbutton.h"
+#include "components/connection_checker/connectionchecker.h"
+#include "db/databaseconnection.h"
 #include "hotkeymanager.h"
 
 /**
@@ -52,11 +52,8 @@ class Settings : public QDialog {
   /// closeEvent extends the native closeEvent handler. Saves data prior to closing.
   void closeEvent(QCloseEvent* event) override;
 
-  /// onTestConnectionClicked acts upon the "test connection" button press. Checks the network.
-  void onTestConnectionClicked();
-  /// onTestRequestComplete handles the network result action.
-  void onTestRequestComplete();
-  /// onBrowseClicked triggers when the "browse" button is pressed. Shows a file dialog to the user.
+  /// onCheckConnectionPressed acts upon the "test connection" button press.
+  void onCheckConnectionPressed();
   void onBrowseClicked();
 
  private:
@@ -78,7 +75,6 @@ class Settings : public QDialog {
   QLabel* _captureWindowCmdLabel = nullptr;
   QLabel* _captureWindowShortcutLabel = nullptr;
   QLabel* _recordCodeblockShortcutLabel = nullptr;
-  QLabel* connStatusLabel = nullptr;
 
   QLineEdit* eviRepoTextBox = nullptr;
   QLineEdit* accessKeyTextBox = nullptr;
@@ -89,9 +85,9 @@ class Settings : public QDialog {
   QLineEdit* captureWindowCmdTextBox = nullptr;
   QKeySequenceEdit* captureWindowShortcutTextBox = nullptr;
   QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
-  LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
+  ConnectionChecker* connectionStatus = nullptr;
 
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
   QSpacerItem* spacer = nullptr;
