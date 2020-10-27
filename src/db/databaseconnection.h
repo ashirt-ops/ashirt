@@ -14,6 +14,7 @@
 
 #include "forms/evidence_filter/evidencefilter.h"
 #include "models/evidence.h"
+#include "models/server.h"
 #include "helpers/constants.h"
 #include "db/query_result.h"
 
@@ -71,6 +72,22 @@ class DatabaseConnection {
   bool hasAppliedSystemMigration(QString systemMigrationName);
   qint64 applySystemMigration(QString systemMigrationName);
 
+  std::vector<model::Server> getServers(bool includeDeleted=false);
+  model::Server getServerByUuid(QString serverUuid);
+  bool hasServer(QString serverUuid);
+  QString accessKey(QString serverUuid="");
+  QString secretKey(QString serverUuid="");
+  QString hostPath(QString serverUuid="");
+  QString serverName(QString serverUuid="");
+
+  qint64 createServer(model::Server newServer);
+  void deleteServer(QString serverUuid);
+  void restoreServer(QString serverUuid);
+  void updateServerDetails(QString newAccessKey, QString newSecretKey,
+                           QString newHostPath, QString serverUuid="");
+  void updateFullServerDetails(QString newName, QString newAccessKey, QString newSecretKey,
+                           QString newHostPath, QString serverUuid="");
+
   model::Evidence getEvidenceDetails(qint64 evidenceID);
   std::vector<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
 
@@ -109,6 +126,20 @@ class DatabaseConnection {
  private:
   QString dbName = "";
   QString _dbPath = "";
+
+  QString currentServer();
+
+  QString valueOrCurrentServer(QString maybeServerUuid);
+
+  /**
+   * @brief getSingleField retrieves a single value/cell from the provided query. If the query
+   *        returns no rows, then an invalid QVariant is returned instead.
+   * @param query The query to execute
+   * @param args any bindings needed to execute the statement
+   * @return a QVariant holding the result, or an invalid QVariant if no rows are returned
+   * @throws QSqlError when a query error occurs
+   */
+  QVariant getSingleField(const QString& query, const std::vector<QVariant> &args);
 
   /**
    * @brief migrateDB checks the migration status and then performs the full migration for any

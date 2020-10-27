@@ -67,6 +67,7 @@ SOURCES += \
     src/forms/getinfo/getinfo.cpp \
     src/forms/porting/porting_dialog.cpp \
     src/helpers/clipboard/clipboardhelper.cpp \
+    src/migrations/migration.cpp \
     src/models/codeblock.cpp \
     src/helpers/multipartparser.cpp \
     src/hotkeymanager.cpp \
@@ -115,11 +116,13 @@ HEADERS += \
     src/helpers/request_builder.h \
     src/helpers/system_helpers.h \
     src/helpers/ui_helpers.h \
+    src/migrations/migration.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
     src/helpers/http_status.h \
     src/hotkeymanager.h \
     src/models/evidence.h \
+    src/models/server.h \
     src/models/tag.h \
     src/porting/evidence_manifest.h \
     src/porting/system_manifest.h \

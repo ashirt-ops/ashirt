@@ -53,6 +53,132 @@ void DatabaseConnection::connect() {
 
 void DatabaseConnection::close() noexcept { getDB().close(); }
 
+model::Server DatabaseConnection::getServerByUuid(QString serverUuid) {
+  QString query = "SELECT"
+      " uuid, server_name, access_key, secret_key, host_path, deleted_at"
+      " FROM servers"
+      " WHERE uuid = ?";
+  auto resultSet = executeQuery(getDB(), query, {serverUuid});
+
+  model::Server item;
+  if (resultSet.first()) {
+    item.serverUuid = resultSet.value("uuid").toString();
+    item.serverName = resultSet.value("server_name").toString();
+    item.accessKey = resultSet.value("access_key").toString();
+    item.secretKey = resultSet.value("secret_key").toString();
+    item.hostPath = resultSet.value("host_path").toString();
+    auto delDate = resultSet.value("deleted_at");
+    if (delDate.isNull()) {
+      item.deletedAt = nullptr;
+    }
+    else {
+      auto castedDelDate = delDate.toDateTime();
+      item.deletedAt = &castedDelDate;
+      item.deletedAt->setTimeSpec(Qt::UTC);
+    }
+  }
+  return item;
+}
+
+std::vector<model::Server> DatabaseConnection::getServers(bool includeDeleted) {
+  QString query = "SELECT"
+      " uuid, server_name, access_key, secret_key, host_path, deleted_at"
+      " FROM servers"
+      " WHERE 1=1";
+  if (!includeDeleted) {
+    query += " AND deleted_at IS NULL";
+  }
+  auto resultSet = executeQuery(getDB(), query);
+
+  std::vector<model::Server> rtn;
+
+  while (resultSet.next()) {
+    model::Server item;
+
+    item.serverUuid = resultSet.value("uuid").toString();
+    item.serverName = resultSet.value("server_name").toString();
+    item.accessKey = resultSet.value("access_key").toString();
+    item.secretKey = resultSet.value("secret_key").toString();
+    item.hostPath = resultSet.value("host_path").toString();
+    auto delDate = resultSet.value("deleted_at");
+    if (delDate.isNull()) {
+      item.deletedAt = nullptr;
+    }
+    else {
+      auto castedDelDate = delDate.toDateTime();
+      item.deletedAt = &castedDelDate;
+      item.deletedAt->setTimeSpec(Qt::UTC);
+    }
+
+    rtn.push_back(item);
+  }
+
+  return rtn;
+}
+
+qint64 DatabaseConnection::createServer(model::Server newServer) {
+  if (newServer.serverName.trimmed().isEmpty() || newServer.serverUuid.trimmed().isEmpty()) {
+    throw BadDBData("New servers require a non-empty name and uuid");
+  }
+  return doInsert(getDB(),
+                  "INSERT INTO servers"
+                  " (uuid, server_name, access_key, secret_key, host_path)"
+                  " VALUES"
+                  " (?, ?, ?, ?, ?)",
+                  {newServer.serverUuid, newServer.serverName, newServer.accessKey,
+                   newServer.secretKey, newServer.hostPath});
+}
+
+void DatabaseConnection::updateServerDetails(QString newAccessKey, QString newSecretKey,
+                                             QString newHostPath, QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  QString query = "UPDATE servers SET access_key=?, secret_key=?, host_path=?"
+      " WHERE uuid=?";
+  executeQuery(getDB(), query, {newAccessKey, newSecretKey, newHostPath, serverUuid});
+}
+
+void DatabaseConnection::updateFullServerDetails(QString newName, QString newAccessKey, QString newSecretKey,
+                                             QString newHostPath, QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  QString query = "UPDATE servers SET server_name=?, access_key=?, secret_key=?, host_path=?"
+      " WHERE uuid=?";
+  executeQuery(getDB(), query, {newName, newAccessKey, newSecretKey, newHostPath, serverUuid});
+}
+
+void DatabaseConnection::deleteServer(QString serverUuid) {
+  QString query = "UPDATE servers SET deleted_at = datetime('now') WHERE uuid = ?";
+  executeQuery(getDB(), query, {serverUuid});
+}
+
+void DatabaseConnection::restoreServer(QString serverUuid) {
+  QString query = "UPDATE servers SET deleted_at = NULL WHERE uuid = ?";
+  executeQuery(getDB(), query, {serverUuid});
+}
+
+bool DatabaseConnection::hasServer(QString serverUuid) {
+  return getSingleField("SELECT count(uuid) FROM servers WHERE uuid=?", {serverUuid}).toULongLong() > 0;
+}
+
+QString DatabaseConnection::accessKey(QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  return getSingleField("SELECT access_key FROM servers WHERE uuid=?", {serverUuid}).toString();
+}
+
+QString DatabaseConnection::secretKey(QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  return getSingleField("SELECT secret_key FROM servers WHERE uuid=?", {serverUuid}).toString();
+}
+
+QString DatabaseConnection::hostPath(QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  return getSingleField("SELECT host_path FROM servers WHERE uuid=?", {serverUuid}).toString();
+}
+
+QString DatabaseConnection::serverName(QString serverUuid) {
+  serverUuid = valueOrCurrentServer(serverUuid);
+  return getSingleField("SELECT server_name FROM servers WHERE uuid=?", {serverUuid}).toString();
+}
+
 qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString &operationSlug,
                                           const QString &contentType) {
   return doInsert(getDB(),
@@ -104,7 +230,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   model::Evidence rtn;
   auto query = executeQuery(getDB(),
       "SELECT"
-      " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
+      " id, path, operation_slug, server_uuid, content_type, description, error, recorded_date, upload_date"
       " FROM evidence"
       " WHERE id=? LIMIT 1",
       {evidenceID});
@@ -113,6 +239,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.id = query.value("id").toLongLong();
     rtn.path = query.value("path").toString();
     rtn.operationSlug = query.value("operation_slug").toString();
+    rtn.serverUuid = query.value("server_uuid").toString();
     rtn.contentType = query.value("content_type").toString();
     rtn.description = query.value("description").toString();
     rtn.errorText = query.value("error").toString();
@@ -240,7 +367,7 @@ void DatabaseConnection::batchCopyTags(const std::vector<model::Tag> &allTags) {
 DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters) {
   QString query =
       "SELECT"
-      " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
+      " id, path, server_uuid, operation_slug, content_type, description, error, recorded_date, upload_date"
       " FROM evidence";
   std::vector<QVariant> values;
   std::vector<QString> parts;
@@ -296,6 +423,7 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     evi.id = resultSet.value("id").toLongLong();
     evi.path = resultSet.value("path").toString();
     evi.operationSlug = resultSet.value("operation_slug").toString();
+    evi.serverUuid = resultSet.value("server_uuid").toString();
     evi.contentType = resultSet.value("content_type").toString();
     evi.description = resultSet.value("description").toString();
     evi.errorText = resultSet.value("error").toString();
@@ -330,6 +458,22 @@ std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
   withConnection(pathToExport, "exportDB", exportViewAction);
 
   return exportEvidence;
+}
+
+QString DatabaseConnection::currentServer() { 
+  return ""; // TODO: get the current server uuid
+}
+
+QString DatabaseConnection::valueOrCurrentServer(QString maybeServerUuid) {
+  return maybeServerUuid = (maybeServerUuid == "") ? currentServer() : maybeServerUuid;
+}
+
+QVariant DatabaseConnection::getSingleField(const QString& query, const std::vector<QVariant> &args) {
+  auto resultSet = executeQuery(getDB(), query, args);
+  if(resultSet.next()) {
+    return resultSet.value(0);
+  }
+  return QVariant();
 }
 
 bool DatabaseConnection::hasAppliedSystemMigration(QString systemMigrationName) {
