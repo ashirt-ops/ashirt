@@ -123,6 +123,7 @@ HEADERS += \
     src/hotkeymanager.h \
     src/models/evidence.h \
     src/models/server.h \
+    src/models/server_setting.h \
     src/models/tag.h \
     src/porting/evidence_manifest.h \
     src/porting/system_manifest.h \
