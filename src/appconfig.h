@@ -13,8 +13,10 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#include "config/basic_config.h"
 #include "config/config.h"
 #include "config/config_v1.h"
+#include "config/config_v2.h"
 #include "config/no_config.h"
 #include "exceptions/fileerror.h"
 #include "helpers/constants.h"
@@ -64,7 +66,26 @@ class AppConfig {
                                configFile.error());
     }
 
-    _config = ConfigV1::fromJson(data);
+    int version = -1;
+    try {
+      version = BasicConfig::parseVersion(data);
+    }
+    catch (std::exception &e) {
+      throw std::runtime_error("Unable to parse config file");
+    }
+
+    switch(version) {
+      case 0:
+      case 1:
+        _config = ConfigV1::fromJson(data);
+        break;
+      case 2:
+        _config = ConfigV2::fromJson(data);
+        break;
+    }
+    if (_config == nullptr ) {
+      throw std::runtime_error("Unknown Config file");
+    }
     if (_config->errorText() != "") {
       throw std::runtime_error("Unable to parse config file");
     }
@@ -92,6 +113,13 @@ class AppConfig {
       return false;
     }
     bool upgraded = false;
+    switch(_config->version()) {
+      case 0:
+      case 1:
+        _config = ConfigV2::fromV1(std::move(_config));
+        upgraded = true;
+        // fallthrough (for future upgrades -- v1->v2->v3, etc
+    }
 
     return upgraded;
   }
