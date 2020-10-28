@@ -173,14 +173,20 @@ void ConnectionEditor::onSaveClicked() {
   std::vector<model::Server> data = serializeRows();
   for (size_t rowIndex = 0; rowIndex < data.size(); rowIndex++) {
     auto datum = data[rowIndex];
-    if (datum.serverUuid == "") {
+    auto cellData = readCellData(rowIndex);
+
+    if (cellData.isMarkedToAdd()) {
       datum.serverUuid = model::Server::newUUID();
       db->createServer(datum);
+      // update server uuid for this row's cell
       for (int columnIndex = 0; columnIndex < connectionsTable->columnCount(); columnIndex++) {
         updateCellData(rowIndex, columnIndex, [datum](ConnectionCellData* item) {
           item->serverUuid = datum.serverUuid;
         });
       }
+    }
+    else if(cellData.isMarkedDeleted()) {
+      db->deleteServer(datum.serverUuid);
     }
     else {
       db->updateFullServerDetails(datum.serverName, datum.accessKey,
@@ -190,8 +196,14 @@ void ConnectionEditor::onSaveClicked() {
 
   // code below iterates through non-error rows, and resets the data to match the current value
   // this ignores error rows, in case we want to apply partial saves/successes
-  for(int rowIndex = 0; rowIndex < connectionsTable->rowCount(); rowIndex++) {
-    if (readCellData(rowIndex).hasError()) {
+  int numRows = connectionsTable->rowCount();
+  for(int rowIndex = numRows-1; rowIndex >= 0; rowIndex--) {
+    auto cellData = readCellData(rowIndex);
+    if (cellData.hasError()) {
+      continue;
+    }
+    if (cellData.isMarkedDeleted()) {
+      connectionsTable->removeRow(rowIndex);
       continue;
     }
     for(int colIndex = 0; colIndex < connectionsTable->columnCount(); colIndex++) {
