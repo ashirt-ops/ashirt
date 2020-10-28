@@ -247,9 +247,12 @@ void ConnectionEditor::onDeleteClicked() {
 }
 
 void ConnectionEditor::onAddClicked() {
-  withNoSorting([this](){
-    addNewRow(buildRow());
+  int newRowIndex = 0;
+  withNoSorting([this, &newRowIndex](){
+    newRowIndex = addNewRow(buildRow());
   });
+  connectionsTable->setCurrentCell(newRowIndex, COL_NAME);
+  connectionsTable->scrollToItem(getCell(newRowIndex, COL_NAME));
 }
 
 int ConnectionEditor::addNewRow(ConnectionRow rowData) {
