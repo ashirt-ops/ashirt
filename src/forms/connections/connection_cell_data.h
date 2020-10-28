@@ -47,7 +47,6 @@ class ConnectionCellData {
 
   void updateData(QString update) {
     originalData = update;
-    cellType = CELL_TYPE_NORMAL;
   }
 
   void markDeleted(bool deleted) {

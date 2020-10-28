@@ -39,6 +39,7 @@ ConnectionEditor::~ConnectionEditor() {
   delete saveButton;
   delete deleteButton;
   delete addButton;
+  delete includeDeletedCheckBox;
 
   delete connectionStatus;
 
@@ -74,6 +75,7 @@ void ConnectionEditor::buildUi() {
   deleteButton = simpleButton("-", 40, 25);
   addButton = simpleButton("+", 40, 25);
 
+  includeDeletedCheckBox = new QCheckBox("Include Deleted (reloads table)", this);
   connectionStatus = new ConnectionChecker(this);
 
   _logLabel = new QLabel("Connection Notes", this);
@@ -81,7 +83,7 @@ void ConnectionEditor::buildUi() {
   // Layout
   /*        0                 1           2             3             4
        +---------------+-------------+------------+-------------+-------------+
-    0  | Add Btn       | Delete Btn  | <None>     | <None>      | Save Btn    |
+    0  | Add Btn       | Delete Btn  | Include Deleted CB       | Save Btn    |
        +---------------+-------------+------------+-------------+-------------+
     1  |                                                                      |
        |                     Content Table                                    |
@@ -98,8 +100,9 @@ void ConnectionEditor::buildUi() {
   */
 
   // row 0
-  gridLayout->addWidget(deleteButton, 0, 0);
-  gridLayout->addWidget(addButton, 0, 1);
+  gridLayout->addWidget(addButton, 0, 0);
+  gridLayout->addWidget(deleteButton, 0, 1);
+  gridLayout->addWidget(includeDeletedCheckBox, 0, 2, 1, 2);
   gridLayout->addWidget(saveButton, 0, 4);
 
   // row 1
@@ -135,6 +138,9 @@ void ConnectionEditor::wireUi() {
 
   connect(connectionsTable, &QTableWidget::cellChanged, this, &ConnectionEditor::onCellChanged);
   connect(connectionsTable, &QTableWidget::cellClicked, this, &ConnectionEditor::onCellClicked);
+  connect(includeDeletedCheckBox, &QCheckBox::stateChanged, [this](){
+    repopulateTable();
+  });
 }
 
 void ConnectionEditor::onConnectionCheckerPressed() {
@@ -148,6 +154,10 @@ void ConnectionEditor::onConnectionCheckerPressed() {
 void ConnectionEditor::showEvent(QShowEvent* evt) {
   QDialog::showEvent(evt);
   connectionStatus->clearStatus();
+  repopulateTable();
+}
+
+void ConnectionEditor::repopulateTable() {
   clearTable();
   populateTable();
 }
@@ -185,12 +195,16 @@ void ConnectionEditor::onSaveClicked() {
         });
       }
     }
-    else if(cellData.isMarkedDeleted()) {
-      db->deleteServer(datum.serverUuid);
-    }
     else {
       db->updateFullServerDetails(datum.serverName, datum.accessKey,
                                   datum.secretKey, datum.hostPath, datum.serverUuid);
+    }
+
+    if (cellData.isMarkedDeleted()) {
+      db->deleteServer(datum.serverUuid);
+    }
+    else {
+      db->restoreServer(datum.serverUuid);
     }
   }
 
@@ -202,12 +216,12 @@ void ConnectionEditor::onSaveClicked() {
     if (cellData.hasError()) {
       continue;
     }
-    if (cellData.isMarkedDeleted()) {
+    if (!includeDeletedCheckBox->isChecked() && cellData.isMarkedDeleted()) {
       connectionsTable->removeRow(rowIndex);
       continue;
     }
     for(int colIndex = 0; colIndex < connectionsTable->columnCount(); colIndex++) {
-      updateCellData(rowIndex, colIndex, [this, rowIndex, colIndex](ConnectionCellData* item){
+      updateCellData(rowIndex, colIndex, [this, rowIndex, colIndex](ConnectionCellData* item) {
         item->updateData(getCell(rowIndex, colIndex)->text());
       });
     }
@@ -308,14 +322,15 @@ void ConnectionEditor::buildTableUi() {
 
 void ConnectionEditor::populateTable() {
   withNoSorting([this](){
-    for (auto item : db->getServers()) {
+    for (auto item : db->getServers(includeDeletedCheckBox->isChecked())) {
       addNewRow(buildRow(item));
     }
   });
 }
 
 ConnectionRow ConnectionEditor::buildRow(model::Server item) {
-  return buildRow(item.serverUuid, item.serverName, item.hostPath, item.accessKey, item.secretKey, CELL_TYPE_NORMAL);
+  return buildRow(item.serverUuid, item.serverName, item.hostPath, item.accessKey, item.secretKey, 
+                  item.deletedAt == nullptr ? CELL_TYPE_NORMAL : CELL_TYPE_DELETE);
 }
 
 ConnectionRow ConnectionEditor::buildRow(QString uuid, QString name, QString apiUrl, QString accessKey, QString secretKey, CellType cellType) {

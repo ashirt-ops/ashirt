@@ -11,6 +11,7 @@
 #include <QTableWidgetItem>
 #include <QTextEdit>
 #include <QWidget>
+#include <QCheckBox>
 #include <functional>
 
 #include "connection_cell_data.h"
@@ -41,7 +42,7 @@ class ConnectionEditor : public QDialog {
 
   /// wireUi connects UI elements together
   void wireUi();
-  ///
+  /// populateTable retrieves all connections from the database and add a row for each connection to the connections table
   void populateTable();
   /// buildRow constructs a table row without adding it to the table
   ConnectionRow buildRow(QString id="", QString name="", QString apiUrl="", QString accessKey="", QString secretKey="", CellType cellType=CELL_TYPE_ADD);
@@ -65,6 +66,9 @@ class ConnectionEditor : public QDialog {
   void updateCellData(int row, int column, std::function<void(ConnectionCellData* data)> update);
   /// getCell is a convenience method for calling connectionsTable->item(row, col)
   QTableWidgetItem* getCell(int row, int col);
+
+  /// repopulateTable is a small helper to clear the table and populate the table once again
+  void repopulateTable();
 
   /// showEvent extends QDialog's showEvent. Resets the applied filters.
   void showEvent(QShowEvent* evt) override;
@@ -129,6 +133,7 @@ class ConnectionEditor : public QDialog {
   QAction* closeWindowAction = nullptr;
 
   QTableWidget* connectionsTable = nullptr;
+  QCheckBox* includeDeletedCheckBox = nullptr;
 
   QPushButton* addButton = nullptr;
   QPushButton* saveButton = nullptr;
