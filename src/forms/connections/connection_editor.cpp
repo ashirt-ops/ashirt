@@ -170,11 +170,17 @@ void ConnectionEditor::onSaveClicked() {
     return;
   }
 
-  auto data = serializeRows();
-  for (auto datum : data) {
+  std::vector<model::Server> data = serializeRows();
+  for (size_t rowIndex = 0; rowIndex < data.size(); rowIndex++) {
+    auto datum = data[rowIndex];
     if (datum.serverUuid == "") {
       datum.serverUuid = model::Server::newUUID();
       db->createServer(datum);
+      for (int columnIndex = 0; columnIndex < connectionsTable->columnCount(); columnIndex++) {
+        updateCellData(rowIndex, columnIndex, [datum](ConnectionCellData* item) {
+          item->serverUuid = datum.serverUuid;
+        });
+      }
     }
     else {
       db->updateFullServerDetails(datum.serverName, datum.accessKey,
@@ -300,19 +306,19 @@ ConnectionRow ConnectionEditor::buildRow(model::Server item) {
   return buildRow(item.serverUuid, item.serverName, item.hostPath, item.accessKey, item.secretKey, CELL_TYPE_NORMAL);
 }
 
-ConnectionRow ConnectionEditor::buildRow(QString id, QString name, QString apiUrl, QString accessKey, QString secretKey, CellType cellType) {
+ConnectionRow ConnectionEditor::buildRow(QString uuid, QString name, QString apiUrl, QString accessKey, QString secretKey, CellType cellType) {
   ConnectionRow row{};
 
-  auto basicItem = [id, cellType](QString text) -> QTableWidgetItem* {
+  auto basicItem = [uuid, cellType](QString text) -> QTableWidgetItem* {
     auto item = new QTableWidgetItem();
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
     item->setText(text);
-    item->setData(Qt::UserRole, QVariant::fromValue(ConnectionCellData(id, text, cellType)));
+    item->setData(Qt::UserRole, QVariant::fromValue(ConnectionCellData(uuid, text, cellType)));
     return item;
   };
 
   row.status = basicItem("");
-  row.status->setFlags(row.status->flags() ^ Qt::ItemIsEditable);
+  row.status->setFlags(row.status->flags() ^ Qt::ItemIsEditable); // remove editability
   row.status->setTextAlignment(Qt::AlignCenter);
   row.name = basicItem(name);
   row.hostPath = basicItem(apiUrl);
@@ -371,7 +377,6 @@ ConnectionsTableAnalysis ConnectionEditor::analyzeTable() {
     else {
       rtn.duplicateServerNames.push_back(duplicateRow(rowIndex, foundIndex->second));
     }
-
   }
 
   return rtn;
