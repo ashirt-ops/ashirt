@@ -162,7 +162,9 @@ void ConnectionEditor::clearTable() {
 void ConnectionEditor::onSaveClicked() {
   auto analysis = analyzeTable();
   markupTable(analysis);
-  onCellClicked(connectionsTable->currentRow(), connectionsTable->currentColumn()); // trigger log update
+  if (connectionsTable->currentRow() > -1) {
+    onCellClicked(connectionsTable->currentRow(), connectionsTable->currentColumn()); // trigger log update
+  }
 
   if (!analysis.hasNoErrors()) {
     return;
