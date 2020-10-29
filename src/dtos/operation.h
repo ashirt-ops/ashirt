@@ -13,6 +13,10 @@ namespace dto {
 class Operation {
  public:
   Operation() {}
+  Operation(QString name, QString slug) {
+    this->name = name;
+    this->slug = slug;
+  }
 
   enum OperationStatus {
     OperationStatusPlanning = 0,
@@ -32,6 +36,17 @@ class Operation {
 
   static std::vector<Operation> parseDataAsList(QByteArray data) {
     return parseJSONList<Operation>(data, Operation::fromJson);
+  }
+
+  static QByteArray createOperationJson(QString name, QString slug) {
+    return createOperationJson(Operation(name, slug));
+  }
+
+  static QByteArray createOperationJson(Operation o) {
+    QJsonObject obj;
+    obj.insert("slug", o.slug);
+    obj.insert("name", o.name);
+    return QJsonDocument(obj).toJson();
   }
 
  private:
