@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QIODevice>
 #include <QRandomGenerator>
 #include <QString>
@@ -104,6 +105,15 @@ class FileHelpers {
       throw FileError::mkError("Unable to read from file", path.toStdString(), file.error());
     }
     return data;
+  }
+
+  static bool moveFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+    if (mkdirs) {
+      QDir().mkpath(QFileInfo(dstPath).dir().path());
+    }
+
+    QFile file(srcPath);
+    return file.rename(dstPath);
   }
 };
 
