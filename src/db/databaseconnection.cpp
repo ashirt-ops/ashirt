@@ -200,6 +200,10 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
   return DBQuery(query, values);
 }
 
+void DatabaseConnection::updateEvidencePath(QString newPath, qint64 evidenceID) {
+  executeQuery(&db, "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
+}
+
 std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     const EvidenceFilters &filters) {
   auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);

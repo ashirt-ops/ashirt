@@ -48,6 +48,7 @@ class DatabaseConnection {
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
+  void updateEvidencePath(QString newPath, qint64 evidenceID);
   void setEvidenceTags(const std::vector<model::Tag> &newTags, qint64 evidenceID);
 
   void deleteEvidence(qint64 evidenceID);
