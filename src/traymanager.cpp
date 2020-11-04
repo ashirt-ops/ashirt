@@ -99,6 +99,7 @@ void TrayManager::buildUi() {
   settingsWindow = new Settings(hotkeyManager, this);
   evidenceManagerWindow = new EvidenceManager(db, this);
   creditsWindow = new Credits(this);
+  createOperationWindow = new CreateOperation(this);
 
   trayIconMenu = new QMenu(this);
   chooseOpSubmenu = new QMenu(tr("Select Operation"));
@@ -126,7 +127,10 @@ void TrayManager::buildUi() {
   currentOperationMenuAction->setEnabled(false);
   chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
   chooseOpStatusAction->setEnabled(false);
+  newOperationAction = new QAction("New Operation", chooseOpSubmenu);
+  newOperationAction->setEnabled(false); // only enable when we have an internet connection
   chooseOpSubmenu->addAction(chooseOpStatusAction);
+  chooseOpSubmenu->addAction(newOperationAction);
   chooseOpSubmenu->addSeparator();
 
   setActiveOperationLabel();
@@ -158,6 +162,7 @@ void TrayManager::wireUi() {
   connect(showEvidenceManagerAction, actTriggered, [this, toTop](){toTop(evidenceManagerWindow);});
   connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
+  connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
@@ -180,6 +185,7 @@ void TrayManager::wireUi() {
   connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
   connect(trayIcon, &QSystemTrayIcon::activated, [this] {
     chooseOpStatusAction->setText("Loading operations...");
+    newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
   });
 
@@ -296,6 +302,7 @@ void TrayManager::onOperationListUpdated(bool success,
 
   if (success) {
     chooseOpStatusAction->setText(tr("Operations loaded"));
+    newOperationAction->setEnabled(true);
     cleanChooseOpSubmenu();
 
     for (const auto& op : operations) {

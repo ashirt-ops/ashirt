@@ -234,6 +234,13 @@ class NetMan : public QObject {
     return builder->execute(nam);
   }
 
+  /// createOperation attempts to create a new operation with the given name and slug
+  QNetworkReply *createOperation(QString name, QString slug) {
+    auto builder = ashirtJSONPost("/api/operations", dto::Operation::createOperationJson(name, slug));
+    addASHIRTAuth(builder);
+    return builder->execute(nam);
+  }
+
   /// extractResponse inspects the provided QNetworkReply and returns back the contents of the reply.
   /// In addition, it will also indicated, via the provided valid flag, if the response was valid.
   /// A Valid response is one that has a 200 or 201 response AND had no errors flaged from Qt
