@@ -108,6 +108,7 @@ HEADERS += \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
     src/helpers/request_builder.h \
+    src/helpers/system_helpers.h \
     src/helpers/ui_helpers.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \

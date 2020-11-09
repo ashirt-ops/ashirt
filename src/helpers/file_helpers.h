@@ -10,8 +10,6 @@
 #include <QStringList>
 #include <array>
 
-#include "appconfig.h"
-#include "appsettings.h"
 #include "exceptions/fileerror.h"
 
 class FileHelpers {
@@ -30,15 +28,22 @@ class FileHelpers {
   }
 
   /**
-   * @brief randomFilename replaces a string of 6 consecutive X characters with 6 consecutive random
-   * english letters. Each letter may either be upper or lower case. Similar to what QTemporaryFile
-   * does.
+   * @brief randomFilename replaces a given substring with random english letters. By default, the
+   * expected substring is 6 consecutive "X" characters (i.e. XXXXXX). Users may specify their own
+   * replacement string. Note that only the _first_ matching substring is replaced. If the
+   * replaceToken is not found, then the templateString is returned, unmodified.
+   * Each replacement letter may either be upper or lower case.
+   * Similar to what QTemporaryFile does.
    * @param templateStr The model string, with
+   * @param replaceToken The template string to find, and then replace, with random characters
    * @return The resulting filename
    */
-  static QString randomFilename(QString templateStr) {
-    QString replaceToken = "XXXXXX";
+  static QString randomFilename(QString templateStr, QString replaceToken="XXXXXX") {
     int templateIndex = templateStr.indexOf(replaceToken);
+
+    if (templateIndex == -1) {
+      return templateStr;
+    }
 
     QString replacement = randomText(replaceToken.length());
     return templateStr.replace(templateIndex, replaceToken.length(), replacement);
@@ -57,20 +62,6 @@ class FileHelpers {
    */
   static QByteArray qstringToByteArray(QString q) { return stdStringToByteArray(q.toStdString()); }
 
-  /// Returns (and creates, if necessary) the path to where evidence should be stored (includes
-  /// ending path separator)
-  static QString pathToEvidence() {
-    AppConfig &conf = AppConfig::getInstance();
-    auto op = AppSettings::getInstance().operationSlug();
-    auto root = conf.evidenceRepo + "/";
-    if (op != "") {
-      root += op + "/";
-    }
-
-    QDir().mkpath(root);
-    return root;
-  }
-
   /// writeFile write the provided content to the provided path.
   /// @throws a FileError if there are issues opening or writing to the file.
   static void writeFile(QString path, QString content) {
@@ -83,7 +74,10 @@ class FileHelpers {
     QFile file(path);
     bool opened = file.open(QIODevice::WriteOnly);
     if (opened) {
-      file.write(content);
+      int bytesWritten = file.write(content);
+      if (bytesWritten == -1) {
+        throw FileError::mkError("Error writing file", path.toStdString(), file.error());
+      }
       file.close();
     }
     if (file.error() != QFile::NoError) {
@@ -107,13 +101,39 @@ class FileHelpers {
     return data;
   }
 
+  static bool mkdirs(const QString &path, bool isFile=false) {
+    auto adjustedPath = path;
+    if( isFile ) {
+      adjustedPath = getDirname(path);
+    }
+
+    return QDir().mkpath(adjustedPath);
+  }
+
   static bool moveFile(QString srcPath, QString dstPath, bool mkdirs=false) {
     if (mkdirs) {
-      QDir().mkpath(QFileInfo(dstPath).dir().path());
+      FileHelpers::mkdirs(dstPath, true);
     }
 
     QFile file(srcPath);
     return file.rename(dstPath);
+  }
+
+  static bool copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+    if (mkdirs) {
+      FileHelpers::mkdirs(dstPath, true);
+    }
+
+    QFile file(srcPath);
+    return file.copy(dstPath);
+  }
+
+  static QString getFilename(QFile f) { return QFileInfo(f).fileName(); }
+  static QString getFilename(QString filepath) { return QFileInfo(filepath).fileName(); }
+  static QString getDirname(QFile f) { return QFileInfo(f).dir().path(); }
+  static QString getDirname(QString filepath) {
+    // maybe faster: filepath.left(filepath.lastIndexOf("/"));
+    return QFileInfo(filepath).dir().path();
   }
 };
 
