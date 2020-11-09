@@ -77,6 +77,12 @@ class Constants {
     return "source code pro";
   }
 
+  /// defaultDbName returns a string storing the "name" of the database for Qt identification
+  /// purposes. This _value_ should not
+  static QString defaultDbName() {
+    return "evidence";
+  }
+
  private:
   enum RepoField {
     owner = 0,

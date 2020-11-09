@@ -14,6 +14,8 @@
 
 #include "forms/evidence_filter/evidencefilter.h"
 #include "models/evidence.h"
+#include "helpers/constants.h"
+#include "db/query_result.h"
 
 class DBQuery {
  private:
@@ -32,18 +34,31 @@ class DBQuery {
 
 class DatabaseConnection {
  public:
-  DatabaseConnection();
+  DatabaseConnection(QString dbPath, QString databaseName);
+
+  /**
+   * @brief withConnection acts as a context manager for a single database connection. The goal for
+   * this method is for interaction with secondary databases (e.g. during import/export), where
+   * interaction is localized and infrequent.
+   * @param dbPath The path to the database file
+   * @param dbName The name of the database connection (can be anything, but should be unique.
+   * Specifically, it should NOT be the value from Constants::databaseName())
+   * @param actions A function that will execute after a connection is established. This is where
+   * all db interactions should occur.
+   */
+  static void withConnection(QString dbPath, QString dbName, std::function<void(DatabaseConnection)>actions);
 
   void connect();
   void close() noexcept;
 
-  DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
+  static DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
 
   model::Evidence getEvidenceDetails(qint64 evidenceID);
   std::vector<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
 
   qint64 createEvidence(const QString &filepath, const QString &operationSlug,
                         const QString &contentType);
+  qint64 createFullEvidence(const model::Evidence &evidence);
 
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
@@ -53,16 +68,25 @@ class DatabaseConnection {
 
   void deleteEvidence(qint64 evidenceID);
 
+  std::vector<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
+
  private:
-  QSqlDatabase db;
+  QString dbName = "";
 
   void migrateDB();
-  QStringList getUnappliedMigrations();
+  QSqlDatabase getDB();
 
+  static QStringList getUnappliedMigrations(const QSqlDatabase &db);
   static QString extractMigrateUpContent(const QString &allContent) noexcept;
-  static QSqlQuery executeQuery(QSqlDatabase *db, const QString &stmt,
+  static QSqlQuery executeQuery(const QSqlDatabase& db, const QString &stmt,
                                 const std::vector<QVariant> &args = {});
-  static qint64 doInsert(QSqlDatabase *db, const QString &stmt, const std::vector<QVariant> &args);
+
+  /// executeQueryNoThrow provides a safe mechanism to execute a query on the database. (Safe in the
+  /// sense that no exception is thrown). It is incumbent on the caller to inspect the
+  /// QueryResult.sucess/QueryResult.err fields to determine the actual result.
+  static QueryResult executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
+                                const std::vector<QVariant> &args = {}) noexcept;
+  static qint64 doInsert(const QSqlDatabase &db, const QString &stmt, const std::vector<QVariant> &args);
 };
 
 #endif  // DATABASECONNECTION_H

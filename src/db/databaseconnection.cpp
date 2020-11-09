@@ -6,11 +6,12 @@
 #include <QDir>
 #include <QVariant>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
-#include "helpers/constants.h"
+#include "helpers/file_helpers.h"
 
 // DatabaseConnection constructs a connection to the database, unsurpringly. Note that the
 // constructor can throw a error (see below). Additionally, many methods can throw a QSqlError,
@@ -18,32 +19,46 @@
 // are marked as noexcept if no error is possible.
 //
 // Throws: DBDriverUnavailable if the required database driver does not exist
-DatabaseConnection::DatabaseConnection() {
-  QString dbPath = Constants::dbLocation();
-  const QString DRIVER("QSQLITE");
-  if (QSqlDatabase::isDriverAvailable(DRIVER)) {
-    db = QSqlDatabase::addDatabase(DRIVER);
+DatabaseConnection::DatabaseConnection(QString dbPath, QString databaseName) {
+  const static QString dbDriver = "QSQLITE";
+  if (QSqlDatabase::isDriverAvailable(dbDriver)) {
+    dbName = databaseName;
+    auto db = QSqlDatabase::addDatabase(dbDriver, dbName);
+    QDir().mkpath(FileHelpers::getDirname(dbPath));
     db.setDatabaseName(dbPath);
-    auto dbFileRoot = dbPath.left(dbPath.lastIndexOf("/"));
-    QDir().mkpath(dbFileRoot);
   }
   else {
     throw DBDriverUnavailableError("SQLite");
   }
 }
 
+void DatabaseConnection::withConnection(QString dbPath, QString dbName, std::function<void(DatabaseConnection)>actions) {
+  DatabaseConnection conn(dbPath, dbName);
+  conn.connect();
+  try {
+    actions(conn);
+  }
+  catch(const std::runtime_error& e) {
+    std::cerr << "Ran into an error dealing with database actions: " << e.what() << std::endl;
+  }
+
+  conn.close();
+  QSqlDatabase::removeDatabase(dbName);
+}
+
 void DatabaseConnection::connect() {
+  auto db = getDB();
   if (!db.open()) {
     throw db.lastError();
   }
   migrateDB();
 }
 
-void DatabaseConnection::close() noexcept { db.close(); }
+void DatabaseConnection::close() noexcept { getDB().close(); }
 
 qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString &operationSlug,
                                           const QString &contentType) {
-  return doInsert(&db,
+  return doInsert(getDB(),
                   "INSERT INTO evidence"
                   " (path, operation_slug, content_type, recorded_date)"
                   " VALUES"
@@ -51,10 +66,19 @@ qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString
                   {filepath, operationSlug, contentType});
 }
 
+qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {
+  return doInsert(getDB(),
+                  "INSERT INTO evidence"
+                  " (path, operation_slug, content_type, description, error, recorded_date, upload_date)"
+                  " VALUES"
+                  " (?, ?, ?, ?, ?, ?, ?)",
+                  {evidence.path, evidence.operationSlug, evidence.contentType, evidence.description,
+                   evidence.errorText, evidence.recordedDate, evidence.uploadDate});
+}
+
 model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   model::Evidence rtn;
-  auto query = executeQuery(
-      &db,
+  auto query = executeQuery(getDB(),
       "SELECT"
       " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
       " FROM evidence"
@@ -74,52 +98,57 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.recordedDate.setTimeSpec(Qt::UTC);
     rtn.uploadDate.setTimeSpec(Qt::UTC);
 
-    auto getTagQuery = executeQuery(&db,
-                                    "SELECT"
-                                    " id, tag_id, name"
-                                    " FROM tags"
-                                    " WHERE evidence_id=?",
-                                    {evidenceID});
-    while (getTagQuery.next()) {
-      rtn.tags.emplace_back(model::Tag(getTagQuery.value("id").toLongLong(),
-                                       getTagQuery.value("tag_id").toLongLong(),
-                                       getTagQuery.value("name").toString()));
-    }
+    rtn.tags = getTagsForEvidenceID(evidenceID);
   }
   else {
-    std::cout << "Could not find evidence with id: " << evidenceID << std::endl;
+    std::cerr << "Could not find evidence with id: " << evidenceID << std::endl;
   }
   return rtn;
 }
 
 void DatabaseConnection::updateEvidenceDescription(const QString &newDescription,
                                                    qint64 evidenceID) {
-  executeQuery(&db, "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
+  executeQuery(getDB(), "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
 }
 
 void DatabaseConnection::deleteEvidence(qint64 evidenceID) {
-  executeQuery(&db, "DELETE FROM evidence WHERE id=?", {evidenceID});
+  executeQuery(getDB(), "DELETE FROM evidence WHERE id=?", {evidenceID});
 }
 
 void DatabaseConnection::updateEvidenceError(const QString &errorText, qint64 evidenceID) {
-  executeQuery(&db, "UPDATE evidence SET error=? WHERE id=?", {errorText, evidenceID});
+  executeQuery(getDB(), "UPDATE evidence SET error=? WHERE id=?", {errorText, evidenceID});
 }
 
 void DatabaseConnection::updateEvidenceSubmitted(qint64 evidenceID) {
-  executeQuery(&db, "UPDATE evidence SET upload_date=datetime('now') WHERE id=?", {evidenceID});
+  executeQuery(getDB(), "UPDATE evidence SET upload_date=datetime('now') WHERE id=?", {evidenceID});
+}
+
+std::vector<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidenceID) {
+  std::vector<model::Tag> tags;
+  auto getTagQuery = executeQuery(getDB(), "SELECT id, tag_id, name FROM tags WHERE evidence_id=?",
+                                  {evidenceID});
+  while (getTagQuery.next()) {
+    auto tag = model::Tag(getTagQuery.value("id").toLongLong(),
+                          getTagQuery.value("tag_id").toLongLong(),
+                          getTagQuery.value("name").toString());
+    tag.setEvidenceID(evidenceID);
+    tags.emplace_back(tag);
+  }
+  return tags;
 }
 
 void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
                                          qint64 evidenceID) {
+  auto db = getDB();
   QList<QVariant> newTagIds;
   for (const auto &tag : newTags) {
     newTagIds.push_back(tag.serverTagId);
   }
-  executeQuery(&db, "DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?",
+  executeQuery(db, "DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?",
                {newTagIds, evidenceID});
 
   auto currentTagsResult =
-      executeQuery(&db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
+      executeQuery(db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
   QList<qint64> currentTags;
   while (currentTagsResult.next()) {
     currentTags.push_back(currentTagsResult.value("tag_id").toLongLong());
@@ -152,7 +181,7 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
       args.emplace_back(item.tagID);
       args.emplace_back(item.name);
     }
-    executeQuery(&db, baseQuery, args);
+    executeQuery(db, baseQuery, args);
   }
 }
 
@@ -201,13 +230,13 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
 }
 
 void DatabaseConnection::updateEvidencePath(QString newPath, qint64 evidenceID) {
-  executeQuery(&db, "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
+  executeQuery(getDB(), "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
 }
 
 std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     const EvidenceFilters &filters) {
   auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
-  auto resultSet = executeQuery(&db, dbQuery.query(), dbQuery.values());
+  auto resultSet = executeQuery(getDB(), dbQuery.query(), dbQuery.values());
 
   std::vector<model::Evidence> allEvidence;
   while (resultSet.next()) {
@@ -235,8 +264,9 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
 //
 // Throws exceptions/FileError if a migration file cannot be found.
 void DatabaseConnection::migrateDB() {
+  auto db = getDB();
   std::cout << "Checking database state" << std::endl;
-  auto migrationsToApply = DatabaseConnection::getUnappliedMigrations();
+  auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
 
   for (const QString &newMigration : migrationsToApply) {
     QFile migrationFile(":/migrations/" + newMigration);
@@ -250,8 +280,8 @@ void DatabaseConnection::migrateDB() {
 
     std::cout << "Applying Migration: " << newMigration.toStdString() << std::endl;
     auto upScript = extractMigrateUpContent(content);
-    executeQuery(&db, upScript);
-    executeQuery(&db,
+    executeQuery(db, upScript);
+    executeQuery(db,
                  "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
                  {newMigration});
   }
@@ -266,19 +296,17 @@ void DatabaseConnection::migrateDB() {
 // Throws:
 //   * BadDatabaseStateError if some migrations have been applied that are not known
 //   * QSqlError if database queries fail
-QStringList DatabaseConnection::getUnappliedMigrations() {
+QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
   QDir migrationsDir(":/migrations");
 
   auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
   QStringList appliedMigrations;
   QStringList migrationsToApply;
 
-  QSqlQuery dbMigrations("SELECT migration_name FROM migrations");
-
-  if (dbMigrations.exec()) {
-    while (dbMigrations.next()) {
-      appliedMigrations << dbMigrations.value("migration_name").toString();
-    }
+  auto queryResult = executeQueryNoThrow(db, "SELECT migration_name FROM migrations");
+  QSqlQuery* dbMigrations = &queryResult.query;
+  while (queryResult.success && queryResult.query.next()) {
+    appliedMigrations << dbMigrations->value("migration_name").toString();
   }
   // compare the two list to find gaps
   for (const QString &possibleMigration : allMigrations) {
@@ -325,31 +353,46 @@ QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) n
 // first prepared, and arg placements can be specified with "?"
 //
 // Throws: QSqlError when a query error occurs
-QSqlQuery DatabaseConnection::executeQuery(QSqlDatabase *db, const QString &stmt,
+QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString &stmt,
                                            const std::vector<QVariant> &args) {
-  QSqlQuery query(*db);
+  auto result = executeQueryNoThrow(db, stmt, args);
+  if (!result.success) {
+    throw result.err;
+  }
+  return result.query;
+}
 
-  if (!query.prepare(stmt)) {
-    throw query.lastError();
+QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
+                                                  const std::vector<QVariant> &args) noexcept {
+  QSqlQuery query(db);
+
+  bool prepared = query.prepare(stmt);
+  if (!prepared) {
+    return QueryResult(std::move(query));
   }
 
   for (const auto &arg : args) {
     query.addBindValue(arg);
   }
 
-  if (!query.exec()) {
-    throw query.lastError();
-  }
-  return query;
+  query.exec();
+  return QueryResult(std::move(query));
 }
 
 // doInsert is a version of executeQuery that returns the last inserted id, rather than the
 // underlying query/response
 //
 // Throws: QSqlError when a query error occurs
-qint64 DatabaseConnection::doInsert(QSqlDatabase *db, const QString &stmt,
+qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
                                     const std::vector<QVariant> &args) {
   auto query = executeQuery(db, stmt, args);
 
   return query.lastInsertId().toLongLong();
+}
+
+QSqlDatabase DatabaseConnection::getDB() {
+  if (dbName == "") {
+    return QSqlDatabase::database();
+  }
+  return QSqlDatabase::database(dbName);
 }

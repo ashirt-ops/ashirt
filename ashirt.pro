@@ -97,6 +97,7 @@ HEADERS += \
     src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
+    src/db/query_result.h \
     src/dtos/github_release.h \
     src/dtos/checkConnection.h \
     src/exceptions/databaseerr.h \
