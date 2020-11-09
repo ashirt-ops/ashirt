@@ -14,6 +14,10 @@ class Screenshot : public QObject {
   void captureArea();
   void captureWindow();
 
+  static QString mkName();
+  static QString extension();
+  static QString contentType();
+
  signals:
   void onScreenshotCaptured(QString filepath);
 

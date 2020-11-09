@@ -26,6 +26,10 @@ class Codeblock {
    */
   static Codeblock readCodeblock(const QString& filepath);
 
+  static QString mkName();
+  static QString extension();
+  static QString contentType();
+
  public:
   /// content stores the actual codeblock data (i.e. the source code)
   QString content;

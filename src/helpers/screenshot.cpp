@@ -15,6 +15,7 @@
 
 #include "appconfig.h"
 #include "helpers/file_helpers.h"
+#include "helpers/system_helpers.h"
 
 Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
 
@@ -33,12 +34,19 @@ void Screenshot::captureArea() { basicScreenshot(AppConfig::getInstance().screen
 
 void Screenshot::captureWindow() { basicScreenshot(AppConfig::getInstance().captureWindowExec); }
 
+QString Screenshot::mkName() {
+  return FileHelpers::randomFilename("ashirt_screenshot_XXXXXX." + extension());
+}
+QString Screenshot::contentType() { return "image"; }
+QString Screenshot::extension() { return "png"; }
+
+
 void Screenshot::basicScreenshot(QString cmdProto) {
-  auto root = FileHelpers::pathToEvidence();
+  auto root = SystemHelpers::pathToEvidence();
   auto hasPath = QDir().mkpath(root);
 
   if (hasPath) {
-    auto tempPath = FileHelpers::randomFilename(QDir::tempPath() + "/ashirt_screenshot_XXXXXX.png");
+    auto tempPath = QDir::tempPath() + "/" + mkName();
 
     QString cmd = formatScreenshotCmd(std::move(cmdProto), tempPath);
     auto lastSlash = tempPath.lastIndexOf("/") + 1;
