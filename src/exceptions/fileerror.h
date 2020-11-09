@@ -59,8 +59,13 @@ class FileError : public std::runtime_error {
         suberror = "Actually, no error occurred -- just bad programming.";
         break;
     }
-    return msg + " (path: " + path + "): " + suberror;
+    FileError wrappedErr(msg + " (path: " + path + "): " + suberror);
+    wrappedErr.fileDeviceError = err;
+    return wrappedErr;
   }
+
+ public:
+  QFileDevice::FileError fileDeviceError;
 
  private:
   FileError(std::string msg) : std::runtime_error(msg) {}
