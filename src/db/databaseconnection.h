@@ -59,6 +59,7 @@ class DatabaseConnection {
   qint64 createEvidence(const QString &filepath, const QString &operationSlug,
                         const QString &contentType);
   qint64 createFullEvidence(const model::Evidence &evidence);
+  qint64 createFullEvidenceWithID(const model::Evidence &evidence);
 
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
@@ -68,6 +69,12 @@ class DatabaseConnection {
 
   void deleteEvidence(qint64 evidenceID);
 
+  /// createEvidenceExportView duplicates the normal database with only a subset of evidence present,
+  /// as well as related data (e.g. tags)
+  ///
+  /// Note that currently, this simply exports everything. This is included as a way to limit sharing
+  /// in the future.
+  static std::vector<model::Evidence> createEvidenceExportView(QString pathToExport, EvidenceFilters filters, DatabaseConnection* runningDB);
   std::vector<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
  private:

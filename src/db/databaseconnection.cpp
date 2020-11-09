@@ -76,6 +76,18 @@ qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {
                    evidence.errorText, evidence.recordedDate, evidence.uploadDate});
 }
 
+qint64 DatabaseConnection::createFullEvidenceWithID(const model::Evidence &evidence) {
+  return doInsert(getDB(),
+                  "INSERT INTO evidence"
+                  " (id, path, operation_slug, content_type, description, error, recorded_date, upload_date)"
+                  " VALUES"
+                  " (?, ?, ?, ?, ?, ?, ?)",
+                  {evidence.id, evidence.path, evidence.operationSlug, evidence.contentType,
+                   evidence.description, evidence.errorText, evidence.recordedDate,
+                   evidence.uploadDate});
+}
+
+
 model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   model::Evidence rtn;
   auto query = executeQuery(getDB(),
@@ -256,6 +268,35 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
   }
 
   return allEvidence;
+}
+
+std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(QString pathToExport, EvidenceFilters filters, DatabaseConnection* runningDB) {
+  std::vector<model::Evidence> exportEvidence;
+  std::unordered_map<qint64, qint64> oldIDToNewID;
+
+  auto exportViewAction = [runningDB, filters, &exportEvidence, &oldIDToNewID](DatabaseConnection exportDB) {
+    exportEvidence = runningDB->getEvidenceWithFilters(filters);
+
+    // TODO: The below is an "N+1" problem. We should instead do multi-row insert(s). However, the
+    // evidence id mapping poses a problem. We may *not* need this mapping. The tag insert below
+    // is *also* an n+1 problem that should be resolved, but how this happens is less clear.
+    for (auto& evi : exportEvidence) {
+      int newId = exportDB.createFullEvidence(evi);
+      oldIDToNewID.emplace(evi.id, newId);
+      evi.id = newId;
+    }
+    for(auto eviIDsPair : oldIDToNewID) {
+      auto oldId = eviIDsPair.first;
+      auto newId = eviIDsPair.second;
+
+      auto tags = runningDB->getTagsForEvidenceID(oldId);
+      exportDB.setEvidenceTags(tags, newId);
+    }
+  };
+
+  withConnection(pathToExport, "exportDB", exportViewAction);
+
+  return exportEvidence;
 }
 
 // migrateDB checks the migration status and then performs the full migration for any

@@ -116,6 +116,9 @@ HEADERS += \
     src/hotkeymanager.h \
     src/models/evidence.h \
     src/models/tag.h \
+    src/porting/evidence_manifest.h \
+    src/porting/system_manifest.h \
+    src/porting/system_porting_options.h \
     src/traymanager.h \
     src/appconfig.h \
     src/appsettings.h \
