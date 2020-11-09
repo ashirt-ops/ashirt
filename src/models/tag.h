@@ -4,9 +4,9 @@
 #ifndef MODEL_TAG_H
 #define MODEL_TAG_H
 
+#include <QDataStream>
 #include <QString>
 #include <QVariant>
-#include <QDataStream>
 
 namespace model {
 class Tag {

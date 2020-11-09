@@ -131,7 +131,6 @@ std::vector<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidence
     auto tag = model::Tag(getTagQuery.value("id").toLongLong(),
                           getTagQuery.value("tag_id").toLongLong(),
                           getTagQuery.value("name").toString());
-    tag.setEvidenceID(evidenceID);
     tags.emplace_back(tag);
   }
   return tags;
