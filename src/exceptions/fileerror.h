@@ -10,6 +10,9 @@
 
 class FileError : public std::runtime_error {
  public:
+  static FileError mkError(QString msg, QString path, QFileDevice::FileError err) {
+    return FileError::mkError(msg.toStdString(), path.toStdString(), err);
+  }
   static FileError mkError(std::string msg, std::string path, QFileDevice::FileError err) {
     std::string suberror;
     switch (err) {
