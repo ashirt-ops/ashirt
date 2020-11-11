@@ -77,8 +77,11 @@ class DatabaseConnection {
   static std::vector<model::Evidence> createEvidenceExportView(QString pathToExport, EvidenceFilters filters, DatabaseConnection* runningDB);
   std::vector<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
+  QString getDatabasePath();
+
  private:
   QString dbName = "";
+  QString _dbPath = "";
 
   void migrateDB();
   QSqlDatabase getDB();

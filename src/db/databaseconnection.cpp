@@ -26,6 +26,7 @@ DatabaseConnection::DatabaseConnection(QString dbPath, QString databaseName) {
     auto db = QSqlDatabase::addDatabase(dbDriver, dbName);
     QDir().mkpath(FileHelpers::getDirname(dbPath));
     db.setDatabaseName(dbPath);
+    this->_dbPath = dbPath;
   }
   else {
     throw DBDriverUnavailableError("SQLite");
@@ -435,4 +436,8 @@ QSqlDatabase DatabaseConnection::getDB() {
     return QSqlDatabase::database();
   }
   return QSqlDatabase::database(dbName);
+}
+
+QString DatabaseConnection::getDatabasePath() {
+  return _dbPath;
 }
