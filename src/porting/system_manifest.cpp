@@ -7,12 +7,14 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
   bool shouldMigrateDb = options.importDb == SystemManifestImportOptions::Merge && !dbPath.isEmpty();
 
   if (shouldMigrateConfig) {
+    emit onStatusUpdate("Importing Settings");
     migrateConfig();
   }
 
   if (shouldMigrateDb) {
     migrateDb(systemDb);
   }
+  emit onComplete();
 }
 
 void SystemManifest::migrateConfig() {
@@ -34,11 +36,15 @@ void SystemManifest::migrateConfig() {
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
+  emit onStatusUpdate("Reading Exported Evidence");
   auto evidenceManifest = EvidenceManifest::deserialize(pathToFile(evidenceManifestPath));
+  onReady(evidenceManifest.entries.size());
   DatabaseConnection::withConnection(
       pathToFile(dbPath), "importDb", [this, evidenceManifest, systemDb](DatabaseConnection importDb) {
-        // migrate evidence (make new file, copy content, create db entry)
-        for (auto item : evidenceManifest.entries) {
+        emit onStatusUpdate("Importing evidence");
+        for (size_t entryIndex = 0; entryIndex < evidenceManifest.entries.size(); entryIndex++) {
+          emit onFileProcessed(entryIndex); // this only makes sense on the 2nd+ iteration, but this works since indexes start at 0
+          auto item = evidenceManifest.entries.at(entryIndex);
           auto importRecord = importDb.getEvidenceDetails(item.evidenceID);
           if (importRecord.id == 0) {
             continue; // in the odd situation that evidence doesn't match up, just skip it
@@ -49,11 +55,18 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
           QString newEviPathLastFour = newEvidencePath.right(4);
 
           auto fullFileExportPath = pathToManifest + "/" + item.exportPath;
-          auto success = FileHelpers::copyFile(fullFileExportPath, newEvidencePath, true);
+          auto copyResult = FileHelpers::copyFile(fullFileExportPath, newEvidencePath, true);
+
+          if (!copyResult.success) {
+            emit onCopyFileError(fullFileExportPath, newEvidencePath,
+                                 FileError::mkError(copyResult.file->errorString(), newEvidencePath, copyResult.file->error()));
+          }
+
           importRecord.path = newEvidencePath;
           qint64 evidenceID = systemDb->createFullEvidence(importRecord);
           systemDb->setEvidenceTags(importRecord.tags, evidenceID);
        }
+       emit onFileProcessed(evidenceManifest.entries.size()); // update the full set now that this is complete
   });
 }
 
@@ -85,10 +98,10 @@ QString SystemManifest::contentSensitiveFilename(QString contentType) {
   }
 }
 
-SystemManifest SystemManifest::readManifest(QString pathToExportFile) {
+SystemManifest* SystemManifest::readManifest(QString pathToExportFile) {
   auto content = FileHelpers::readFile(pathToExportFile);
-  SystemManifest manifest = parseJSONItem<SystemManifest>(content, &SystemManifest::deserialize);
-  manifest.pathToManifest = FileHelpers::getDirname(pathToExportFile);
+  auto manifest = parseJSONItem<SystemManifest*>(content, &SystemManifest::deserialize);
+  manifest->pathToManifest = FileHelpers::getDirname(pathToExportFile);
 
   return manifest;
 }
@@ -108,15 +121,18 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
   QString basePath = QDir(outputDirPath).path();
 
   if (options.exportConfig) {
+    emit onStatusUpdate("Exporting settings");
     configPath = "config.json";
     AppConfig::getInstance().writeConfig(basePath + "/" + configPath);
   }
 
   if (options.exportDb) {
+    emit onStatusUpdate("Exporting Evidence");
     dbPath = "db.sqlite";
     evidenceManifestPath = "evidence.json";
 
     auto allEvidence = DatabaseConnection::createEvidenceExportView(basePath + "/" + dbPath, EvidenceFilters(), db);
+    emit onReady(allEvidence.size());
     sync::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
 
     // write evidence manifest
@@ -127,6 +143,7 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
   QString exportPath = basePath + "/system.json";
   this->pathToManifest = exportPath;
   FileHelpers::writeFile(exportPath, QJsonDocument(serialize(*this)).toJson());
+  emit onComplete();
 }
 
 sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence) {
@@ -134,13 +151,24 @@ sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std:
   FileHelpers::mkdirs(baseExportPath + "/" + relativeEvidenceDir);
 
   sync::EvidenceManifest evidenceManifest;
-  for (auto evi : allEvidence) {
+  for (size_t evidenceIndex = 0; evidenceIndex < allEvidence.size(); evidenceIndex++) {
+    auto evi = allEvidence.at(evidenceIndex);
     QString randPart = "??????????";
-    QString filenameTemplate = QString("ashirt_evidence_%1.%2").arg(randPart).arg(contentSensitiveExtension(evi.contentType));
+    auto filenameTemplate = QString("ashirt_evidence_%1.%2")
+                                .arg(randPart)
+                                .arg(contentSensitiveExtension(evi.contentType));
     QString newName = FileHelpers::randomFilename(filenameTemplate, randPart);
     auto item = sync::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
-    FileHelpers::copyFile(evi.path, baseExportPath + "/" + item.exportPath);
+    auto dstPath = baseExportPath + "/" + item.exportPath;
+    auto copyResult = FileHelpers::copyFile(evi.path, dstPath);
+
+    if (!copyResult.success) {
+      emit onCopyFileError(evi.path, dstPath,
+                           FileError::mkError(copyResult.file->errorString(), dstPath, copyResult.file->error()));
+    }
+
     evidenceManifest.entries.push_back(item);
+    emit onFileProcessed(evidenceIndex + 1);
   }
   return evidenceManifest;
 }
@@ -155,12 +183,12 @@ QJsonObject SystemManifest::serialize(const SystemManifest& src) {
   return o;
 }
 
-SystemManifest SystemManifest::deserialize(QJsonObject o) {
-  SystemManifest manifest;
-  manifest.os = o.value("operatingSystem").toString();
-  manifest.dbPath = o.value("databasePath").toString();
-  manifest.configPath = o.value("configPath").toString();
-  manifest.serversPath = o.value("serversPath").toString();
-  manifest.evidenceManifestPath = o.value("evidenceManifestPath").toString();
+SystemManifest* SystemManifest::deserialize(QJsonObject o) {
+  auto manifest = new SystemManifest;
+  manifest->os = o.value("operatingSystem").toString();
+  manifest->dbPath = o.value("databasePath").toString();
+  manifest->configPath = o.value("configPath").toString();
+  manifest->serversPath = o.value("serversPath").toString();
+  manifest->evidenceManifestPath = o.value("evidenceManifestPath").toString();
   return manifest;
 }

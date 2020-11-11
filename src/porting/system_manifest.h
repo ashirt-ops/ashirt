@@ -1,9 +1,10 @@
 #ifndef SYNC_SYSTEM_MANIFEST_H
 #define SYNC_SYSTEM_MANIFEST_H
 
-#include <QString>
 #include <QFile>
 #include <QJsonObject>
+#include <QObject>
+#include <QString>
 
 #include "helpers/file_helpers.h"
 #include "helpers/jsonhelpers.h"
@@ -18,22 +19,33 @@
 
 namespace sync {
 
-class SystemManifest {
+class SystemManifest : public QObject {
+  Q_OBJECT;
 
  public:
-  SystemManifest() {}
+  SystemManifest(){}
+  ~SystemManifest(){}
 
   /**
    * @brief readManifest parses the the system.json (as provided by the caller) into a complete SystemManifest
    * @param pathToExportFile the location of the system.json file
    * @return the completed SystemManifest
+   * @throws FileError if there is an issue reading the file at the indicated path
    */
-  static SystemManifest readManifest(QString pathToExportFile);
+  static SystemManifest* readManifest(QString pathToExportFile);
+
+ public:
+ signals:
+  void onReady(quint64 numFilesToProcess);
+  void onFileProcessed(quint64 runningCount);
+  void onComplete();
+  void onCopyFileError(QString srcPath, QString dstPath, const FileError& e);
+  void onStatusUpdate(QString text);
 
  public:
   static QJsonObject serialize(const SystemManifest& src);
 
-  static SystemManifest deserialize(QJsonObject o);
+  static SystemManifest* deserialize(QJsonObject o);
 
  private:
   /// contentSensitiveFilename returns a (random) filename for the given content type. This, in turn,
@@ -46,8 +58,6 @@ class SystemManifest {
   /// relies on the underlying type to provide a sensible value. If no match is found, then ".bin"
   /// is returned instead
   static QString contentSensitiveExtension(QString contentType);
-
-
 
  public:
   /**

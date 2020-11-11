@@ -1,7 +1,7 @@
 #include "porting_dialog.h"
 
-#include <QTimer>
 #include <QFileDialog>
+#include <QtConcurrent/QtConcurrent>
 #include <iostream>
 
 #include "porting/system_manifest.h"
@@ -120,19 +120,14 @@ void PortingDialog::onSubmitPressed() {
   submitButton->setEnabled(false);
   progressBar->setRange(0, 0);
 
-  // the below should (maybe) be done in a separate thread
   if (dialogType == Import) {
     portStatusLabel->setText("Parsing input...");
-    doImport();
+    QtConcurrent::run([this](){doImport();});
   }
   else {
     portStatusLabel->setText("Gathering data...");
-    doExport();
+    QtConcurrent::run([this](){doExport();});
   }
-
-//  QTimer::singleShot(10000, [this](){
-//    onPortComplete(true);
-//  });
 }
 
 void PortingDialog::onBrowsePresed() {
@@ -161,37 +156,68 @@ void PortingDialog::doExport() {
   options.exportDb = portEvidenceCheckBox->isChecked();
   options.exportConfig = portConfigCheckBox->isChecked();
   sync::SystemManifest manifest;
-  try {
-    manifest.exportManifest(db, pathTextBox->text(), options);
-    portStatusLabel->setText("Export Complete");
-  }
-  catch(const FileError &e) {
-    std::cout << "got an error during export: " << e.what() << std::endl;
-  }
-  catch(const QSqlError &e) {
-    std::cout << "got an sql error during export: " << e.text().toStdString() << std::endl;
-  }
+  connect(&manifest, &sync::SystemManifest::onReady, progressBar, &QProgressBar::setMaximum);
+  connect(&manifest, &sync::SystemManifest::onFileProcessed, progressBar, &QProgressBar::setValue);
+  connect(&manifest, &sync::SystemManifest::onStatusUpdate, portStatusLabel, &QLabel::setText);
 
-  onPortComplete(true);
+  // Qt db access is limited to single-thread access. A new connection needs to be made, hence
+  // the withconnection here that connects to the same database. Note: we shouldn't write to the db
+  // in this thread, if possible.
+  QString threadedDbName = Constants::defaultDbName() + "_mt_forExport";
+  DatabaseConnection::withConnection(
+      db->getDatabasePath(), threadedDbName, [this, &manifest, options](DatabaseConnection conn){
+         try {
+           manifest.exportManifest(&conn, pathTextBox->text(), options);
+           portStatusLabel->setText("Export Complete");
+           onPortComplete(true);
+         }
+         catch(const FileError &e) {
+           std::cout << "got an error during export: " << e.what() << std::endl;
+           onPortComplete(false);
+         }
+         catch(const QSqlError &e) {
+           std::cout << "got an sql error during export: " << e.text().toStdString() << std::endl;
+           onPortComplete(false);
+         }
+  });
 }
 
 void PortingDialog::doImport() {
   sync::SystemManifestImportOptions options;
   options.importDb = portEvidenceCheckBox->isChecked() ? options.Merge : options.None;
   options.importConfig = portConfigCheckBox->isChecked();
+  sync::SystemManifest* manifest;
   try {
-    auto manifest = sync::SystemManifest::readManifest(pathTextBox->text());
-    manifest.applyManifest(options, db);
-    portStatusLabel->setText("Import Complete");
+    manifest = sync::SystemManifest::readManifest(pathTextBox->text());
   }
-  catch(const FileError &e) {
-    portStatusLabel->setText(QString("Error during import: ") + e.what());
-    std::cout << "got an error during import: " << e.what() << std::endl;
-  }
-  catch(const QSqlError &e) {
-    portStatusLabel->setText(QString("Error during import: ") + e.text());
-    std::cout << "got an sql error during import: " << e.text().toStdString() << std::endl;
+  catch(const FileError& e) {
+    portStatusLabel->setText("Unable to parse system file.");
+    onPortComplete(false);
+    return;
   }
 
-//  onPortComplete(true);
+  connect(manifest, &sync::SystemManifest::onReady, progressBar, &QProgressBar::setMaximum);
+  connect(manifest, &sync::SystemManifest::onFileProcessed, progressBar, &QProgressBar::setValue);
+  connect(manifest, &sync::SystemManifest::onStatusUpdate, portStatusLabel, &QLabel::setText);
+
+  QString threadedDbName = Constants::defaultDbName() + "_mt_forImport";
+  DatabaseConnection::withConnection(
+      db->getDatabasePath(), threadedDbName, [this, &manifest, options](DatabaseConnection conn){
+        try {
+          manifest->applyManifest(options, &conn);
+          portStatusLabel->setText("Import Complete");
+          delete manifest;
+        }
+        catch(const FileError &e) {
+          portStatusLabel->setText(QString("Error during import: ") + e.what());
+          std::cout << "got an error during import: " << e.what() << std::endl;
+          onPortComplete(false);
+        }
+        catch(const QSqlError &e) {
+          portStatusLabel->setText(QString("Error during import: ") + e.text());
+          std::cout << "got an sql error during import: " << e.text().toStdString() << std::endl;
+          onPortComplete(false);
+        }
+  });
+  onPortComplete(true);
 }

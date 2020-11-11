@@ -12,6 +12,13 @@
 
 #include "exceptions/fileerror.h"
 
+class FileCopyResult {
+ public:
+  FileCopyResult(){}
+  bool success = false;
+  QFile* file;
+};
+
 class FileHelpers {
  public:
   /// randomText generates an arbitrary number of case-sensitive english letters
@@ -119,13 +126,17 @@ class FileHelpers {
     return file.rename(dstPath);
   }
 
-  static bool copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+  static FileCopyResult copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+    FileCopyResult r;
     if (mkdirs) {
       FileHelpers::mkdirs(dstPath, true);
     }
 
     QFile file(srcPath);
-    return file.copy(dstPath);
+    r.file = &file;
+    r.success = file.copy(dstPath);
+
+    return r;
   }
 
   static QString getFilename(QFile f) { return QFileInfo(f).fileName(); }
