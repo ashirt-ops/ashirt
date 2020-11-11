@@ -69,6 +69,7 @@ SOURCES += \
     src/helpers/multipartparser.cpp \
     src/hotkeymanager.cpp \
     src/main.cpp \
+    src/porting/system_manifest.cpp \
     src/traymanager.cpp \
     src/helpers/screenshot.cpp \
     src/helpers/stopreply.cpp \
