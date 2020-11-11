@@ -117,18 +117,6 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
     evidenceManifestPath = "evidence.json";
 
     auto allEvidence = DatabaseConnection::createEvidenceExportView(basePath + "/" + dbPath, EvidenceFilters(), db);
-
-    // Copy evidence content
-    //        QString evidenceBase = "evidence";
-    //        FileHelpers::mkdirs(basePath + "/" + evidenceBase);
-
-    //        sync::EvidenceManifest evidenceManifest;
-    //        for (auto evi : allEvidence) {
-    //          QString newName = FileHelpers::randomFilename("ashirt_evidence_??????????." + contentSensitiveExtension(evi.contentType), "??????????");
-    //          auto item = sync::EvidenceItem(evi.id, evidenceBase + "/" + newName);
-    //          FileHelpers::copyFile(evi.path, basePath + "/" + item.exportPath);
-    //          evidenceManifest.entries.push_back(item);
-    //        }
     sync::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
 
     // write evidence manifest
@@ -141,7 +129,6 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
   FileHelpers::writeFile(exportPath, QJsonDocument(serialize(*this)).toJson());
 }
 
-
 sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence) {
   QString relativeEvidenceDir = "evidence";
   FileHelpers::mkdirs(baseExportPath + "/" + relativeEvidenceDir);
@@ -149,7 +136,7 @@ sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std:
   sync::EvidenceManifest evidenceManifest;
   for (auto evi : allEvidence) {
     QString randPart = "??????????";
-    QString filenameTemplate = QString("ashirt_evidence_$1.$2").arg(randPart).arg(contentSensitiveExtension(evi.contentType));
+    QString filenameTemplate = QString("ashirt_evidence_%1.%2").arg(randPart).arg(contentSensitiveExtension(evi.contentType));
     QString newName = FileHelpers::randomFilename(filenameTemplate, randPart);
     auto item = sync::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
     FileHelpers::copyFile(evi.path, baseExportPath + "/" + item.exportPath);
@@ -157,7 +144,6 @@ sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std:
   }
   return evidenceManifest;
 }
-
 
 QJsonObject SystemManifest::serialize(const SystemManifest& src) {
   QJsonObject o;

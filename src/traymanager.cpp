@@ -36,6 +36,7 @@
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
 #include "tools/UGlobalHotkey/uglobalhotkeys.h"
+#include "porting/system_manifest.h"
 
 // Tray icons are handled differently between different OS and desktop
 // environments. MacOS uses a monochrome mask to render a light or dark icon
@@ -70,6 +71,9 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 TrayManager::~TrayManager() {
   setVisible(false);
 
+  delete exportAction;
+  delete importAction;
+
   delete quitAction;
   delete showSettingsAction;
   delete currentOperationMenuAction;
@@ -91,6 +95,8 @@ TrayManager::~TrayManager() {
   delete hotkeyManager;
   delete settingsWindow;
   delete evidenceManagerWindow;
+  delete importWindow;
+  delete exportWindow;
   delete creditsWindow;
 }
 
@@ -99,6 +105,8 @@ void TrayManager::buildUi() {
   settingsWindow = new Settings(hotkeyManager, this);
   evidenceManagerWindow = new EvidenceManager(db, this);
   creditsWindow = new Credits(this);
+  importWindow = new PortingDialog(PortingDialog::Import, db, this);
+  exportWindow = new PortingDialog(PortingDialog::Export, db, this);
 
   trayIconMenu = new QMenu(this);
   chooseOpSubmenu = new QMenu(tr("Select Operation"));
@@ -119,6 +127,8 @@ void TrayManager::buildUi() {
   addToTray(tr(""), &currentOperationMenuAction);
   trayIconMenu->addMenu(chooseOpSubmenu);
   trayIconMenu->addSeparator();
+  addToTray(tr("Export"), &exportAction);
+  addToTray(tr("Import"), &importAction);
   addToTray(tr("About"), &showCreditsAction);
   addToTray(tr("Quit"), &quitAction);
 
@@ -152,6 +162,8 @@ void TrayManager::wireUi() {
   auto actTriggered = &QAction::triggered;
   // connect actions
   connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
+  connect(exportAction, actTriggered, [this, toTop](){toTop(exportWindow);});
+  connect(importAction, actTriggered, [this, toTop](){toTop(importWindow);});
   connect(showSettingsAction, actTriggered, [this, toTop](){toTop(settingsWindow);});
   connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
   connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);

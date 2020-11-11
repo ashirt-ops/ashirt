@@ -12,6 +12,7 @@
 #include "dtos/github_release.h"
 #include "forms/credits/credits.h"
 #include "forms/evidence/evidencemanager.h"
+#include "forms/porting/porting_dialog.h"
 #include "forms/settings/settings.h"
 #include "helpers/screenshot.h"
 #include "hotkeymanager.h"
@@ -75,12 +76,16 @@ class TrayManager : public QDialog {
   Settings *settingsWindow = nullptr;
   EvidenceManager *evidenceManagerWindow = nullptr;
   Credits *creditsWindow = nullptr;
+  PortingDialog *importWindow = nullptr;
+  PortingDialog *exportWindow = nullptr;
 
   // UI Elements
   QSystemTrayIcon *trayIcon = nullptr;
   QMenu *trayIconMenu = nullptr;
 
   QAction *quitAction = nullptr;
+  QAction *exportAction = nullptr;
+  QAction *importAction = nullptr;
   QAction *showSettingsAction = nullptr;
   QAction *currentOperationMenuAction = nullptr;
   QAction *captureScreenAreaAction = nullptr;

@@ -64,6 +64,7 @@ SOURCES += \
     src/forms/evidence_filter/evidencefilter.cpp \
     src/forms/evidence_filter/evidencefilterform.cpp \
     src/forms/getinfo/getinfo.cpp \
+    src/forms/porting/porting_dialog.cpp \
     src/helpers/clipboard/clipboardhelper.cpp \
     src/models/codeblock.cpp \
     src/helpers/multipartparser.cpp \
@@ -106,6 +107,7 @@ HEADERS += \
     src/forms/evidence_filter/evidencefilter.h \
     src/forms/evidence_filter/evidencefilterform.h \
     src/forms/getinfo/getinfo.h \
+    src/forms/porting/porting_dialog.h \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
     src/helpers/request_builder.h \
