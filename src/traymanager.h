@@ -84,15 +84,17 @@ class TrayManager : public QDialog {
   QMenu *trayIconMenu = nullptr;
 
   QAction *quitAction = nullptr;
-  QAction *exportAction = nullptr;
-  QAction *importAction = nullptr;
-  QAction *showSettingsAction = nullptr;
   QAction *currentOperationMenuAction = nullptr;
   QAction *captureScreenAreaAction = nullptr;
   QAction *captureWindowAction = nullptr;
   QAction *showEvidenceManagerAction = nullptr;
   QAction *showCreditsAction = nullptr;
   QAction *addCodeblockAction = nullptr;
+
+  QMenu *settingsSubmenu = nullptr;
+  QAction *exportAction = nullptr;
+  QAction *importAction = nullptr;
+  QAction *showSettingsAction = nullptr;
 
   QMenu *chooseOpSubmenu = nullptr;
   QAction *chooseOpStatusAction = nullptr;

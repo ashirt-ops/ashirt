@@ -86,6 +86,7 @@ TrayManager::~TrayManager() {
 
   delete chooseOpStatusAction;
   delete chooseOpSubmenu;
+  delete settingsSubmenu;
 
   delete updateCheckTimer;
   delete trayIconMenu;
@@ -109,35 +110,41 @@ void TrayManager::buildUi() {
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
 
   trayIconMenu = new QMenu(this);
-  chooseOpSubmenu = new QMenu(tr("Select Operation"));
 
-  // small helper to create an action and assign it to the tray
-  auto addToTray = [this](QString text, QAction** act){
-    *act = new QAction(text, this);
-    trayIconMenu->addAction(*act);
+  auto addMenuToMenu = [this](QString text, QMenu** submenu, QMenu** parent) {
+    *submenu = new QMenu(text, this);
+    (*parent)->addMenu(*submenu);
   };
 
-  // Tray Ordering
-  addToTray(tr("Add Codeblock from Clipboard"), &addCodeblockAction);
-  addToTray(tr("Capture Screen Area"), &captureScreenAreaAction);
-  addToTray(tr("Capture Window"), &captureWindowAction);
-  addToTray(tr("View Accumulated Evidence"), &showEvidenceManagerAction);
-  addToTray(tr("Settings"), &showSettingsAction);
-  trayIconMenu->addSeparator();
-  addToTray(tr(""), &currentOperationMenuAction);
-  trayIconMenu->addMenu(chooseOpSubmenu);
-  trayIconMenu->addSeparator();
-  addToTray(tr("Export"), &exportAction);
-  addToTray(tr("Import"), &importAction);
-  addToTray(tr("About"), &showCreditsAction);
-  addToTray(tr("Quit"), &quitAction);
+  // small helper to create an action and assign it to a menu
+  auto addToMenu = [this](QString text, QAction** act, QMenu** menu) {
+    *act = new QAction(text, this);
+    (*menu)->addAction(*act);
+  };
 
-  // finish action config
+  // Tray menu
+  addToMenu(tr("Add Codeblock from Clipboard"), &addCodeblockAction, &trayIconMenu);
+  addToMenu(tr("Capture Screen Area"), &captureScreenAreaAction, &trayIconMenu);
+  addToMenu(tr("Capture Window"), &captureWindowAction, &trayIconMenu);
+  addToMenu(tr("View Accumulated Evidence"), &showEvidenceManagerAction, &trayIconMenu);
+  trayIconMenu->addSeparator();
+  addToMenu(tr(""), &currentOperationMenuAction, &trayIconMenu);
+  addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
+  trayIconMenu->addSeparator();
+  addMenuToMenu(tr("Edit"), &settingsSubmenu, &trayIconMenu);
+  addToMenu(tr("About"), &showCreditsAction, &trayIconMenu);
+  addToMenu(tr("Quit"), &quitAction, &trayIconMenu);
+
+  // Operations Submenu
   currentOperationMenuAction->setEnabled(false);
-  chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
+  addToMenu(tr("Loading operations..."), &chooseOpStatusAction, &chooseOpSubmenu);
   chooseOpStatusAction->setEnabled(false);
-  chooseOpSubmenu->addAction(chooseOpStatusAction);
   chooseOpSubmenu->addSeparator();
+
+  // settings submenu
+  addToMenu(tr("Settings"), &showSettingsAction, &settingsSubmenu);
+  addToMenu(tr("Export Data"), &exportAction, &settingsSubmenu);
+  addToMenu(tr("Import Data"), &importAction, &settingsSubmenu);
 
   setActiveOperationLabel();
 
