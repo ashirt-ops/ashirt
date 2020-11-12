@@ -108,6 +108,7 @@ void TrayManager::buildUi() {
   creditsWindow = new Credits(this);
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
+  createOperationWindow = new CreateOperation(this);
 
   trayIconMenu = new QMenu(this);
 
@@ -138,7 +139,10 @@ void TrayManager::buildUi() {
   // Operations Submenu
   currentOperationMenuAction->setEnabled(false);
   addToMenu(tr("Loading operations..."), &chooseOpStatusAction, &chooseOpSubmenu);
+  addToMenu(tr("New Operation"), &newOperationAction, &chooseOpSubmenu);
+
   chooseOpStatusAction->setEnabled(false);
+  newOperationAction->setEnabled(false);  // only enable when we have an internet connection
   chooseOpSubmenu->addSeparator();
 
   // settings submenu
@@ -177,6 +181,7 @@ void TrayManager::wireUi() {
   connect(showEvidenceManagerAction, actTriggered, [this, toTop](){toTop(evidenceManagerWindow);});
   connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
+  connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
@@ -199,6 +204,7 @@ void TrayManager::wireUi() {
   connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
   connect(trayIcon, &QSystemTrayIcon::activated, [this] {
     chooseOpStatusAction->setText("Loading operations...");
+    newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
   });
 
@@ -315,6 +321,7 @@ void TrayManager::onOperationListUpdated(bool success,
 
   if (success) {
     chooseOpStatusAction->setText(tr("Operations loaded"));
+    newOperationAction->setEnabled(true);
     cleanChooseOpSubmenu();
 
     for (const auto& op : operations) {
