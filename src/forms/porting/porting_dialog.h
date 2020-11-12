@@ -12,6 +12,7 @@
 #include <QWidget>
 
 #include "db/databaseconnection.h"
+#include "porting/system_manifest.h"
 
 class PortingDialog : public QDialog {
   Q_OBJECT
@@ -35,12 +36,19 @@ class PortingDialog : public QDialog {
   void onSubmitPressed();
   void onBrowsePresed();
 
-  void doExport();
-  void doImport();
+  void doExport(sync::SystemManifest* manifest, QString exportPath);
+  sync::SystemManifest* doPreImport(QString pathToSystemManifest);
+  void doImport(sync::SystemManifest* manifest);
   void onPortComplete(bool success);
+
+ signals:
+  void onWorkComplete(bool success);
 
  private:
   DatabaseConnection* db; // borrowed
+  /// executedManifest contains a pointer to the system manifest used to import/export data
+  /// Saved so that it can be cleaned up post-execution
+  sync::SystemManifest* executedManifest = nullptr;
 
   PortType dialogType;
   QAction* closeWindowAction = nullptr;
