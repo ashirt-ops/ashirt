@@ -1,7 +1,7 @@
 #ifndef SYSTEM_OPTIONS_H
 #define SYSTEM_OPTIONS_H
 
-namespace sync {
+namespace porting {
 
 class SystemManifestExportOptions {
 

@@ -17,7 +17,7 @@
 
 #include "system_porting_options.h"
 
-namespace sync {
+namespace porting {
 
 class SystemManifest : public QObject {
   Q_OBJECT;
@@ -102,7 +102,7 @@ class SystemManifest : public QObject {
    * @throws QSqlError
    * @return
    */
-  sync::EvidenceManifest copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence);
+  porting::EvidenceManifest copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence);
 
 
  public:

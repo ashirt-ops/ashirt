@@ -1,6 +1,6 @@
 #include "system_manifest.h"
 
-using namespace sync;
+using namespace porting;
 
 void SystemManifest::applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb) {
   bool shouldMigrateConfig = options.importConfig && !configPath.isEmpty();
@@ -133,7 +133,7 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
 
     auto allEvidence = DatabaseConnection::createEvidenceExportView(basePath + "/" + dbPath, EvidenceFilters(), db);
     emit onReady(allEvidence.size());
-    sync::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
+    porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
 
     // write evidence manifest
     FileHelpers::writeFile(basePath + "/" + evidenceManifestPath,
@@ -146,11 +146,11 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
   emit onComplete();
 }
 
-sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence) {
+porting::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence) {
   QString relativeEvidenceDir = "evidence";
   FileHelpers::mkdirs(baseExportPath + "/" + relativeEvidenceDir);
 
-  sync::EvidenceManifest evidenceManifest;
+  porting::EvidenceManifest evidenceManifest;
   for (size_t evidenceIndex = 0; evidenceIndex < allEvidence.size(); evidenceIndex++) {
     auto evi = allEvidence.at(evidenceIndex);
     QString randPart = "??????????";
@@ -158,7 +158,7 @@ sync::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std:
                                 .arg(randPart)
                                 .arg(contentSensitiveExtension(evi.contentType));
     QString newName = FileHelpers::randomFilename(filenameTemplate, randPart);
-    auto item = sync::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
+    auto item = porting::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
     auto dstPath = baseExportPath + "/" + item.exportPath;
     auto copyResult = FileHelpers::copyFile(evi.path, dstPath);
 

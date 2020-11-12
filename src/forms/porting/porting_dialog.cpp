@@ -149,13 +149,13 @@ void PortingDialog::onSubmitPressed() {
     portAction = [this](){ doImport(executedManifest); };
   }
   else {
-    executedManifest = new sync::SystemManifest();
+    executedManifest = new porting::SystemManifest();
     portAction = [this, portingPath](){ doExport(executedManifest, portingPath); };
   }
 
-  connect(executedManifest, &sync::SystemManifest::onReady, progressBar, &QProgressBar::setMaximum);
-  connect(executedManifest, &sync::SystemManifest::onFileProcessed, progressBar, &QProgressBar::setValue);
-  connect(executedManifest, &sync::SystemManifest::onStatusUpdate, portStatusLabel, &QLabel::setText);
+  connect(executedManifest, &porting::SystemManifest::onReady, progressBar, &QProgressBar::setMaximum);
+  connect(executedManifest, &porting::SystemManifest::onFileProcessed, progressBar, &QProgressBar::setValue);
+  connect(executedManifest, &porting::SystemManifest::onStatusUpdate, portStatusLabel, &QLabel::setText);
   connect(this, &PortingDialog::onWorkComplete, this, &PortingDialog::onPortComplete);
 
   QtConcurrent::run(portAction);
@@ -174,8 +174,8 @@ void PortingDialog::onPortComplete(bool success) {
   submitButton->setEnabled(true);
 }
 
-void PortingDialog::doExport(sync::SystemManifest* manifest, QString exportPath) {
-  sync::SystemManifestExportOptions options;
+void PortingDialog::doExport(porting::SystemManifest* manifest, QString exportPath) {
+  porting::SystemManifestExportOptions options;
   options.exportDb = portEvidenceCheckBox->isChecked();
   options.exportConfig = portConfigCheckBox->isChecked();
 
@@ -200,10 +200,10 @@ void PortingDialog::doExport(sync::SystemManifest* manifest, QString exportPath)
   emit onWorkComplete(true);
 }
 
-sync::SystemManifest* PortingDialog::doPreImport(QString pathToSystemManifest) {
-  sync::SystemManifest* manifest = nullptr;
+porting::SystemManifest* PortingDialog::doPreImport(QString pathToSystemManifest) {
+  porting::SystemManifest* manifest = nullptr;
   try {
-    manifest = sync::SystemManifest::readManifest(pathToSystemManifest);
+    manifest = porting::SystemManifest::readManifest(pathToSystemManifest);
   }
   catch(const FileError& e) {
     portStatusLabel->setText("Unable to parse system file.");
@@ -212,8 +212,8 @@ sync::SystemManifest* PortingDialog::doPreImport(QString pathToSystemManifest) {
   return manifest;
 }
 
-void PortingDialog::doImport(sync::SystemManifest* manifest) {
-  sync::SystemManifestImportOptions options;
+void PortingDialog::doImport(porting::SystemManifest* manifest) {
+  porting::SystemManifestImportOptions options;
   options.importDb = portEvidenceCheckBox->isChecked() ? options.Merge : options.None;
   options.importConfig = portConfigCheckBox->isChecked();
 

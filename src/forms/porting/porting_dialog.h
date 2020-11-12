@@ -36,9 +36,9 @@ class PortingDialog : public QDialog {
   void onSubmitPressed();
   void onBrowsePresed();
 
-  void doExport(sync::SystemManifest* manifest, QString exportPath);
-  sync::SystemManifest* doPreImport(QString pathToSystemManifest);
-  void doImport(sync::SystemManifest* manifest);
+  void doExport(porting::SystemManifest* manifest, QString exportPath);
+  porting::SystemManifest* doPreImport(QString pathToSystemManifest);
+  void doImport(porting::SystemManifest* manifest);
   void onPortComplete(bool success);
 
  signals:
@@ -48,7 +48,7 @@ class PortingDialog : public QDialog {
   DatabaseConnection* db; // borrowed
   /// executedManifest contains a pointer to the system manifest used to import/export data
   /// Saved so that it can be cleaned up post-execution
-  sync::SystemManifest* executedManifest = nullptr;
+  porting::SystemManifest* executedManifest = nullptr;
 
   PortType dialogType;
   QAction* closeWindowAction = nullptr;
