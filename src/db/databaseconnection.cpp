@@ -77,7 +77,22 @@ qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {
                    evidence.errorText, evidence.recordedDate, evidence.uploadDate});
 }
 
-qint64 DatabaseConnection::createFullEvidenceWithID(const model::Evidence &evidence) {
+void DatabaseConnection::batchCopyFullEvidence(const std::vector<model::Evidence> &evidence) {
+  QString baseQuery = "INSERT INTO evidence"
+      " (id, path, operation_slug, content_type, description, error, recorded_date, upload_date)"
+      " VALUES %1";
+  int varsPerRow = 8; // count number of "?"
+  std::function<QVariantList(int)> getItemValues = [evidence](int i){
+    auto item = evidence.at(i);
+    return QVariantList {
+        item.id, item.path, item.operationSlug, item.contentType, item.description,
+        item.errorText, item.recordedDate, item.uploadDate
+    };
+  };
+  batchInsert(baseQuery, varsPerRow, evidence.size(), getItemValues);
+}
+
+qint64 DatabaseConnection::copyFullEvidence(const model::Evidence &evidence) {
   return doInsert(getDB(),
                   "INSERT INTO evidence"
                   " (id, path, operation_slug, content_type, description, error, recorded_date, upload_date)"
@@ -149,10 +164,30 @@ std::vector<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidence
   return tags;
 }
 
+std::vector<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(std::vector<qint64> evidenceIDs) {
+  std::vector<model::Tag> tags;
+
+  batchQuery("SELECT id, evidence_id, tag_id, name FROM tags WHERE evidence_id IN (%1)", 1, evidenceIDs.size(),
+      [evidenceIDs](unsigned int index){
+        return QVariantList{evidenceIDs[index]};
+      },
+      [&tags](const QSqlQuery& resultItem){
+        auto tag = model::Tag(resultItem.value("id").toLongLong(),
+                              resultItem.value("evidence_id").toLongLong(),
+                              resultItem.value("tag_id").toLongLong(),
+                              resultItem.value("name").toString());
+        tags.emplace_back(tag);
+      });
+
+  return tags;
+}
+
+
 void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
                                          qint64 evidenceID) {
+  // todo: this this actually work?
   auto db = getDB();
-  QList<QVariant> newTagIds;
+  QVariantList newTagIds;
   for (const auto &tag : newTags) {
     newTagIds.push_back(tag.serverTagId);
   }
@@ -195,6 +230,16 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
     }
     executeQuery(db, baseQuery, args);
   }
+}
+
+void DatabaseConnection::batchCopyTags(const std::vector<model::Tag> &allTags) {
+  QString baseQuery = "INSERT INTO tags (id, evidence_id, tag_id, name) VALUES %1";
+  int varsPerRow = 4;
+  std::function<QVariantList(int)> getItemValues = [allTags](int i){
+    model::Tag item = allTags.at(i);
+    return QVariantList{item.id, item.evidenceId, item.serverTagId, item.tagName};
+  };
+  batchInsert(baseQuery, varsPerRow, allTags.size(), getItemValues);
 }
 
 DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters) {
@@ -273,26 +318,16 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
 
 std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(QString pathToExport, EvidenceFilters filters, DatabaseConnection* runningDB) {
   std::vector<model::Evidence> exportEvidence;
-  std::unordered_map<qint64, qint64> oldIDToNewID;
 
-  auto exportViewAction = [runningDB, filters, &exportEvidence, &oldIDToNewID](DatabaseConnection exportDB) {
+  auto exportViewAction = [runningDB, filters, &exportEvidence](DatabaseConnection exportDB) {
     exportEvidence = runningDB->getEvidenceWithFilters(filters);
 
-    // TODO: The below is an "N+1" problem. We should instead do multi-row insert(s). However, the
-    // evidence id mapping poses a problem. We may *not* need this mapping. The tag insert below
-    // is *also* an n+1 problem that should be resolved, but how this happens is less clear.
-    for (auto& evi : exportEvidence) {
-      int newId = exportDB.createFullEvidence(evi);
-      oldIDToNewID.emplace(evi.id, newId);
-      evi.id = newId;
-    }
-    for(auto eviIDsPair : oldIDToNewID) {
-      auto oldId = eviIDsPair.first;
-      auto newId = eviIDsPair.second;
-
-      auto tags = runningDB->getTagsForEvidenceID(oldId);
-      exportDB.setEvidenceTags(tags, newId);
-    }
+    exportDB.batchCopyFullEvidence(exportEvidence);
+    std::vector<qint64> evidenceIds;
+    evidenceIds.resize(exportEvidence.size());
+    std::transform(exportEvidence.begin(), exportEvidence.end(), evidenceIds.begin(), [](model::Evidence e){ return e.id; });
+    std::vector<model::Tag> tags = runningDB->getFullTagsForEvidenceIDs(evidenceIds);
+    exportDB.batchCopyTags(tags);
   };
 
   withConnection(pathToExport, "exportDB", exportViewAction);
@@ -411,7 +446,6 @@ QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, cons
   if (!prepared) {
     return QueryResult(std::move(query));
   }
-
   for (const auto &arg : args) {
     query.addBindValue(arg);
   }
@@ -440,4 +474,63 @@ QSqlDatabase DatabaseConnection::getDB() {
 
 QString DatabaseConnection::getDatabasePath() {
   return _dbPath;
+}
+
+void DatabaseConnection::batchInsert(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
+                                     FieldEncoderFunc encodeValues, QString rowInsertTemplate) {
+  if (rowInsertTemplate == "") {
+    rowInsertTemplate = "(" + QString("?,").repeated(varsPerRow-1) + "?),";
+  }
+  auto noop = [](const QSqlQuery&){};
+  batchQuery(baseQuery, varsPerRow, numRows, encodeValues, noop, rowInsertTemplate);
+}
+
+void DatabaseConnection::batchQuery(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
+                                 FieldEncoderFunc encodeValues, RowDecoderFunc decodeRows, QString variableTemplate) {
+  unsigned long frameSize = 999 / varsPerRow;
+  auto numFullFrames = numRows / frameSize;
+  auto finalRowOffset = numFullFrames * frameSize;
+  auto overflow = numRows - finalRowOffset;
+
+  if (variableTemplate == "") {
+    variableTemplate = QString("?,").repeated(varsPerRow);
+  }
+  int runningRowIndex = 0; // tracks what row is next to be encoded/"inserted"
+  auto db = getDB();
+  /// prepArgString generates a string that looks like ?,?,?, with as many ? as rowInsertTemplate * numRows
+  auto prepArgString = [variableTemplate](unsigned int numRows){
+    auto inst = variableTemplate.repeated(numRows);
+    inst.chop(1);
+    return inst;
+  };
+  /// encodeRowValues generates a vector of QVariants to provide to executeQuery
+  auto encodeRowValues = [&runningRowIndex, encodeValues](unsigned int numRows){
+    std::vector<QVariant> values;
+    for (unsigned int i = 0; i < numRows; i++) {
+      auto itemValues = encodeValues(runningRowIndex++); // increment happens after encoding
+      values.insert(std::end(values), std::begin(itemValues), std::end(itemValues));
+    }
+    return values;
+  };
+  /// runQuery executes the given query, and iterates over the result set
+  auto runQuery = [db, decodeRows](QString query, std::vector<QVariant> values) {
+    auto completedQuery = executeQuery(db, query, values);
+    while (completedQuery.next()) {
+      decodeRows(completedQuery);
+    }
+  };
+
+  // do full frames
+  QString fullFrameQuery = baseQuery.arg(prepArgString(frameSize));
+  for(unsigned long frameIndex = 0; frameIndex < numFullFrames; frameIndex++) {
+    std::vector<QVariant> values = encodeRowValues(frameSize);
+    runQuery(fullFrameQuery, values); // an alternative here: use execBatch, which might slightly hasten results
+  }
+
+  // do the remainder
+  if (overflow > 0) {
+    QString overflowQuery = baseQuery.arg(prepArgString(overflow));
+    std::vector<QVariant> overflowValues = encodeRowValues(overflow);
+    runQuery(overflowQuery, overflowValues);
+  }
 }

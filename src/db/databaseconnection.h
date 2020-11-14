@@ -17,6 +17,9 @@
 #include "helpers/constants.h"
 #include "db/query_result.h"
 
+using FieldEncoderFunc = std::function<QVariantList(unsigned int)>;
+using RowDecoderFunc = std::function<void(const QSqlQuery&)>;
+
 class DBQuery {
  private:
   QString _query;
@@ -59,13 +62,16 @@ class DatabaseConnection {
   qint64 createEvidence(const QString &filepath, const QString &operationSlug,
                         const QString &contentType);
   qint64 createFullEvidence(const model::Evidence &evidence);
-  qint64 createFullEvidenceWithID(const model::Evidence &evidence);
+  void batchCopyFullEvidence(const std::vector<model::Evidence> &evidence);
+  qint64 copyFullEvidence(const model::Evidence &evidence);
 
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
   void updateEvidencePath(QString newPath, qint64 evidenceID);
   void setEvidenceTags(const std::vector<model::Tag> &newTags, qint64 evidenceID);
+  void batchCopyTags(const std::vector<model::Tag> &allTags);
+  std::vector<model::Tag> getFullTagsForEvidenceIDs(std::vector<qint64> evidenceIDs);
 
   void deleteEvidence(qint64 evidenceID);
 
@@ -97,6 +103,30 @@ class DatabaseConnection {
   static QueryResult executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
                                 const std::vector<QVariant> &args = {}) noexcept;
   static qint64 doInsert(const QSqlDatabase &db, const QString &stmt, const std::vector<QVariant> &args);
+
+  /**
+   * @brief batchInsert batches multiple inserts over as few requests as possible.
+   * @param baseQuery The insert string, up to " VALUES "
+   * @param varsPerRow the number of items per row
+   * @param numRows the number of rows you wish to insert
+   * @param encodeValues A function that, given a row index, will return a QVariantList with each column's data for that row
+   * @param rowInsertTemplate An optional string that can be used to define each row's values. Defaults to (?, ..., ?)
+   */
+  void batchInsert(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
+               FieldEncoderFunc encodeValues, QString rowInsertTemplate="");
+
+  /**
+   * @brief batchQuery batches a query with many variables into as few queries as possible.
+   * Note: All variables need to be in the same location in the query.
+   * @param baseQuery A QString template query, with the variables denoted with "%1"
+   * @param varsPerRow The number of variables per requested (expected: 1)
+   * @param numRows the number of variables to placve
+   * @param encodeValues A function that, given an index, returns a QVariantList for each variable group
+   * @param decodeRows A function that can be used to retrieve the rows from the result set
+   * @param variableTemplate An optional string that can be used to define how variables are handled. Defaults to ?,...,?
+   */
+  void batchQuery(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
+               FieldEncoderFunc encodeValues, RowDecoderFunc decodeRows, QString variableTemplate="");
 };
 
 #endif  // DATABASECONNECTION_H
