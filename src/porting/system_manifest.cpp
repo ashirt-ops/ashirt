@@ -166,8 +166,9 @@ porting::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, s
       emit onCopyFileError(evi.path, dstPath,
                            FileError::mkError(copyResult.file->errorString(), dstPath, copyResult.file->error()));
     }
-
-    evidenceManifest.entries.push_back(item);
+    else {
+      evidenceManifest.entries.push_back(item);
+    }
     emit onFileProcessed(evidenceIndex + 1);
   }
   return evidenceManifest;
