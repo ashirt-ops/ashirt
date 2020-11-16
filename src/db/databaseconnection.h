@@ -37,7 +37,7 @@ class DBQuery {
 
 class DatabaseConnection {
  public:
-  DatabaseConnection(QString dbPath, QString databaseName);
+  DatabaseConnection(const QString& dbPath, QString databaseName);
 
   /**
    * @brief withConnection acts as a context manager for a single database connection. The goal for
@@ -49,7 +49,8 @@ class DatabaseConnection {
    * @param actions A function that will execute after a connection is established. This is where
    * all db interactions should occur.
    */
-  static void withConnection(QString dbPath, QString dbName, std::function<void(DatabaseConnection)>actions);
+  static void withConnection(const QString& dbPath, const QString &dbName,
+                             const std::function<void(DatabaseConnection)> &actions);
 
   void connect();
   void close() noexcept;
@@ -68,22 +69,28 @@ class DatabaseConnection {
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
-  void updateEvidencePath(QString newPath, qint64 evidenceID);
+  void updateEvidencePath(const QString& newPath, qint64 evidenceID);
   void setEvidenceTags(const std::vector<model::Tag> &newTags, qint64 evidenceID);
   void batchCopyTags(const std::vector<model::Tag> &allTags);
-  std::vector<model::Tag> getFullTagsForEvidenceIDs(std::vector<qint64> evidenceIDs);
+  std::vector<model::Tag> getFullTagsForEvidenceIDs(const std::vector<qint64>& evidenceIDs);
 
   void deleteEvidence(qint64 evidenceID);
 
-  /// createEvidenceExportView duplicates the normal database with only a subset of evidence present,
-  /// as well as related data (e.g. tags)
+  /// createEvidenceExportView duplicates the normal database with only a subset of evidence
+  /// present, as well as related data (e.g. tags)
   ///
-  /// Note that currently, this simply exports everything. This is included as a way to limit sharing
-  /// in the future.
-  static std::vector<model::Evidence> createEvidenceExportView(QString pathToExport, EvidenceFilters filters, DatabaseConnection* runningDB);
+  /// Note that currently, this simply exports everything. This is included as a way to limit
+  /// sharing in the future.
+  static std::vector<model::Evidence> createEvidenceExportView(const QString& pathToExport,
+                                                               const EvidenceFilters& filters,
+                                                               DatabaseConnection *runningDB);
   std::vector<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
+  /// getDatabasePath returns the filepath associated with the loaded database
   QString getDatabasePath();
+
+ public:
+  const unsigned long SQLITE_MAX_VARS = 999;
 
  private:
   QString dbName = "";
@@ -112,8 +119,8 @@ class DatabaseConnection {
    * @param encodeValues A function that, given a row index, will return a QVariantList with each column's data for that row
    * @param rowInsertTemplate An optional string that can be used to define each row's values. Defaults to (?, ..., ?)
    */
-  void batchInsert(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
-               FieldEncoderFunc encodeValues, QString rowInsertTemplate="");
+  void batchInsert(const QString& baseQuery, unsigned int varsPerRow, unsigned int numRows,
+                   const FieldEncoderFunc& encodeValues, QString rowInsertTemplate="");
 
   /**
    * @brief batchQuery batches a query with many variables into as few queries as possible.
@@ -125,8 +132,9 @@ class DatabaseConnection {
    * @param decodeRows A function that can be used to retrieve the rows from the result set
    * @param variableTemplate An optional string that can be used to define how variables are handled. Defaults to ?,...,?
    */
-  void batchQuery(QString baseQuery, unsigned int varsPerRow, unsigned int numRows,
-               FieldEncoderFunc encodeValues, RowDecoderFunc decodeRows, QString variableTemplate="");
+  void batchQuery(const QString &baseQuery, unsigned int varsPerRow, unsigned int numRows,
+                  const FieldEncoderFunc &encodeValues, const RowDecoderFunc& decodeRows,
+                  QString variableTemplate = "");
 };
 
 #endif  // DATABASECONNECTION_H

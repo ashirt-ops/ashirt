@@ -112,13 +112,13 @@ void TrayManager::buildUi() {
 
   trayIconMenu = new QMenu(this);
 
-  auto addMenuToMenu = [this](QString text, QMenu** submenu, QMenu** parent) {
+  auto addMenuToMenu = [this](const QString& text, QMenu** submenu, QMenu** parent) {
     *submenu = new QMenu(text, this);
     (*parent)->addMenu(*submenu);
   };
 
   // small helper to create an action and assign it to a menu
-  auto addToMenu = [this](QString text, QAction** act, QMenu** menu) {
+  auto addToMenu = [this](const QString& text, QAction** act, QMenu** menu) {
     *act = new QAction(text, this);
     (*menu)->addAction(*act);
   };
@@ -183,11 +183,11 @@ void TrayManager::wireUi() {
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
-  connect(exportWindow, &PortingDialog::portCompleted, [this](QString path) {
+  connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
     openServicesPath = path;
     setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path + "\nClick to view");
   });
-  connect(importWindow, &PortingDialog::portCompleted, [this](QString path) {
+  connect(importWindow, &PortingDialog::portCompleted, [this](const QString& path) {
     setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);
   });
 
@@ -243,17 +243,17 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
   auto getInfoWindow = new GetInfo(db, evidenceID, this);
-  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](model::Evidence evi){
+  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](const model::Evidence& evi){
     AppSettings::getInstance().setLastUsedTags(evi.tags);
   });
   getInfoWindow->show();
 }
 
-qint64 TrayManager::createNewEvidence(QString filepath, QString evidenceType) {
+qint64 TrayManager::createNewEvidence(const QString& filepath, const QString& evidenceType) {
   AppSettings& inst = AppSettings::getInstance();
   auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), evidenceType);
   auto tags = inst.getLastUsedTags();
-  if (tags.size() > 0) {
+  if (!tags.empty()) {
     db->setEvidenceTags(tags, evidenceID);
   }
   return evidenceID;
@@ -368,7 +368,7 @@ void TrayManager::checkForUpdate() {
   NetMan::getInstance().checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
 }
 
-void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
+void TrayManager::onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases) {
   if (!success) {
     return;  // doesn't matter if this fails -- another request will be made later.
   }
@@ -380,7 +380,7 @@ void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> r
   }
 }
 
-void TrayManager::setTrayMessage(MessageType type, QString title, QString message,
+void TrayManager::setTrayMessage(MessageType type, const QString& title, const QString& message,
                                  QSystemTrayIcon::MessageIcon icon, int millisecondsTimeoutHint) {
   trayIcon->showMessage(title, message, icon, millisecondsTimeoutHint);
   this->currentTrayMessage = type;

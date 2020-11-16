@@ -23,7 +23,7 @@ class SystemManifest : public QObject {
   Q_OBJECT;
 
  public:
-  SystemManifest(){}
+  SystemManifest() {}
   ~SystemManifest(){}
 
   /**
@@ -32,7 +32,7 @@ class SystemManifest : public QObject {
    * @return the completed SystemManifest
    * @throws FileError if there is an issue reading the file at the indicated path
    */
-  static SystemManifest* readManifest(QString pathToExportFile);
+  static SystemManifest* readManifest(const QString& pathToExportFile);
 
  public:
  signals:
@@ -52,19 +52,20 @@ class SystemManifest : public QObject {
   static QJsonObject serialize(const SystemManifest& src);
 
   /// deserialize converts a json object into a system manifest instance
-  static SystemManifest* deserialize(QJsonObject o);
+  static SystemManifest* deserialize(const QJsonObject& o);
 
  private:
-  /// contentSensitiveFilename returns a (random) filename for the given content type. This, in turn,
-  /// relies on the underlying type to provide a sensible value. If no match is found, then
-  /// "ashirt_unknown_type_XXXXXX.bin" (X's will be replaced with random characters) is returned instead.
+  /// contentSensitiveFilename returns a (random) filename for the given content type. This, in
+  /// turn, relies on the underlying type to provide a sensible value. If no match is found, then
+  /// "ashirt_unknown_type_XXXXXX.bin" (X's will be replaced with random characters) is returned
+  /// instead.
   /// @see FileHelpers::randomFilename
-  static QString contentSensitiveFilename(QString contentType);
+  static QString contentSensitiveFilename(const QString& contentType);
 
   /// contentSensitiveExtension returns a file extension for the given content type. This, in turn,
   /// relies on the underlying type to provide a sensible value. If no match is found, then ".bin"
   /// is returned instead
-  static QString contentSensitiveExtension(QString contentType);
+  static QString contentSensitiveExtension(const QString& contentType);
 
  public:
   /**
@@ -85,8 +86,8 @@ class SystemManifest : public QObject {
    * @throws FileError if there is a problem with the given directory, or with a generated filename
    * @throws QSqlError if there is an issue accessing the system database, or the copied database
    */
-  void exportManifest(DatabaseConnection* db, QString outputDirPath, const SystemManifestExportOptions& options);
-
+  void exportManifest(DatabaseConnection* db, const QString& outputDirPath,
+                      const SystemManifestExportOptions& options);
 
  private:
   /**
@@ -106,7 +107,7 @@ class SystemManifest : public QObject {
 
   /// pathToFile is a small helper method to combine the absolute path to the manifest with the relative
   /// path to the given filename. The result is an absolute path to the given file
-  QString pathToFile(QString filename);
+  QString pathToFile(const QString& filename);
 
   /**
    * @brief copyEvidence will iteratively copy all evidence files provided to the indicated path. Files are renamed
@@ -117,8 +118,8 @@ class SystemManifest : public QObject {
    * @param allEvidence a vector of evidence _data_ to export (files will be found and read from within this function)
    * @return an EvidenceManifest listing all of the files copied, and their new names.
    */
-  porting::EvidenceManifest copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence);
-
+  porting::EvidenceManifest copyEvidence(const QString& baseExportPath,
+                                         std::vector<model::Evidence> allEvidence);
 
  public:
   /// os is the operating system associated with the originating export

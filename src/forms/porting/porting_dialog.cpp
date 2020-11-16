@@ -178,7 +178,7 @@ QString PortingDialog::getPortPath() {
   return portPath;
 }
 
-void PortingDialog::doExport(porting::SystemManifest* manifest, QString exportPath) {
+void PortingDialog::doExport(porting::SystemManifest* manifest, const QString& exportPath) {
   porting::SystemManifestExportOptions options;
   options.exportDb = portEvidenceCheckBox->isChecked();
   options.exportConfig = portConfigCheckBox->isChecked();
@@ -204,7 +204,7 @@ void PortingDialog::doExport(porting::SystemManifest* manifest, QString exportPa
   emit onWorkComplete(true);
 }
 
-porting::SystemManifest* PortingDialog::doPreImport(QString pathToSystemManifest) {
+porting::SystemManifest* PortingDialog::doPreImport(const QString& pathToSystemManifest) {
   porting::SystemManifest* manifest = nullptr;
   try {
     manifest = porting::SystemManifest::readManifest(pathToSystemManifest);

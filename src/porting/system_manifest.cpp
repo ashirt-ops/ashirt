@@ -20,7 +20,7 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
 void SystemManifest::migrateConfig() {
   auto data = FileHelpers::readFile(pathToFile(configPath));
   parseJSONItem<QString>(data, [](QJsonObject src) {
-    for(QString key : src.keys()) {
+    for(const QString& key : src.keys()) {
       src.remove("evidenceRepo"); // removing evidenceRepo, as we never want to replace what the user has set there.
 
       // only opting to migrate connection settings, given that translating other options may
@@ -70,35 +70,31 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
   });
 }
 
-QString SystemManifest::pathToFile(QString filename) {
+QString SystemManifest::pathToFile(const QString& filename) {
   return pathToManifest + "/" + filename;
 }
 
-QString SystemManifest::contentSensitiveExtension(QString contentType) {
+QString SystemManifest::contentSensitiveExtension(const QString& contentType) {
   if (contentType == Codeblock::contentType()) {
     return Codeblock::extension();
   }
   else if(contentType == Screenshot::contentType()) {
     return Screenshot::extension();
   }
-  else {
-    return ".bin";
-  }
+  return ".bin";
 }
 
-QString SystemManifest::contentSensitiveFilename(QString contentType) {
+QString SystemManifest::contentSensitiveFilename(const QString& contentType) {
   if (contentType == Codeblock::contentType()) {
     return Codeblock::mkName();
   }
   else if(contentType == Screenshot::contentType()) {
     return Screenshot::mkName();
   }
-  else {
-    return FileHelpers::randomFilename("ashirt_unknown_type_XXXXXX.bin");
-  }
+  return FileHelpers::randomFilename("ashirt_unknown_type_XXXXXX.bin");
 }
 
-SystemManifest* SystemManifest::readManifest(QString pathToExportFile) {
+SystemManifest* SystemManifest::readManifest(const QString& pathToExportFile) {
   auto content = FileHelpers::readFile(pathToExportFile);
   auto manifest = parseJSONItem<SystemManifest*>(content, &SystemManifest::deserialize);
   manifest->pathToManifest = FileHelpers::getDirname(pathToExportFile);
@@ -106,7 +102,8 @@ SystemManifest* SystemManifest::readManifest(QString pathToExportFile) {
   return manifest;
 }
 
-void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPath, const SystemManifestExportOptions& options) {
+void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outputDirPath,
+                                    const SystemManifestExportOptions& options) {
   if (!options.includesAnything()) {
     return;
   }
@@ -146,7 +143,8 @@ void SystemManifest::exportManifest(DatabaseConnection* db, QString outputDirPat
   emit onComplete();
 }
 
-porting::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence) {
+porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExportPath,
+                                                       std::vector<model::Evidence> allEvidence) {
   QString relativeEvidenceDir = "evidence";
   FileHelpers::mkdirs(baseExportPath + "/" + relativeEvidenceDir);
 
@@ -155,8 +153,7 @@ porting::EvidenceManifest SystemManifest::copyEvidence(QString baseExportPath, s
     auto evi = allEvidence.at(evidenceIndex);
     QString randPart = "??????????";
     auto filenameTemplate = QString("ashirt_evidence_%1.%2")
-                                .arg(randPart)
-                                .arg(contentSensitiveExtension(evi.contentType));
+                                .arg(randPart, contentSensitiveExtension(evi.contentType));
     QString newName = FileHelpers::randomFilename(filenameTemplate, randPart);
     auto item = porting::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
     auto dstPath = baseExportPath + "/" + item.exportPath;
@@ -184,7 +181,7 @@ QJsonObject SystemManifest::serialize(const SystemManifest& src) {
   return o;
 }
 
-SystemManifest* SystemManifest::deserialize(QJsonObject o) {
+SystemManifest* SystemManifest::deserialize(const QJsonObject& o) {
   auto manifest = new SystemManifest;
   manifest->os = o.value("operatingSystem").toString();
   manifest->dbPath = o.value("databasePath").toString();

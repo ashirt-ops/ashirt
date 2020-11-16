@@ -59,19 +59,19 @@ class TrayManager : public QDialog {
  private:
   void buildUi();
   void wireUi();
-  qint64 createNewEvidence(QString filepath, QString evidenceType);
+  qint64 createNewEvidence(const QString& filepath, const QString& evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
   /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,
   /// providing a mechanism to smartly route the click to an action.
-  void setTrayMessage(MessageType type, QString title, QString message,
+  void setTrayMessage(MessageType type, const QString& title, const QString& message,
                       QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
-  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
+  void onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases);
   void onTrayMessageClicked();
 
  public slots:

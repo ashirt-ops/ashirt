@@ -33,7 +33,7 @@ QDataStream& operator>>(QDataStream& in, model::Tag& v) {
 
 QDataStream& operator<<(QDataStream& out, const std::vector<model::Tag>& v) {
   out << int(v.size());
-  for (auto tag : v) {
+  for (const auto& tag : v) {
     out << tag;
   }
   return out;

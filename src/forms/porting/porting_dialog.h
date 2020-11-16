@@ -65,11 +65,11 @@ class PortingDialog : public QDialog {
   void onBrowsePresed();
 
   /// doExport begins the export process with the given System manifest and export path
-  void doExport(porting::SystemManifest* manifest, QString exportPath);
+  void doExport(porting::SystemManifest* manifest, const QString& exportPath);
 
   /// doPreImport opens and parses the provided path to the system manifest. A small amount of
   /// validation occurs. If any errors are encountered, then the import is cancelled
-  porting::SystemManifest* doPreImport(QString pathToSystemManifest);
+  porting::SystemManifest* doPreImport(const QString& pathToSystemManifest);
   /// doImport begins the import process with the given system manifest
   void doImport(porting::SystemManifest* manifest);
 
@@ -82,7 +82,7 @@ class PortingDialog : public QDialog {
   void onWorkComplete(bool success);
 
  private:
-  QString portPath;
+  QString portPath = "";
   PortType dialogType;
 
   DatabaseConnection* db; // borrowed
