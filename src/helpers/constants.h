@@ -78,7 +78,7 @@ class Constants {
   }
 
   /// defaultDbName returns a string storing the "name" of the database for Qt identification
-  /// purposes. This _value_ should not
+  /// purposes. This _value_ should not be reused for other db connections.
   static QString defaultDbName() {
     return "evidence";
   }

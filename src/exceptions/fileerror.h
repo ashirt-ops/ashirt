@@ -10,9 +10,11 @@
 
 class FileError : public std::runtime_error {
  public:
+  /// mkError constructs an std::runtime_error with the given details.
   static FileError mkError(QString msg, QString path, QFileDevice::FileError err) {
     return FileError::mkError(msg.toStdString(), path.toStdString(), err);
   }
+  /// mkError constructs an std::runtime_error with the given details.
   static FileError mkError(std::string msg, std::string path, QFileDevice::FileError err) {
     std::string suberror;
     switch (err) {

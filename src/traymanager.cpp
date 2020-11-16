@@ -185,7 +185,7 @@ void TrayManager::wireUi() {
 
   connect(exportWindow, &PortingDialog::portCompleted, [this](QString path) {
     openServicesPath = path;
-    setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path);
+    setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path + "\nClick to view");
   });
   connect(importWindow, &PortingDialog::portCompleted, [this](QString path) {
     setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);

@@ -53,6 +53,9 @@ class AppConfig {
     }
   }
 
+  /// readConfig attempts to read the provided path and parse the configuration file.
+  /// If successful, the config file is loaded. If the config file is missing, then a
+  /// default file will be generated. If some other error occurs, a FileError is thrown.
   void readConfig(QString location=Constants::configLocation()) {
     QFile configFile(location);
     if (!configFile.open(QIODevice::ReadOnly)) {
@@ -84,6 +87,8 @@ class AppConfig {
     }
   }
 
+  /// writeDefaultConfig attempts to write a basic configuration to disk.
+  /// This is useful on first runs/when no config data is set.
   void writeDefaultConfig() {
     evidenceRepo = Constants::defaultEvidenceRepo();
 
@@ -102,6 +107,7 @@ class AppConfig {
 
  public:
 
+  /// applyConfig takes a parsed json configuration, and applies it to the current running app instance
   void applyConfig(QJsonObject src) {
     std::vector<std::pair<QString, QString*>> fields = {
         std::pair<QString, QString*>("evidenceRepo", &evidenceRepo),
@@ -123,6 +129,7 @@ class AppConfig {
     }
   }
 
+  /// serializeConfig creates a Json Object from the currently-used configuration
   QJsonObject serializeConfig() {
     QJsonObject root;
     root["evidenceRepo"] = evidenceRepo;
@@ -137,6 +144,8 @@ class AppConfig {
     return root;
   }
 
+  /// writeConfig serializes the running config, and writes the assoicated file to the given path.
+  /// The path defaults to Constants::configLocation()
   void writeConfig(QString alternateSavePath="") {
     QString writeLoc = alternateSavePath == "" ? Constants::configLocation() : alternateSavePath;
 

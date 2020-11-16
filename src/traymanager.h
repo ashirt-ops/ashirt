@@ -36,9 +36,16 @@ class QSpinBox;
 class QTextEdit;
 QT_END_NAMESPACE
 
+/**
+ * @brief The MessageType enum specifies how to respond to a click on a tray message
+ * @see openServicesPath
+ */
 enum MessageType {
+  /// NO_ACTION indicates that nothing should happen on a tray message click
   NO_ACTION,
+  /// UPGRADE indicates that the user should be taken to the releases page
   UPGRADE,
+  /// OPEN_PATH indicates that the user should be taken to a file browser
   OPEN_PATH
 };
 
@@ -57,6 +64,8 @@ class TrayManager : public QDialog {
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
+  /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,
+  /// providing a mechanism to smartly route the click to an action.
   void setTrayMessage(MessageType type, QString title, QString message,
                       QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
 
@@ -83,6 +92,7 @@ class TrayManager : public QDialog {
   QTimer *updateCheckTimer = nullptr;
   MessageType currentTrayMessage = NO_ACTION;
 
+  /// openServicesPath is a variable to store where, on click, to open a path the next time a tray message is displayed
   QString openServicesPath = "";
 
   // Subwindows
