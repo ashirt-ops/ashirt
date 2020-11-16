@@ -147,10 +147,12 @@ void PortingDialog::onSubmitPressed() {
       return;
     }
     portAction = [this](){ doImport(executedManifest); };
+    portPath = FileHelpers::getDirname(portingPath);
   }
   else {
     executedManifest = new porting::SystemManifest();
     portAction = [this, portingPath](){ doExport(executedManifest, portingPath); };
+    portPath = portingPath;
   }
 
   connect(executedManifest, &porting::SystemManifest::onReady, progressBar, &QProgressBar::setMaximum);
@@ -172,6 +174,11 @@ void PortingDialog::onPortComplete(bool success) {
   progressBar->setRange(0, 1);
   progressBar->setValue(1);
   submitButton->setEnabled(true);
+  emit portCompleted(portPath);
+}
+
+QString PortingDialog::getPortPath() {
+  return portPath;
 }
 
 void PortingDialog::doExport(porting::SystemManifest* manifest, QString exportPath) {

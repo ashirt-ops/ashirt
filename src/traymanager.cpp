@@ -183,6 +183,14 @@ void TrayManager::wireUi() {
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
+  //portCompleted(QString path)
+  connect(exportWindow, &PortingDialog::portCompleted, [this](QString path){
+    setTrayMessage(NO_ACTION, "Export Complete", "Export saved to: " + path);
+  });
+  connect(importWindow, &PortingDialog::portCompleted, [this](QString path){
+    setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);
+  });
+
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
 
@@ -201,7 +209,7 @@ void TrayManager::wireUi() {
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
   
-  connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
+  connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, [this] {
     chooseOpStatusAction->setText("Loading operations...");
     newOperationAction->setEnabled(false);
@@ -301,7 +309,7 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  trayIcon->showMessage("Unable to Record Evidence",
+  setTrayMessage(NO_ACTION, "Unable to Record Evidence",
                         "No Operation has been selected. Please select an operation first.",
                         QSystemTrayIcon::Warning);
 }
@@ -368,7 +376,24 @@ void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> r
   auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
 
   if (digest.hasUpgrade()) {
-    this->trayIcon->showMessage("A new version is available!", "Click for more info");
+    setTrayMessage(UPGRADE, "A new version is available!", "Click for more info");
+  }
+}
+
+void TrayManager::setTrayMessage(MessageType type, QString title, QString message,
+                                 QSystemTrayIcon::MessageIcon icon, int millisecondsTimeoutHint) {
+  trayIcon->showMessage(title, message, icon, millisecondsTimeoutHint);
+  this->currentTrayMessage = type;
+}
+
+void TrayManager::onTrayMessageClicked() {
+  switch(currentTrayMessage) {
+    case UPGRADE:
+      QDesktopServices::openUrl(Constants::releasePageUrl());
+      break;
+    case NO_ACTION:
+    default:
+      break;
   }
 }
 

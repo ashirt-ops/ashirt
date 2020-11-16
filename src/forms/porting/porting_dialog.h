@@ -27,6 +27,12 @@ class PortingDialog : public QDialog {
   explicit PortingDialog(PortType dialogType, DatabaseConnection* db, QWidget *parent = nullptr);
   ~PortingDialog();
 
+ public:
+  QString getPortPath();
+
+ signals:
+  void portCompleted(QString path);
+
  private:
   /// buildUi creates the window structure.
   void buildUi();
@@ -49,6 +55,7 @@ class PortingDialog : public QDialog {
   /// executedManifest contains a pointer to the system manifest used to import/export data
   /// Saved so that it can be cleaned up post-execution
   porting::SystemManifest* executedManifest = nullptr;
+  QString portPath;
 
   PortType dialogType;
   QAction* closeWindowAction = nullptr;

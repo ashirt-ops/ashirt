@@ -36,6 +36,11 @@ class QSpinBox;
 class QTextEdit;
 QT_END_NAMESPACE
 
+enum MessageType {
+  NO_ACTION,
+  UPGRADE,
+};
+
 class TrayManager : public QDialog {
   Q_OBJECT
 
@@ -51,10 +56,13 @@ class TrayManager : public QDialog {
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
+  void setTrayMessage(MessageType type, QString title, QString message,
+                      QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
   void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
+  void onTrayMessageClicked();
 
  public slots:
   void onScreenshotCaptured(const QString &filepath);
@@ -72,6 +80,7 @@ class TrayManager : public QDialog {
   HotkeyManager *hotkeyManager = nullptr;
   Screenshot *screenshotTool = nullptr;
   QTimer *updateCheckTimer = nullptr;
+  MessageType currentTrayMessage = NO_ACTION;
 
   // Subwindows
   Settings *settingsWindow = nullptr;
