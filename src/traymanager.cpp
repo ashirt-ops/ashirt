@@ -183,7 +183,6 @@ void TrayManager::wireUi() {
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
-  //portCompleted(QString path)
   connect(exportWindow, &PortingDialog::portCompleted, [this](QString path) {
     openServicesPath = path;
     setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path);

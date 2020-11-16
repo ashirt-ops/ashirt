@@ -36,15 +36,22 @@ class SystemManifest : public QObject {
 
  public:
  signals:
+  /// onReady fires when the breadth of the import/export is known to let the caller know that real work is starting
   void onReady(quint64 numFilesToProcess);
+  /// onFileProcessed fires when an evidence file is copied during import or export
   void onFileProcessed(quint64 runningCount);
+  /// onComplete fires when the entire import/export is finished
   void onComplete();
+  /// onCopyFileError fires when a file cannot be copied during import or export
   void onCopyFileError(QString srcPath, QString dstPath, const FileError& e);
+  /// onStatusUpdate fires when the system moves between import/export phases
   void onStatusUpdate(QString text);
 
  public:
+  /// serialize converts the internal state of the system manifest into a json object
   static QJsonObject serialize(const SystemManifest& src);
 
+  /// deserialize converts a json object into a system manifest instance
   static SystemManifest* deserialize(QJsonObject o);
 
  private:
@@ -61,11 +68,11 @@ class SystemManifest : public QObject {
 
  public:
   /**
-   * @brief applyManifest
-   * @param options
-   * @param systemDb
-   * @throws FileError
-   * @throws QSqlError
+   * @brief applyManifest takes the given manifest object (and options), and begins merging that data with the running system
+   * @param options switches to control what gets imported
+   * @param systemDb The currently running/system database
+   * @throws FileError is there is an issue reading the incoming files
+   * @throws QSqlError If there is an issue ingesting database records from the exported database
    */
   void applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb);
 
@@ -83,36 +90,50 @@ class SystemManifest : public QObject {
 
  private:
   /**
-   * @brief migrateConfig
-   * @throws FileError
+   * @brief migrateConfig imports the config file associated with the started import
+   * @throws FileError if the config file cannot be copied
    */
   void migrateConfig();
   /**
-   * @brief migrateDb
-   * @param systemDb
+   * @brief migrateDb imports all of the database and evidence files associated with the started import
+   * emits onStatusUpdate signal for periodic progress updates
+   * emits onCopyFileError signal if there is an issue copying evidence files
+   * emits onFileProcessed for each file processed
+   * @param systemDb a pointer to the "standard" system database/running database
    * @throws QSqlError
    */
   void migrateDb(DatabaseConnection* systemDb);
+
+  /// pathToFile is a small helper method to combine the absolute path to the manifest with the relative
+  /// path to the given filename. The result is an absolute path to the given file
   QString pathToFile(QString filename);
 
   /**
-   * @brief copyEvidence
-   * @param baseExportPath
-   * @param allEvidence
-   * @throws QSqlError
-   * @return
+   * @brief copyEvidence will iteratively copy all evidence files provided to the indicated path. Files are renamed
+   * to avoid any name collisions. Files are namespaced into givenPath/evidence
+   * This emits a onCopyFileError signal if there is an issue copying files
+   * This emits a onFileProcessed signal when the attempted copy completes (so you may get an error _and_ processed signal on the same file. Error will be first)
+   * @param baseExportPath The path to the desired export directory
+   * @param allEvidence a vector of evidence _data_ to export (files will be found and read from within this function)
+   * @return an EvidenceManifest listing all of the files copied, and their new names.
    */
   porting::EvidenceManifest copyEvidence(QString baseExportPath, std::vector<model::Evidence> allEvidence);
 
 
  public:
+  /// os is the operating system associated with the originating export
   QString os = "";
+  /// dbPath is the (relative) path to the database file from the originating export
   QString dbPath = "";
+  /// configPath is the (relative) path to the config file from the originating export
   QString configPath = "";
+  /// serversPath is currently unused
   QString serversPath = "";
+  /// evidenceManifestPath is the (relative) path to the evidence manifest file from the originating export
   QString evidenceManifestPath = "";
 
  private:
+  /// pathToManifest is the (absolute) path to the system manifest file from the originating export
   QString pathToManifest = "";
 };
 }

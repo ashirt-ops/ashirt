@@ -108,6 +108,9 @@ class FileHelpers {
     return data;
   }
 
+  /// mkdirs creates the necessary folders along a given path.
+  /// equivalent to the unix mkdir -p command
+  /// specify isFile = true if the path points to a file, rather than a directory
   static bool mkdirs(const QString &path, bool isFile=false) {
     auto adjustedPath = path;
     if( isFile ) {
@@ -117,6 +120,9 @@ class FileHelpers {
     return QDir().mkpath(adjustedPath);
   }
 
+  /// moveFile simply moves a file from one path to the next. Optionally, this method can create
+  /// intermediary directories, as needed.
+  /// equivalent to the unix mv command
   static bool moveFile(QString srcPath, QString dstPath, bool mkdirs=false) {
     if (mkdirs) {
       FileHelpers::mkdirs(dstPath, true);
@@ -126,6 +132,9 @@ class FileHelpers {
     return file.rename(dstPath);
   }
 
+  /// copyFile simply copies a file from one path to the next. Optionally, this method can create
+  /// intermediary directories, as needed.
+  /// equivalent to the unix cp command
   static FileCopyResult copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
     FileCopyResult r;
     if (mkdirs) {
@@ -139,9 +148,13 @@ class FileHelpers {
     return r;
   }
 
+  /// getFilename is a small helper to convert a QFile into a filename (excluding the path)
   static QString getFilename(QFile f) { return QFileInfo(f).fileName(); }
+  /// getFilename is a small helper to convert a filepath into a filename
   static QString getFilename(QString filepath) { return QFileInfo(filepath).fileName(); }
+  /// getDirname is a small helper to convert a QFile pointing to a file into a path to that file's parent
   static QString getDirname(QFile f) { return QFileInfo(f).dir().path(); }
+  /// getDirname is a small helper to convert a filepath to a file into a path to the file's parent
   static QString getDirname(QString filepath) {
     // maybe faster: filepath.left(filepath.lastIndexOf("/"));
     return QFileInfo(filepath).dir().path();

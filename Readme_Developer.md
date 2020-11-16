@@ -76,3 +76,11 @@ To apply code formatting (Linux/Bash), run `find src/ -iname "*.cpp" -o -iname "
 2. No CLI for non-qt/non-tray OSes
 3. Remove dock icon on mac?
    1. Possibly useful: https://github.com/keepassxreboot/keepassxc/commit/45344bb2acea61806d5e7f5f9eadfa779ca536ae#diff-a9e708931297992b08350ff7122fcb91R157
+
+## Recommendations for tasks
+
+1. Imports are not versioned or identifiable.
+   1. Identification can be accomplished by adding a uuid to the system.json export, and having a table that keeps track of which imported uuids have been used
+   2. Simple, perhaps ineffectual, versioning could be accomplished by using the ID above, and adding a column to the evidence table, indicating which export batch was associated with that evidence. The export `evidence.json` would then need to add this identification to each entry where this value was known.
+   3. An alternative for identification could be to hash (e.g. md5) each file and provide that has in `evidence.json`. A similar hash would need to exist on each piece of evidence in the database. The system could then use that hash, in combination with other data, to determine if this evidence has been previously imported.
+   4. A third alternative would be to go by the server's evidenceID or slug, if available (this is currently not tracked locally). A separate mechanism would be needed for non-submitted evidence.

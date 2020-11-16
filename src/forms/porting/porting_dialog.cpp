@@ -42,9 +42,6 @@ void PortingDialog::buildUi() {
   portEvidenceCheckBox = new QCheckBox("Include Evidence", this);
   portEvidenceCheckBox->setChecked(true);
   progressBar = new QProgressBar(this);
-  // set some initial values to provide a
-  progressBar->setRange(0, 1);
-  progressBar->setValue(0);
 
 
   if (dialogType == Import) {

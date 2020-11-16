@@ -12,6 +12,10 @@
 
 namespace porting {
 
+/**
+ * @brief The EvidenceItem class is a simple object that records information about an exported
+ * evidence item. It also knows how to encode and decode itself for exporting/importing purposes
+ */
 class EvidenceItem {
  public:
   EvidenceItem(){}
@@ -36,6 +40,10 @@ class EvidenceItem {
   QString exportPath = "";
 };
 
+/**
+ * @brief The EvidenceManifest class is simply a wrapper around a collection of EvidenceItems. It
+ * also provides a mechanism to encode and decode itself for exporting/importing purposes
+ */
 class EvidenceManifest {
  public:
   static QJsonArray serialize(EvidenceManifest manifest) {
