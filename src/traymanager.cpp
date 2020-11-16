@@ -184,10 +184,11 @@ void TrayManager::wireUi() {
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
 
   //portCompleted(QString path)
-  connect(exportWindow, &PortingDialog::portCompleted, [this](QString path){
-    setTrayMessage(NO_ACTION, "Export Complete", "Export saved to: " + path);
+  connect(exportWindow, &PortingDialog::portCompleted, [this](QString path) {
+    openServicesPath = path;
+    setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path);
   });
-  connect(importWindow, &PortingDialog::portCompleted, [this](QString path){
+  connect(importWindow, &PortingDialog::portCompleted, [this](QString path) {
     setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);
   });
 
@@ -391,6 +392,8 @@ void TrayManager::onTrayMessageClicked() {
     case UPGRADE:
       QDesktopServices::openUrl(Constants::releasePageUrl());
       break;
+    case OPEN_PATH:
+      QDesktopServices::openUrl(openServicesPath);
     case NO_ACTION:
     default:
       break;

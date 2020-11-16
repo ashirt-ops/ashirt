@@ -39,6 +39,7 @@ QT_END_NAMESPACE
 enum MessageType {
   NO_ACTION,
   UPGRADE,
+  OPEN_PATH
 };
 
 class TrayManager : public QDialog {
@@ -81,6 +82,8 @@ class TrayManager : public QDialog {
   Screenshot *screenshotTool = nullptr;
   QTimer *updateCheckTimer = nullptr;
   MessageType currentTrayMessage = NO_ACTION;
+
+  QString openServicesPath = "";
 
   // Subwindows
   Settings *settingsWindow = nullptr;
