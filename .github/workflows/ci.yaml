@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: Set artifact name
-      run: echo "ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $name
+      run: echo "ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $ARTIFACT_NAME
     - name: Check out code
       uses: actions/checkout@v2 
       with:
@@ -57,7 +57,7 @@ jobs:
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ env.name }}
+        name: ${{ env.ARTIFACT_NAME }}
         path: dist
 
   release:
