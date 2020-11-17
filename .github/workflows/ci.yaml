@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: Set artifact name
-      run: echo "ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $name
+      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
     - name: Check out code
       uses: actions/checkout@v2 
       with:
@@ -89,7 +89,7 @@ jobs:
         platform: [darwin]
     steps:
       - name: Set Version
-        run: echo "$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $version
+        run: echo "version=$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $GITHUB_ENV
       - name: Download Previous Artifacts
         uses: actions/download-artifact@v2
         with:
