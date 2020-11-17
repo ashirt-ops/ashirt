@@ -34,8 +34,7 @@ jobs:
 
     steps:
     - name: Set artifact name
-      run: |
-          echo "ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $name
+      run: echo "ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $name
     - name: Check out code
       uses: actions/checkout@v2 
       with:
