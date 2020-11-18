@@ -24,6 +24,14 @@ class Constants {
 #endif
   }
 
+  static QString serversLocation() {
+#ifdef Q_OS_MACOS
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/servers.json";
+#else
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/servers.json";
+#endif
+  }
+
   static QString dbLocation() {
     return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/evidence.sqlite";
   }

@@ -96,7 +96,7 @@ void EvidenceManager::buildEvidenceTableUi() {
 
 void EvidenceManager::buildUi() {
   gridLayout = new QGridLayout(this);
-  filterForm = new EvidenceFilterForm(db, this);
+  filterForm = new EvidenceFilterForm(this);
   evidenceTableContextMenu = new QMenu(this);
   submitEvidenceAction = new QAction("Submit Evidence", evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(submitEvidenceAction);

@@ -19,6 +19,17 @@ class FileCopyResult {
   QFile* file;
 };
 
+
+class FileReadResult {
+ public:
+  FileReadResult() = default;
+
+  bool success = false;
+  bool fileExists = false;
+  QByteArray data;
+  QFile* file;
+};
+
 class FileHelpers {
  public:
   /// randomText generates an arbitrary number of case-sensitive english letters
@@ -111,9 +122,9 @@ class FileHelpers {
   /// mkdirs creates the necessary folders along a given path.
   /// equivalent to the unix mkdir -p command
   /// specify isFile = true if the path points to a file, rather than a directory
-  static bool mkdirs(const QString &path, bool isFile=false) {
+  static bool mkdirs(const QString& path, bool isFile = false) {
     auto adjustedPath = path;
-    if( isFile ) {
+    if (isFile) {
       adjustedPath = getDirname(path);
     }
 
@@ -123,7 +134,7 @@ class FileHelpers {
   /// moveFile simply moves a file from one path to the next. Optionally, this method can create
   /// intermediary directories, as needed.
   /// equivalent to the unix mv command
-  static bool moveFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+  static bool moveFile(QString srcPath, QString dstPath, bool mkdirs = false) {
     if (mkdirs) {
       FileHelpers::mkdirs(dstPath, true);
     }
@@ -135,7 +146,7 @@ class FileHelpers {
   /// copyFile simply copies a file from one path to the next. Optionally, this method can create
   /// intermediary directories, as needed.
   /// equivalent to the unix cp command
-  static FileCopyResult copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
+  static FileCopyResult copyFile(QString srcPath, QString dstPath, bool mkdirs = false) {
     FileCopyResult r;
     if (mkdirs) {
       FileHelpers::mkdirs(dstPath, true);
@@ -148,6 +159,7 @@ class FileHelpers {
     return r;
   }
 
+
   /// getFilename is a small helper to convert a QFile into a filename (excluding the path)
   static QString getFilename(QFile f) { return QFileInfo(f).fileName(); }
   /// getFilename is a small helper to convert a filepath into a filename
@@ -158,6 +170,24 @@ class FileHelpers {
   static QString getDirname(QString filepath) {
     // maybe faster: filepath.left(filepath.lastIndexOf("/"));
     return QFileInfo(filepath).dir().path();
+  }
+
+  static FileReadResult readFileNoError(QString path) {
+    QFile file(path);
+    FileReadResult result;
+    result.file = &file;
+
+    if(!file.open(QIODevice::ReadOnly)) {
+      result.success = false;
+      result.fileExists = file.exists();
+    }
+    else {
+      result.fileExists = true;
+      result.data = file.readAll();
+      result.success = file.error() == QFile::NoError;
+    }
+
+    return result;
   }
 };
 

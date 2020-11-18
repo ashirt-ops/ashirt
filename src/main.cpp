@@ -68,6 +68,12 @@ DatabaseConnection* readySupportSystems() {
     throw std::runtime_error("Unable to create a load configuration file: " + configError);
   }
 
+  // load servers -- not strictly necessary here, but loads the file, which is handy
+  if( !AppServers::getInstance().isLoadSuccessful() ) {
+    throw std::runtime_error("Unable to load connection info");
+  }
+
+
   // start database connection (+ implicitly migrate data)
   DatabaseConnection* conn = createDBConnection();
   if (conn == nullptr) {
@@ -93,7 +99,6 @@ int guiMain(int argc, char* argv[]) {
   setApplicationAttributes();
   TypeStreams::registerTypes();
   DatabaseConnection* conn = readySupportSystems();
-  NetMan::getInstance().setDatabaseConnection(conn); // Do not make any network requests before this
 
   int exitCode;
   try {

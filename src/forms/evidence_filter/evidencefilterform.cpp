@@ -5,6 +5,7 @@
 
 #include <QKeySequence>
 
+#include "appservers.h"
 #include "appsettings.h"
 #include "helpers/netman.h"
 #include "helpers/ui_helpers.h"
@@ -23,9 +24,8 @@ static void initializeDateEdit(QDateEdit *dateEdit) {
   dateEdit->setEnabled(false);
 }
 
-EvidenceFilterForm::EvidenceFilterForm(DatabaseConnection* db, QWidget *parent)
+EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
     : QDialog(parent) {
-  this->db = db;
   buildUi();
   wireUi();
 }
@@ -271,13 +271,12 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
 }
 
 void EvidenceFilterForm::populateServerComboBox() {
-  std::vector<model::Server> servers;
   serverComboBox->addItem("<None>", "");
   try {
-    servers = db->getServers(true);
+    std::vector<ServerItem> servers = AppServers::getInstance().getServers(true);
 
     for (auto s : servers) {
-      serverComboBox->addItem(s.serverName, s.serverUuid);
+      serverComboBox->addItem(s.serverName, s.getServerUuid());
     }
   }
   catch(const std::exception& e) {

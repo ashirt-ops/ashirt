@@ -17,7 +17,7 @@
 #include "connection_cell_data.h"
 #include "connections_table_analysis.h"
 #include "components/connection_checker/connectionchecker.h"
-#include "db/databaseconnection.h"
+#include "config/server_item.h"
 
 struct ConnectionRow {
   QTableWidgetItem* status;
@@ -31,7 +31,7 @@ class ConnectionEditor : public QDialog {
   Q_OBJECT
 
  public:
-  explicit ConnectionEditor(DatabaseConnection* db, QWidget *parent = nullptr);
+  explicit ConnectionEditor(QWidget *parent = nullptr);
   ~ConnectionEditor();
 
  private:
@@ -48,11 +48,14 @@ class ConnectionEditor : public QDialog {
   ConnectionRow buildRow(QString id="", QString name="", QString apiUrl="", QString accessKey="", QString secretKey="", CellType cellType=CELL_TYPE_ADD);
   /// buildRow is a shorthand for constructing a table row from a (presumed to exist) server item
   /// see buildRow(QString name, ...)
-  ConnectionRow buildRow(model::Server item);
+  ConnectionRow buildRow(ServerItem item);
 
-  /// serializeRows converts the table rows into a vector for model::Server
+  /// serializeRows converts the table rows into a vector of ServerItems
   /// Note: serializeRows serializes the table as it is -- validateTable should generally called first.
-  std::vector<model::Server> serializeRows();
+  std::vector<ServerItem> serializeRows();
+
+  ServerItem serializeRow(int rowNumber);
+
   /// addNewRow appends the given ConnectionRow to the table. You can get this row by calling buildRow
   int addNewRow(ConnectionRow rowData);
   /// clearTable removes all of the content from the table, and sets the size to 0
@@ -105,6 +108,8 @@ class ConnectionEditor : public QDialog {
   /// an analysis (generally generated from analyzeTable())
   void markupTable(ConnectionsTableAnalysis analysis);
 
+  bool isServerItemEmpty(const ServerItem& item);
+  bool isServerItemComplete(const ServerItem& item);
 
  private slots:
    void onCellChanged(int row, int column);
@@ -119,8 +124,6 @@ class ConnectionEditor : public QDialog {
    void onAddClicked();
 
  private:
-  /// db is a shared reference to the database. Do not delete
-  DatabaseConnection* db = nullptr;
 
   QColor changedColor = QColor(0xFFFFCC);
   QColor addedColor = QColor(0xCCFFCC);

@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "appsettings.h"
+#include "appservers.h"
 #include "db/databaseconnection.h"
 #include "forms/getinfo/getinfo.h"
 #include "helpers/clipboard/clipboardhelper.h"
@@ -98,8 +99,8 @@ void TrayManager::buildUi() {
   creditsWindow = new Credits(this);
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
+  connEditorWindow = new ConnectionEditor(this);
   createOperationWindow = new CreateOperation(this);
-  connEditorWindow = new ConnectionEditor(db, this);
 
   trayIconMenu = new QMenu(this);
 
@@ -316,7 +317,7 @@ void TrayManager::showNoOperationSetTrayMessage() {
 }
 
 void TrayManager::setActiveOperationLabel() {
-  auto serverName = db->serverName();
+  auto serverName = AppServers::getInstance().serverName();
   auto opName = AppSettings::getInstance().operationName();
 
   QString opLabel = tr("Using: ");
@@ -335,11 +336,11 @@ void TrayManager::onTrayMenuOpened() {
   NetMan::getInstance().refreshOperationsList();
 
   cleanChooseServerSubmenu();
-  std::vector<model::Server> allConnections = db->getServers();
+  std::vector<ServerItem> allConnections = AppServers::getInstance().getServers();
   QString currentServerUuid = AppSettings::getInstance().serverUuid();
 
   for (auto item : allConnections) {
-    const QString serverUuid = item.serverUuid;
+    const QString serverUuid = item.getServerUuid();
     auto newAction = new QAction(item.serverName, chooseServerSubmenu);
 
     if (currentServerUuid == serverUuid) {

@@ -3,9 +3,6 @@
 
 #include <QString>
 
-#include <vector>
-#include <functional>
-
 class Config {
  public:
   virtual ~Config() {};

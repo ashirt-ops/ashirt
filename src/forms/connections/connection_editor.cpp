@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <set>
 
+#include "appservers.h"
+
 enum ColumnIndexes {
   COL_STATUS = 0,
   COL_NAME,
@@ -27,8 +29,7 @@ static QStringList columnNames() {
   return names;
 }
 
-ConnectionEditor::ConnectionEditor(DatabaseConnection* db, QWidget *parent) : QDialog(parent) {
-  this->db = db;
+ConnectionEditor::ConnectionEditor(QWidget *parent) : QDialog(parent) {
   buildUi();
   wireUi();
 }
@@ -180,31 +181,30 @@ void ConnectionEditor::onSaveClicked() {
     return;
   }
 
-  std::vector<model::Server> data = serializeRows();
+  std::vector<ServerItem> data = serializeRows();
   for (size_t rowIndex = 0; rowIndex < data.size(); rowIndex++) {
     auto datum = data[rowIndex];
     auto cellData = readCellData(rowIndex);
 
     if (cellData.isMarkedToAdd()) {
-      datum.serverUuid = model::Server::newUUID();
-      db->createServer(datum);
+      AppServers::getInstance().addServer(datum);
       // update server uuid for this row's cell
       for (int columnIndex = 0; columnIndex < connectionsTable->columnCount(); columnIndex++) {
-        updateCellData(rowIndex, columnIndex, [datum](ConnectionCellData* item) {
-          item->serverUuid = datum.serverUuid;
+        auto serverUuid = datum.getServerUuid();
+        updateCellData(rowIndex, columnIndex, [serverUuid](ConnectionCellData* item) {
+          item->serverUuid = serverUuid;
         });
       }
     }
     else {
-      db->updateFullServerDetails(datum.serverName, datum.accessKey,
-                                  datum.secretKey, datum.hostPath, datum.serverUuid);
+      AppServers::getInstance().updateServer(datum);
     }
 
     if (cellData.isMarkedDeleted()) {
-      db->deleteServer(datum.serverUuid);
+      AppServers::getInstance().deleteServer(datum.getServerUuid());
     }
     else {
-      db->restoreServer(datum.serverUuid);
+      AppServers::getInstance().restoreServer(datum.getServerUuid());
     }
   }
 
@@ -325,15 +325,16 @@ void ConnectionEditor::buildTableUi() {
 
 void ConnectionEditor::populateTable() {
   withNoSorting([this](){
-    for (auto item : db->getServers(includeDeletedCheckBox->isChecked())) {
+    auto serversList = AppServers::getInstance().getServers(includeDeletedCheckBox->isChecked());
+    for (auto item : serversList) {
       addNewRow(buildRow(item));
     }
   });
 }
 
-ConnectionRow ConnectionEditor::buildRow(model::Server item) {
-  return buildRow(item.serverUuid, item.serverName, item.hostPath, item.accessKey, item.secretKey, 
-                  item.deletedAt == nullptr ? CELL_TYPE_NORMAL : CELL_TYPE_DELETE);
+ConnectionRow ConnectionEditor::buildRow(ServerItem item) {
+  return buildRow(item.getServerUuid(), item.serverName, item.hostPath, item.accessKey, item.secretKey,
+                  item.deleted ? CELL_TYPE_DELETE : CELL_TYPE_NORMAL);
 }
 
 ConnectionRow ConnectionEditor::buildRow(QString uuid, QString name, QString apiUrl, QString accessKey, QString secretKey, CellType cellType) {
@@ -357,18 +358,25 @@ ConnectionRow ConnectionEditor::buildRow(QString uuid, QString name, QString api
   return row;
 }
 
-std::vector<model::Server> ConnectionEditor::serializeRows() {
+ServerItem ConnectionEditor::serializeRow(int rowNumber) {
+  QString uuid = readCellData(rowNumber, COL_NAME).serverUuid; // any cell will work, just choosing name here.
+  QString name = getCell(rowNumber, COL_NAME)->text().trimmed();
+  QString apiURL = getCell(rowNumber, COL_API_URL)->text().trimmed();
+  QString accessKey = getCell(rowNumber, COL_ACCESS_KEY)->text().trimmed();
+  QString secretKey = getCell(rowNumber, COL_SECRET_KEY)->text().trimmed();
+
+  if (uuid.isEmpty()) {
+    return ServerItem(name, accessKey, secretKey, apiURL);
+  }
+  return ServerItem(uuid, name, accessKey, secretKey, apiURL);
+}
+
+std::vector<ServerItem> ConnectionEditor::serializeRows() {
   int rowCount = connectionsTable->rowCount();
-  std::vector<model::Server> updatedData;
+  std::vector<ServerItem> updatedData;
 
   for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-    QString uuid = readCellData(rowIndex, COL_NAME).serverUuid; // any cell will work, just choosing name here.
-    QString name = getCell(rowIndex, COL_NAME)->text().trimmed();
-    QString apiURL = getCell(rowIndex, COL_API_URL)->text().trimmed();
-    QString accessKey = getCell(rowIndex, COL_ACCESS_KEY)->text().trimmed();
-    QString secretKey = getCell(rowIndex, COL_SECRET_KEY)->text().trimmed();
-
-    updatedData.emplace_back(model::Server(uuid, name, accessKey, secretKey, apiURL));
+    updatedData.emplace_back(serializeRow(rowIndex));
   }
 
   return updatedData;
@@ -380,13 +388,13 @@ ConnectionsTableAnalysis ConnectionEditor::analyzeTable() {
   std::unordered_map<QString, int> serverNameMap;
   auto duplicateRow = [](size_t a, size_t b){ return std::pair<size_t, size_t>(a, b); };
 
-  std::vector<model::Server> rowsData = serializeRows();
+  std::vector<ServerItem> rowsData = serializeRows();
 
   for (size_t rowIndex = 0; rowIndex < rowsData.size(); rowIndex++) {
     auto row = rowsData[rowIndex];
 
     // check if rows are empty
-    if (row.isEmpty()) {
+    if ( isServerItemEmpty(row) ) {
       rtn.emptyRows.push_back(rowIndex);
       continue; // no need to check the other stuff
     }
@@ -395,7 +403,7 @@ ConnectionsTableAnalysis ConnectionEditor::analyzeTable() {
     if (row.serverName.isEmpty()) {
       rtn.noServerNameRows.push_back(rowIndex);
     }
-    else if( !row.isComplete() ) { // check if rows are missing data
+    else if( isServerItemComplete(row) ) { // check if rows are missing data
       rtn.incompleteDataRows.push_back(rowIndex);
     }
 
@@ -485,4 +493,13 @@ void ConnectionEditor::withNoSorting(std::function<void ()> func) {
   connectionsTable->setSortingEnabled(false);
   func();
   connectionsTable->setSortingEnabled(true);
+}
+
+bool ConnectionEditor::isServerItemEmpty(const ServerItem& item) {
+  return item.accessKey.isEmpty() && item.serverName.isEmpty() &&
+         item.secretKey.isEmpty() && item.hostPath.isEmpty();
+}
+bool ConnectionEditor::isServerItemComplete(const ServerItem& item) {
+  return !item.accessKey.isEmpty() && !item.serverName.isEmpty() &&
+         !item.secretKey.isEmpty() && !item.hostPath.isEmpty();
 }

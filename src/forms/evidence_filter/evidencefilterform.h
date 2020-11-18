@@ -21,7 +21,7 @@ class EvidenceFilterForm : public QDialog {
   Q_OBJECT
 
  public:
-  explicit EvidenceFilterForm(DatabaseConnection* db, QWidget *parent = nullptr);
+  explicit EvidenceFilterForm(QWidget *parent = nullptr);
   ~EvidenceFilterForm();
 
  private:
@@ -54,9 +54,6 @@ class EvidenceFilterForm : public QDialog {
 
  private:
   QAction* closeWindowAction = nullptr;
-
-  // borrowed -- do not delete
-  DatabaseConnection* db = nullptr;
 
   // UI Components
   QGridLayout* gridLayout = nullptr;

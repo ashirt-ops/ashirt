@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "appconfig.h"
+#include "appservers.h"
 #include "request_builder.h"
-#include "db/databaseconnection.h"
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "dtos/github_release.h"
@@ -56,7 +56,7 @@ class NetMan : public QObject {
   /// Allows for an optional altHost parameter, in order to check for ashirt servers.
   /// Normal usage should provide no value for this parameter.
   RequestBuilder* ashirtGet(QString endpoint, const QString & altHost="") {
-    QString base = (altHost == "") ? db->hostPath() : altHost;
+    QString base = (altHost == "") ? AppServers::getInstance().hostPath() : altHost;
     return RequestBuilder::newGet()
         ->setHost(base)
         ->setEndpoint(endpoint);
@@ -66,7 +66,7 @@ class NetMan : public QObject {
   /// authentication is provided (use addASHIRTAuth to do this)
   RequestBuilder* ashirtJSONPost(QString endpoint, QByteArray body) {
     return RequestBuilder::newJSONPost()
-        ->setHost(db->hostPath())
+        ->setHost(AppServers::getInstance().hostPath())
         ->setEndpoint(endpoint)
         ->setBody(body);
   }
@@ -75,7 +75,7 @@ class NetMan : public QObject {
   /// No authentication is provided (use addASHIRTAuth to do this)
   RequestBuilder* ashirtFormPost(QString endpoint, QByteArray body, QString boundry) {
     return RequestBuilder::newFormPost(boundry)
-        ->setHost(db->hostPath())
+        ->setHost(AppServers::getInstance().hostPath())
         ->setEndpoint(endpoint)
         ->setBody(body);
   }
@@ -91,7 +91,7 @@ class NetMan : public QObject {
     // load default key if not present
     QString apiKeyCopy = QString(altApiKey);
     if (apiKeyCopy.isEmpty()) {
-      apiKeyCopy = db->accessKey();
+      apiKeyCopy = AppServers::getInstance().accessKey();
     }
 
     auto code = generateHash(RequestMethodToString(reqBuilder->getMethod()),
@@ -111,7 +111,7 @@ class NetMan : public QObject {
 
     QString secretKeyCopy = QString(secretKey);
     if (secretKeyCopy.isEmpty()) {
-      secretKeyCopy = db->secretKey();
+      secretKeyCopy = AppServers::getInstance().secretKey();
     }
 
     QMessageAuthenticationCode code(QCryptographicHash::Sha256);
@@ -156,10 +156,6 @@ class NetMan : public QObject {
   }
 
  public:
-
-  void setDatabaseConnection(DatabaseConnection* db) {
-    this->db = db;
-  }
 
   /// uploadAsset takes the given Evidence model, encodes it (and the file), and uploads this
   /// to the configured ASHIRT API server. Returns a QNetworkReply to track the request
@@ -271,7 +267,6 @@ class NetMan : public QObject {
  private:
   QNetworkReply *allOpsReply = nullptr;
   QNetworkReply *githubReleaseReply = nullptr;
-  DatabaseConnection* db;
 };
 
 #endif  // NETMAN_H
