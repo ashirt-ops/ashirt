@@ -6,8 +6,8 @@
 #include "helpers/http_status.h"
 
 
-ConnectionChecker::ConnectionChecker(QWidget *parent) : QWidget(parent) {
-  buildUi();
+ConnectionChecker::ConnectionChecker(bool useAltLayout, QWidget *parent) : QWidget(parent) {
+  buildUi(useAltLayout);
   wireUi();
 }
 
@@ -19,7 +19,7 @@ ConnectionChecker::~ConnectionChecker() {
   delete gridLayout;
 }
 
-void ConnectionChecker::buildUi() {
+void ConnectionChecker::buildUi(bool useAltLayout) {
   gridLayout = new QGridLayout(this);
   gridLayout->setMargin(0);
 
@@ -32,11 +32,27 @@ void ConnectionChecker::buildUi() {
          +---------------------+--------------------------+
       0  |    Test Conn Btn    | Connection Status Label  |
          +---------------------+--------------------------+
+     Alt
+                   1
+         +---------------------------+
+      0  |    Test Conn Btn          |
+         +---------------------------+
+      1  |  Connection Status Label  |
+         +---------------------------+
    */
 
-  // row 0
-  gridLayout->addWidget(testConnButton, 0, 0);
-  gridLayout->addWidget(connStatusLabel, 0, 1);
+  if (useAltLayout) {
+    // row 0
+    gridLayout->addWidget(testConnButton, 0, 0);
+    // row 1
+    gridLayout->addWidget(connStatusLabel, 1, 0);
+
+  }
+  else {
+    // row 0
+    gridLayout->addWidget(testConnButton, 0, 0);
+    gridLayout->addWidget(connStatusLabel, 0, 1);
+  }
 
   this->setLayout(gridLayout);
 }

@@ -12,7 +12,7 @@
 class ConnectionChecker : public QWidget {
   Q_OBJECT
  public:
-  explicit ConnectionChecker(QWidget *parent = nullptr);
+  explicit ConnectionChecker(bool useAltLayout=false, QWidget *parent = nullptr);
   ~ConnectionChecker();
 
  signals:
@@ -24,7 +24,7 @@ class ConnectionChecker : public QWidget {
   void completed();
 
  private:
-  void buildUi();
+  void buildUi(bool useAltLayout);
   void wireUi();
 
   ///
