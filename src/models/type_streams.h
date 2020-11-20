@@ -4,6 +4,7 @@
 #include <QDataStream>
 
 #include "models/tag.h"
+#include "config/server_item.h"
 #include "models/server_setting.h"
 #include "forms/connections/connection_cell_data.h"
 
@@ -86,6 +87,30 @@ QDataStream& operator>>(QDataStream& in, ConnectionCellData& v) {
   return in;
 }
 
+QDataStream& operator<<(QDataStream& out, const ServerItem& v) {
+  auto copy = ServerItem(v);
+  out << copy.getServerUuid() << copy.getId() << copy.serverName
+      << copy.accessKey << copy.secretKey << copy.hostPath << copy.deleted;
+  return out;
+}
+
+QDataStream& operator>>(QDataStream& in, ServerItem& v) {
+  int id;
+  QString uuid, name, accessKey, secretKey, hostPath;
+  bool deleted;
+
+  in >> uuid;
+  in >> id;
+  in >> name;
+  in >> accessKey;
+  in >> secretKey;
+  in >> hostPath;
+  in >> deleted;
+  auto temp = ServerItem(id, uuid, name, accessKey, secretKey, hostPath, deleted);
+  v = temp;
+  return in;
+}
+
 class TypeStreams {
  public:
   static void registerTypes() {
@@ -94,6 +119,7 @@ class TypeStreams {
     qRegisterMetaTypeStreamOperators<model::ServerSetting>("ServerSetting");
     qRegisterMetaTypeStreamOperators<QMap<QString, model::ServerSetting>>("ServerSettingMap");
     qRegisterMetaTypeStreamOperators<ConnectionCellData>("ConnectionCell");
+    qRegisterMetaTypeStreamOperators<ServerItem>("ServerItem");
   }
 };
 

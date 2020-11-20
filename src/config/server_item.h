@@ -4,6 +4,8 @@
 #include <QString>
 #include <QUuid>
 #include <QJsonObject>
+#include <QVariant>
+#include <QDataStream>
 
 static QString newUuid() {
   return QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -73,4 +75,5 @@ class ServerItem {
   int id = 0;
 };
 
+Q_DECLARE_METATYPE(ServerItem);
 #endif // SERVER_ITEM_H
