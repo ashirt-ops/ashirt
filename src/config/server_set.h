@@ -57,7 +57,7 @@ class ServerSet {
   virtual QByteArray toFileEncoding() = 0;
   virtual QString getLoadedPath() = 0;
   virtual void setLoadedPath(QString path) = 0;
-  virtual void makeDefaultServerset() = 0;
+  virtual void makeDefaultServerset() {}
 
  private:
   bool valid = true;

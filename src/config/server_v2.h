@@ -34,6 +34,7 @@ class ServersV2 : public ServerSet {
     for (ServerItem s : servers) {
       entries[s.getServerUuid()] = s;
     }
+    dirty = true;
   }
 
   ServerItem getServerByUuid(const QString& uuid) override {
@@ -45,21 +46,29 @@ class ServersV2 : public ServerSet {
   }
 
   std::vector<ServerItem> getServers(bool includeDeleted) override {
-    // this first part re-orders the servers so they are always returned in a consistent order
-    std::vector<ServerItem> serverList;
-    serverList.reserve(entries.size());
-    for (auto serverEntry : entries) {
-      serverList.push_back(serverEntry.second);
+    static std::vector<ServerItem> fullServerList; // cache this list to avoid re-sorting a no-change list
+
+    if (dirty) {
+      std::cout << "re-generating server list" << std::endl;
+      fullServerList.clear();
+      fullServerList.reserve(entries.size());
+      for (auto serverEntry : entries) {
+        fullServerList.push_back(serverEntry.second);
+      }
+      std::sort(fullServerList.begin(), fullServerList.end(), [](ServerItem a, ServerItem b){return a.getId() < b.getId();});
+
+      dirty = false; // remove the dirty flag, since the item has now been re-sorted
     }
-    std::sort(serverList.begin(), serverList.end(), [](ServerItem a, ServerItem b){return a.getId() < b.getId();});
 
     if (!includeDeleted) {
-      serverList.erase( // resize to the new length
-          std::remove_if(serverList.begin(), serverList.end(), [](ServerItem item){ return item.deleted;}), // remove deleted elements
-          serverList.end());
+      std::vector<ServerItem> serverList;
+      serverList.reserve(fullServerList.size());
+      std::copy_if(fullServerList.begin(), fullServerList.end(), std::back_inserter(serverList),
+                   [](ServerItem item){return !item.deleted;});
+      return serverList;
     }
 
-    return serverList;
+    return fullServerList;
   }
 
   ServerItem deleteServer(const QString& uuid, bool undelete) override {
@@ -69,16 +78,20 @@ class ServersV2 : public ServerSet {
     }
     position->second.deleted = undelete ? false : true;
     updateServersFile();
+    dirty = true;
     return position->second;
   }
 
   void addServer(ServerItem item) override {
     if (item.isValid()) {
-      auto itemCopy = ServerItem(
-          entries.size() + 1, item.getServerUuid(),
+      auto knownServers = getServers(true);
+      int newId = (knownServers.size() > 0) ? knownServers.back().getId() : 1;
+
+      auto itemCopy = ServerItem(newId, item.getServerUuid(),
           item.serverName, item.accessKey, item.secretKey, item.hostPath, item.deleted);
 
       entries[itemCopy.getServerUuid()] = itemCopy;
+      dirty = true;
       updateServersFile();
     }
   }
@@ -86,12 +99,14 @@ class ServersV2 : public ServerSet {
   void updateServer(ServerItem item) override {
     auto foundItem = entries.find(item.getServerUuid());
     if (foundItem != entries.end()) {
-      // TODO: will this work, or do we need to reinsert into the entries?
       // only moving fields that are editable -- other fields are ignored.
       foundItem->second.serverName = item.serverName;
       foundItem->second.accessKey = item.accessKey;
       foundItem->second.secretKey = item.secretKey;
       foundItem->second.hostPath = item.hostPath;
+
+      dirty = true;
+      updateServersFile();
     }
   }
 
@@ -109,12 +124,9 @@ class ServersV2 : public ServerSet {
   QString getLoadedPath() override {
     return loadedPath;
   }
+
   void setLoadedPath(QString path) override {
     this->loadedPath = path;
-  }
-
-  void makeDefaultServerset() override {
-
   }
 
  private:
@@ -125,6 +137,7 @@ class ServersV2 : public ServerSet {
  private:
   std::unordered_map<QString, ServerItem> entries;
   QString loadedPath;
+  bool dirty = true;
 };
 
 #endif // SERVER_V2_H
