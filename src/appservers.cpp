@@ -26,18 +26,27 @@ void AppServers::writeServers(const QString& path) {
 }
 
 void AppServers::addServer(const ServerItem& item) {
-  serverSet->addServer(item);
-  serverSet->writeToFile(getServersFileLocation(""));
+  if (serverSet->addServer(item)) {
+    emit listUpdated();
+  }
+}
+
+void AppServers::purgeServer(const QString& serverUuid) {
+  if (serverSet->deleteServer(serverUuid, ServerSet::PERMANENT_DELETE)) {
+    emit listUpdated();
+  }
 }
 
 void AppServers::deleteServer(const QString& serverUuid) {
-  serverSet->deleteServer(serverUuid);
-  serverSet->writeToFile(getServersFileLocation(""));
+  if (serverSet->deleteServer(serverUuid)) {
+    emit listUpdated();
+  }
 }
 
 void AppServers::restoreServer(const QString& serverUuid) {
-  serverSet->deleteServer(serverUuid, true);
-  serverSet->writeToFile(getServersFileLocation(""));
+  if( serverSet->deleteServer(serverUuid, ServerSet::RESTORE) ) {
+    emit listUpdated();
+  }
 }
 
 ServerItem AppServers::getServerByUuid(const QString& serverUuid) {
@@ -49,7 +58,9 @@ std::vector<ServerItem> AppServers::getServers(bool includeDeleted) {
 }
 
 void AppServers::updateServer(ServerItem item) {
-  serverSet->updateServer(item);
+  if( serverSet->updateServer(item) ) {
+    emit listUpdated();
+  }
 }
 
 ServerItem AppServers::selectServer(QString serverUuid) {

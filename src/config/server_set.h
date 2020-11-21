@@ -12,6 +12,13 @@
  */
 class ServerSet {
  public:
+  enum DeleteType {
+    PLAIN_DELETE,
+    PERMANENT_DELETE,
+    RESTORE,
+  };
+
+ public:
   virtual ~ServerSet() {};
 
  public:
@@ -47,9 +54,9 @@ class ServerSet {
  public:
   virtual ServerItem getServerByUuid(const QString& uuid) = 0;
   virtual std::vector<ServerItem> getServers(bool includeDeleted) = 0;
-  virtual ServerItem deleteServer(const QString& uuid, bool undelete=false) = 0;
-  virtual void addServer(ServerItem item) = 0;
-  virtual void updateServer(ServerItem item) = 0;
+  virtual bool deleteServer(const QString& uuid, DeleteType deleteAction=PLAIN_DELETE) = 0;
+  virtual bool addServer(ServerItem item) = 0;
+  virtual bool updateServer(ServerItem item) = 0;
 
 
  protected:

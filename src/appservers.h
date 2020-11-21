@@ -35,6 +35,7 @@ class AppServers : public QObject {
   void writeServers(const QString& path="");
   void addServer(const ServerItem& item);
   void deleteServer(const QString& serverUuid);
+  void purgeServer(const QString& serverUuid);
   void restoreServer(const QString& serverUuid);
   ServerItem getServerByUuid(const QString& serverUuid);
   std::vector<ServerItem> getServers(bool includeDeleted=false);
@@ -44,6 +45,9 @@ class AppServers : public QObject {
   QString secretKey(QString serverUuid="");
   QString hostPath(QString serverUuid="");
   QString serverName(QString serverUuid="");
+
+ signals:
+  void listUpdated();
 
 
  private:

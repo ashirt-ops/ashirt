@@ -49,7 +49,6 @@ class ServersV2 : public ServerSet {
     static std::vector<ServerItem> fullServerList; // cache this list to avoid re-sorting a no-change list
 
     if (dirty) {
-      std::cout << "re-generating server list" << std::endl;
       fullServerList.clear();
       fullServerList.reserve(entries.size());
       for (auto serverEntry : entries) {
@@ -71,21 +70,29 @@ class ServersV2 : public ServerSet {
     return fullServerList;
   }
 
-  ServerItem deleteServer(const QString& uuid, bool undelete) override {
+  bool deleteServer(const QString& uuid, DeleteType deleteAction) override {
     auto position = entries.find(uuid);
     if (position == entries.end()) {
-      return ServerItem();
+      return false;
     }
-    position->second.deleted = undelete ? false : true;
-    updateServersFile();
+    if (deleteAction == PLAIN_DELETE) {
+      position->second.deleted = true;
+    }
+    else if(deleteAction == RESTORE) {
+      position->second.deleted = false;
+    }
+    else if (deleteAction == PERMANENT_DELETE) {
+      entries.erase(position);
+    }
     dirty = true;
-    return position->second;
+    updateServersFile();
+    return dirty;
   }
 
-  void addServer(ServerItem item) override {
+  bool addServer(ServerItem item) override {
     if (item.isValid()) {
       auto knownServers = getServers(true);
-      int newId = (knownServers.size() > 0) ? knownServers.back().getId() : 1;
+      int newId = knownServers.size() > 0 ? knownServers.back().getId() + 1 : 1;
 
       auto itemCopy = ServerItem(newId, item.getServerUuid(),
           item.serverName, item.accessKey, item.secretKey, item.hostPath, item.deleted);
@@ -94,12 +101,13 @@ class ServersV2 : public ServerSet {
       dirty = true;
       updateServersFile();
     }
+    return dirty;
   }
 
-  void updateServer(ServerItem item) override {
+  bool updateServer(ServerItem item) override {
     auto foundItem = entries.find(item.getServerUuid());
     if (foundItem != entries.end()) {
-      // only moving fields that are editable -- other fields are ignored.
+      // only changing fields that are editable -- other fields are ignored.
       foundItem->second.serverName = item.serverName;
       foundItem->second.accessKey = item.accessKey;
       foundItem->second.secretKey = item.secretKey;
@@ -108,6 +116,7 @@ class ServersV2 : public ServerSet {
       dirty = true;
       updateServersFile();
     }
+    return dirty;
   }
 
  protected:
