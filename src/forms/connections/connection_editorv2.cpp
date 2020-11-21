@@ -2,6 +2,7 @@
 
 #include <QVariant>
 #include <iostream>
+#include <QMessageBox>
 
 #include "appservers.h"
 
@@ -15,7 +16,6 @@ ConnectionEditorV2::~ConnectionEditorV2() {
   delete connectionsList;
   delete deleteButton;
   delete addButton;
-  delete includeDeletedCheckbox;
 
   delete closeWindowAction;
   delete gridLayout;
@@ -40,36 +40,40 @@ void ConnectionEditorV2::buildUi() {
   deleteButton = simpleButton("-", 40, 25);
   deleteButton->setEnabled(false); // start disabled, since no item is selected
   addButton = simpleButton("+", 40, 25);
-  includeDeletedCheckbox = new QCheckBox("Include Deleted", this);
-  includeDeletedCheckbox->setChecked(false);
-  includeDeletedCheckbox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
   connectionEditArea = new ConnectionProperties(this);
   connectionEditArea->setEnabled(false); // start disabled, since no item is selected
   connectionsList = new QListWidget(this);
-  connectionsList->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+  connectionsList->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  connectionsList->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
   // Layout
-  /*        0                 1             2              3
-       +---------------+-------------+-------------+--------------------+
-    0  | Add Btn       | Delete Btn  + Incl Deleted|                    |
-       +---------------+-------------+-------------+                    +
-    1  |      Connection Selector                  |     Connection     |
-       |              Menu                         |     Properties     |
-       |                                           |                    |
-       +---------------+-------------+-------------+--------------------+
+  /*        0                 1              2
+       +---------------+-------------+--------------------+
+    0  | Add Btn       | Delete Btn  |                    |
+       +---------------+-------------+                    +
+    1  |      Connection Selector    |     Connection     |
+       |              Menu           |     Properties     |
+       |                             |                    |
+       +---------------+-------------+--------------------+
   */
 
   // row 0
   gridLayout->addWidget(addButton, 0, 0);
-  gridLayout->addWidget(deleteButton, 0, 1);
-  gridLayout->addWidget(includeDeletedCheckbox, 0, 2);
+  gridLayout->addWidget(deleteButton, 0, 1, Qt::AlignRight);
 
   // row 0 + 1
-  gridLayout->addWidget(connectionEditArea, 0, 3, 3, 1);
+  gridLayout->addWidget(connectionEditArea, 0, 2, 2, 1);
 
   // row 1
-  gridLayout->addWidget(connectionsList, 1, 0, 1, 3);
+  gridLayout->addWidget(connectionsList, 1, 0, 1, 2);
+
+  // adjust how the dialog will expand -- we want the +/- buttons to always align with the list area
+  gridLayout->setColumnStretch(0, 0);
+  gridLayout->setColumnStretch(1, 0);
+  gridLayout->setColumnStretch(2, 1);
+  gridLayout->setRowStretch(0, 0);
+  gridLayout->setRowStretch(1, 1);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -87,21 +91,26 @@ void ConnectionEditorV2::wireUi() {
   connect(addButton, btnClicked, this, &ConnectionEditorV2::addClicked);
   connect(deleteButton, btnClicked, this, &ConnectionEditorV2::deleteClicked);
   connect(connectionsList, &QListWidget::itemSelectionChanged, this, &ConnectionEditorV2::onItemSelectionChanged);
-  connect(includeDeletedCheckbox, &QCheckBox::stateChanged, this, &ConnectionEditorV2::onIncludeDeletedStateChange);
 
-  connect(connectionEditArea, &ConnectionProperties::onSave, this, [](ServerItem data){
+  connect(connectionEditArea, &ConnectionProperties::onSave, [this](ServerItem data){
+    // we can only save a single item, so only one row is selected
+    int currentRow = connectionsList->currentRow();
     AppServers::getInstance().updateServer(data);
+    repopulateTable();
+    connectionsList->setCurrentRow(currentRow);
   });
+
 }
 
 void ConnectionEditorV2::showEvent(QShowEvent* evt) {
   QDialog::showEvent(evt);
+  connectionsList->clearSelection();
   repopulateTable();
 }
 
 void ConnectionEditorV2::repopulateTable() {
   connectionsList->clear();
-  std::vector<ServerItem> serverList = AppServers::getInstance().getServers(includeDeletedCheckbox->isChecked());
+  std::vector<ServerItem> serverList = AppServers::getInstance().getServers();
   for (auto server : serverList) {
     auto item = buildServerItem(server);
     connectionsList->addItem(item);
@@ -128,6 +137,7 @@ void ConnectionEditorV2::addClicked() {
 
   repopulateTable();
   connectionsList->setCurrentRow(connectionsList->count() - 1);
+  connectionEditArea->highlightNameTextbox();
 }
 
 void ConnectionEditorV2::deleteClicked() {
@@ -140,18 +150,27 @@ void ConnectionEditorV2::deleteClicked() {
   // do the same action for all selected items, based on the first selection
   auto firstItem = qvariant_cast<ServerItem>(selectedItems[0]->data(Qt::UserRole));
   bool doDelete = !firstItem.deleted;
+
+  if (doDelete) {
+    QString deleteMsg = "Are you sure you want to delete %1?";
+    deleteMsg = deleteMsg.arg(selectedItems.length() == 1
+                      ? "this server"
+                      : QString("these %1 servers").arg(selectedItems.size()) );
+    auto reply = QMessageBox::question(this, "Delete connections?", deleteMsg);
+    if (reply != QMessageBox::Yes) {
+      return;
+    }
+  }
+
   for(auto selectedItem : selectedItems) {
     auto data = qvariant_cast<ServerItem>(selectedItem->data(Qt::UserRole));
 
     doDelete
-        ? AppServers::getInstance().deleteServer(data.getServerUuid())
+        ? AppServers::getInstance().purgeServer(data.getServerUuid())
         : AppServers::getInstance().restoreServer(data.getServerUuid());
   }
 
   repopulateTable();
-  if( includeDeletedCheckbox->isChecked() ) {
-    connectionsList->setCurrentRow(currentRow);
-  }
 }
 
 void ConnectionEditorV2::onItemSelectionChanged() {
@@ -173,19 +192,6 @@ void ConnectionEditorV2::onItemSelectionChanged() {
   QListWidgetItem* item = selectedItems[0];
   auto data = qvariant_cast<ServerItem>(item->data(Qt::UserRole));
   connectionEditArea->loadItem(data);
-}
-
-void ConnectionEditorV2::onIncludeDeletedStateChange(int state) {
-  Q_UNUSED(state);
-  auto selectedItems = connectionsList->selectedItems();
-  std::vector<QString> selectedUuids;
-
-  for(auto item : selectedItems) {
-    auto data = qvariant_cast<ServerItem>(item->data(Qt::UserRole));
-    selectedUuids.push_back(data.getServerUuid());
-  }
-  repopulateTable();
-  selectConnectionUuids(selectedUuids);
 }
 
 void ConnectionEditorV2::selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly) {

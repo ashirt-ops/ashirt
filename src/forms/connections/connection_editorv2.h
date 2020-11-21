@@ -2,7 +2,6 @@
 #define CONNECTIONEDITORV2_H
 
 #include <QAction>
-#include <QCheckBox>
 #include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -38,7 +37,6 @@ class ConnectionEditorV2 : public QDialog {
   void addClicked();
   void deleteClicked();
   void onItemSelectionChanged();
-  void onIncludeDeletedStateChange(int state);
 
 
  private:
@@ -47,10 +45,10 @@ class ConnectionEditorV2 : public QDialog {
   // UI Elements
   QGridLayout* gridLayout = nullptr;
 
+
   QListWidget* connectionsList = nullptr;
   QPushButton* addButton = nullptr;
   QPushButton* deleteButton = nullptr;
-  QCheckBox* includeDeletedCheckbox = nullptr;
   ConnectionProperties* connectionEditArea = nullptr;
 };
 
