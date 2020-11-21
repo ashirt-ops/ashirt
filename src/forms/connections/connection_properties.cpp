@@ -112,12 +112,19 @@ void ConnectionProperties::onSaveClicked() {
   auto rtn = ServerItem(loadedItem.getId(), loadedItem.getServerUuid(), nameTextBox->text(),
                         accessKeyTextBox->text(), secretKeyTextBox->text(), hostPathTextBox->text(),
                         loadedItem.deleted);
+  lastItem = loadedItem;
   emit onSave(rtn);
 }
 
 
 void ConnectionProperties::loadItem(ServerItem item) {
+  bool isSameItem = lastItem.getServerUuid() == item.getServerUuid();
   loadedItem = item;
+  if (!isSameItem) {
+    nameTextBox->setFocus();
+    lastItem = emptyItem; //clear the item, so we don't trigger weird behavior
+  }
+  connectionStatus->abortRequest();
   resetForm();
 }
 
@@ -126,12 +133,12 @@ void ConnectionProperties::resetForm() {
   accessKeyTextBox->setText(loadedItem.accessKey);
   secretKeyTextBox->setText(loadedItem.secretKey);
   hostPathTextBox->setText(loadedItem.hostPath);
+  connectionStatus->clearStatus();
 }
 
 void ConnectionProperties::clearForm() {
   loadedItem = emptyItem;
   resetForm();
-  connectionStatus->clearStatus();
 }
 
 bool ConnectionProperties::isDirty() {
@@ -156,4 +163,8 @@ void ConnectionProperties::setEnabled(bool enable) {
   secretKeyTextBox->setEnabled(enable);
   connectionStatus->setEnabled(enable);
   saveButton->setEnabled(enable);
+}
+
+void ConnectionProperties::highlightNameTextbox() {
+  nameTextBox->selectAll();
 }

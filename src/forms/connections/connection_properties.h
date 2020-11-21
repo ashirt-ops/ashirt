@@ -40,6 +40,7 @@ class ConnectionProperties : public QWidget {
   bool isDirty();
   void clearForm();
   void setEnabled(bool enable);
+  void highlightNameTextbox();
 
  signals:
   void onSave(ServerItem data);
@@ -51,6 +52,7 @@ class ConnectionProperties : public QWidget {
  private:
   ServerItem emptyItem;
   ServerItem loadedItem;
+  ServerItem lastItem;
 
   // UI Elements
   QGridLayout* gridLayout = nullptr;
