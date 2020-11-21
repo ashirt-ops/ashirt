@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QWidget>
+#include <QSpacerItem>
 
 #include "components/connection_checker/connectionchecker.h"
 #include "config/server_item.h"
@@ -65,7 +66,7 @@ class ConnectionProperties : public QWidget {
   QLineEdit* accessKeyTextBox = nullptr;
   QLineEdit* secretKeyTextBox = nullptr;
   QLineEdit* hostPathTextBox = nullptr;
-
+  QSpacerItem* spacer = nullptr;
 };
 
 #endif // CONNECTIONPROPERTIES_H

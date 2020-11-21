@@ -18,6 +18,7 @@ ConnectionProperties::~ConnectionProperties() {
   delete secretKeyTextBox;
   delete hostPathTextBox;
 
+  delete spacer;
   delete gridLayout;
 }
 
@@ -34,13 +35,17 @@ void ConnectionProperties::buildUi() {
   _accessKeyLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   _secretKeyLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
+  spacer = new QSpacerItem(1, 1, QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+
   nameTextBox = new QLineEdit(this);
   hostPathTextBox = new QLineEdit(this);
   accessKeyTextBox = new QLineEdit(this);
   secretKeyTextBox = new QLineEdit(this);
-  connectionStatus = new ConnectionChecker(false, this);
+  connectionStatus = new ConnectionChecker(true, this);
+  connectionStatus->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
   saveButton = new QPushButton("Save", this);
   saveButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  saveButton->setDefault(true);
 
   // Layout
   /*        0                 1            2
@@ -84,7 +89,11 @@ void ConnectionProperties::buildUi() {
   row++;
 
   // row 4
-  gridLayout->addWidget(connectionStatus, row, 0, 1, 3);
+  gridLayout->addWidget(connectionStatus, row, 0, 1, gridLayout->columnCount(), Qt::AlignLeft);
+  row++;
+
+  // row 5
+  gridLayout->addItem(spacer, row, 0, 1, gridLayout->columnCount());
   row++;
 
   // row 5
