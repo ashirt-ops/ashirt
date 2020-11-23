@@ -107,16 +107,12 @@ class FileHelpers {
   /// @throws a FileError if any issues occur while writing the filethere are issues opening or
   /// reading the file.
   static QByteArray readFile(QString path) {
-    QFile file(path);
-    QByteArray data;
-    bool opened = file.open(QIODevice::ReadOnly);
-    if (opened) {
-      data = file.readAll();
+    auto result = readFileNoError(path);
+    if (result.file->error() != QFile::NoError) {
+      throw FileError::mkError("Unable to read from file", path.toStdString(),
+                               result.file->error());
     }
-    if (file.error() != QFile::NoError) {
-      throw FileError::mkError("Unable to read from file", path.toStdString(), file.error());
-    }
-    return data;
+    return result.data;
   }
 
   /// mkdirs creates the necessary folders along a given path.
