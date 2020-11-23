@@ -122,8 +122,6 @@ HEADERS += \
     src/exceptions/databaseerr.h \
     src/exceptions/fileerror.h \
     src/forms/add_operation/createoperation.h \
-    src/forms/connections/connection_cell_data.h \
-    src/forms/connections/connection_editor.h \
     src/forms/connections/connection_editorv2.h \
     src/forms/connections/connection_properties.h \
     src/forms/connections/connections_table_analysis.h \

@@ -6,7 +6,6 @@
 #include "models/tag.h"
 #include "config/server_item.h"
 #include "models/server_setting.h"
-#include "forms/connections/connection_cell_data.h"
 
 QDataStream& operator<<(QDataStream& out, const model::Tag& v) {
   out << v.tagName << v.id << v.serverTagId;
@@ -76,17 +75,6 @@ QDataStream& operator>>(QDataStream& in, QMap<QString, model::ServerSetting>& v)
   return in;
 }
 
-QDataStream& operator<<(QDataStream& out, const ConnectionCellData& v) {
-  out << v.originalData << v.cellType;
-  return out;
-}
-
-QDataStream& operator>>(QDataStream& in, ConnectionCellData& v) {
-  in >> v.originalData;
-  in >> v.cellType;
-  return in;
-}
-
 QDataStream& operator<<(QDataStream& out, const ServerItem& v) {
   auto copy = ServerItem(v);
   out << copy.getServerUuid() << copy.getId() << copy.serverName
@@ -118,7 +106,6 @@ class TypeStreams {
     qRegisterMetaTypeStreamOperators<std::vector<model::Tag>>("TagVector");
     qRegisterMetaTypeStreamOperators<model::ServerSetting>("ServerSetting");
     qRegisterMetaTypeStreamOperators<QMap<QString, model::ServerSetting>>("ServerSettingMap");
-    qRegisterMetaTypeStreamOperators<ConnectionCellData>("ConnectionCell");
     qRegisterMetaTypeStreamOperators<ServerItem>("ServerItem");
   }
 };
