@@ -18,7 +18,6 @@ ConnectionProperties::~ConnectionProperties() {
   delete secretKeyTextBox;
   delete hostPathTextBox;
 
-  delete spacer;
   delete gridLayout;
 }
 
