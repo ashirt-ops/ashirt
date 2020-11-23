@@ -1,5 +1,5 @@
-#ifndef CONNECTIONEDITORV2_H
-#define CONNECTIONEDITORV2_H
+#ifndef CONNECTIONEDITOR_H
+#define CONNECTIONEDITOR_H
 
 #include <QAction>
 #include <QDialog>
@@ -14,12 +14,12 @@
 #include "connection_properties.h"
 #include "config/server_item.h"
 
-class ConnectionEditorV2 : public QDialog {
+class ConnectionEditor : public QDialog {
   Q_OBJECT
 
  public:
-  ConnectionEditorV2(QWidget *parent = nullptr);
-  ~ConnectionEditorV2();
+  ConnectionEditor(QWidget *parent = nullptr);
+  ~ConnectionEditor();
 
  private:
   /// buildUi constructs the window structure.
@@ -52,4 +52,4 @@ class ConnectionEditorV2 : public QDialog {
   ConnectionProperties* connectionEditArea = nullptr;
 };
 
-#endif // CONNECTIONEDITORV2_H
+#endif // CONNECTIONEDITOR_H

@@ -65,7 +65,6 @@ SOURCES += \
     src/db/databaseconnection.cpp \
     src/forms/add_operation/createoperation.cpp \
     src/forms/connections/connection_editor.cpp \
-    src/forms/connections/connection_editorv2.cpp \
     src/forms/connections/connection_properties.cpp \
     src/forms/evidence_filter/evidencefilter.cpp \
     src/forms/evidence_filter/evidencefilterform.cpp \
@@ -122,7 +121,7 @@ HEADERS += \
     src/exceptions/databaseerr.h \
     src/exceptions/fileerror.h \
     src/forms/add_operation/createoperation.h \
-    src/forms/connections/connection_editorv2.h \
+    src/forms/connections/connection_editor.h \
     src/forms/connections/connection_properties.h \
     src/forms/connections/connections_table_analysis.h \
     src/forms/evidence_filter/evidencefilter.h \

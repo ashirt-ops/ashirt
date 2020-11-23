@@ -99,7 +99,7 @@ void TrayManager::buildUi() {
   creditsWindow = new Credits(this);
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
-  connEditorWindow = new ConnectionEditorV2(this);
+  connEditorWindow = new ConnectionEditor(this);
   createOperationWindow = new CreateOperation(this);
 
   trayIconMenu = new QMenu(this);

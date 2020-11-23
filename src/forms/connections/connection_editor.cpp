@@ -1,4 +1,4 @@
-#include "connection_editorv2.h"
+#include "connection_editor.h"
 
 #include <QVariant>
 #include <iostream>
@@ -6,12 +6,12 @@
 
 #include "appservers.h"
 
-ConnectionEditorV2::ConnectionEditorV2(QWidget *parent) : QDialog(parent) {
+ConnectionEditor::ConnectionEditor(QWidget *parent) : QDialog(parent) {
   buildUi();
   wireUi();
 }
 
-ConnectionEditorV2::~ConnectionEditorV2() {
+ConnectionEditor::~ConnectionEditor() {
   delete connectionEditArea;
   delete connectionsList;
   delete deleteButton;
@@ -21,7 +21,7 @@ ConnectionEditorV2::~ConnectionEditorV2() {
   delete gridLayout;
 }
 
-void ConnectionEditorV2::buildUi() {
+void ConnectionEditor::buildUi() {
   gridLayout = new QGridLayout(this);
 
   auto simpleButton = [this](QString name, int maxWidth = 0, int minWidth = 0){
@@ -85,12 +85,12 @@ void ConnectionEditorV2::buildUi() {
   this->setLayout(gridLayout);
 }
 
-void ConnectionEditorV2::wireUi() {
+void ConnectionEditor::wireUi() {
   auto btnClicked = &QPushButton::clicked;
 
-  connect(addButton, btnClicked, this, &ConnectionEditorV2::addClicked);
-  connect(deleteButton, btnClicked, this, &ConnectionEditorV2::deleteClicked);
-  connect(connectionsList, &QListWidget::itemSelectionChanged, this, &ConnectionEditorV2::onItemSelectionChanged);
+  connect(addButton, btnClicked, this, &ConnectionEditor::addClicked);
+  connect(deleteButton, btnClicked, this, &ConnectionEditor::deleteClicked);
+  connect(connectionsList, &QListWidget::itemSelectionChanged, this, &ConnectionEditor::onItemSelectionChanged);
 
   connect(connectionEditArea, &ConnectionProperties::onSave, [this](ServerItem data){
     // we can only save a single item, so only one row is selected
@@ -102,13 +102,13 @@ void ConnectionEditorV2::wireUi() {
 
 }
 
-void ConnectionEditorV2::showEvent(QShowEvent* evt) {
+void ConnectionEditor::showEvent(QShowEvent* evt) {
   QDialog::showEvent(evt);
   connectionsList->clearSelection();
   repopulateTable();
 }
 
-void ConnectionEditorV2::repopulateTable() {
+void ConnectionEditor::repopulateTable() {
   connectionsList->clear();
   std::vector<ServerItem> serverList = AppServers::getInstance().getServers();
   for (auto server : serverList) {
@@ -117,7 +117,7 @@ void ConnectionEditorV2::repopulateTable() {
   }
 }
 
-QListWidgetItem* ConnectionEditorV2::buildServerItem(ServerItem server) {
+QListWidgetItem* ConnectionEditor::buildServerItem(ServerItem server) {
   auto item = new QListWidgetItem();
   auto castedData = QVariant::fromValue(server);
   item->setData(Qt::UserRole, castedData);
@@ -131,7 +131,7 @@ QListWidgetItem* ConnectionEditorV2::buildServerItem(ServerItem server) {
   return item;
 }
 
-void ConnectionEditorV2::addClicked() {
+void ConnectionEditor::addClicked() {
   ServerItem s("New Connection", "", "", "");
   AppServers::getInstance().addServer(s);
 
@@ -140,7 +140,7 @@ void ConnectionEditorV2::addClicked() {
   connectionEditArea->highlightNameTextbox();
 }
 
-void ConnectionEditorV2::deleteClicked() {
+void ConnectionEditor::deleteClicked() {
   int currentRow = connectionsList->currentRow();
   auto selectedItems = connectionsList->selectedItems();
   if (selectedItems.length() == 0) {
@@ -173,7 +173,7 @@ void ConnectionEditorV2::deleteClicked() {
   repopulateTable();
 }
 
-void ConnectionEditorV2::onItemSelectionChanged() {
+void ConnectionEditor::onItemSelectionChanged() {
   auto selectedItems = connectionsList->selectedItems();
   if (selectedItems.length() == 0) {
     connectionEditArea->clearForm();
@@ -194,7 +194,7 @@ void ConnectionEditorV2::onItemSelectionChanged() {
   connectionEditArea->loadItem(data);
 }
 
-void ConnectionEditorV2::selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly) {
+void ConnectionEditor::selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly) {
   auto allItems = connectionsList->findItems("", Qt::MatchContains);
 
   for(auto item : allItems) {
