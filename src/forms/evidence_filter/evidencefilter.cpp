@@ -142,26 +142,58 @@ Tri EvidenceFilters::parseTriFilterValue(const QString& text, bool strict) {
 }
 
 std::vector<std::pair<QString, QString>> EvidenceFilters::tokenizeFilterText(const QString& text) {
-  QStringList list = text.split(":", Qt::SkipEmptyParts);
-  // now in: [Key][value key]...[value] format
-  QStringList keys;
-  QStringList values;
-  keys.append(list.first());
-
-  for (int i = 1; i < list.size() - 1; i++) {
-    auto valueKeyPair = list.at(i).split(" ", Qt::SkipEmptyParts);
-    keys.append(valueKeyPair.last());
-    valueKeyPair.removeLast();
-    values.append(valueKeyPair.join(" "));
-  }
-  values.append(list.last());
-
+  bool inQuote = false;
+  int startWordIndex = 0;
   std::vector<std::pair<QString, QString>> rtn;
 
-  for (int i = 0; i < keys.length(); i++) {
-    auto keyvalue = std::pair<QString, QString>(keys.at(i), values.at(i));
-    rtn.emplace_back(keyvalue);
+  bool hasValue = false;
+  int sepLocation = -1;
+
+  auto maybeAddWord = [&rtn, &hasValue, text](int startLocation, int sepLocation, int endLocation){
+    hasValue = false;
+
+    if (sepLocation == -1) {
+      return;
+    }
+    QString key = text.mid(startLocation, sepLocation - startLocation).trimmed().replace("\"", "");
+    QString value = text.mid(sepLocation+1, endLocation - sepLocation).trimmed().replace("\"", "");
+    if (key == "" || value == "") {
+      return;
+    }
+    QString adjustedPhrase = key + ":" + value;
+
+    rtn.push_back(std::pair<QString, QString>(key, value));
+  };
+
+  for(int i = 0; i < text.size(); i++) {
+    QChar ch = text.at(i);
+    bool addWord = false;
+
+    if(sepLocation > -1 && !ch.isSpace()) {
+      hasValue = true;
+    }
+
+    if(ch == "\"") {
+      inQuote = !inQuote;
+      if(inQuote == false) {
+        addWord = true;
+      }
+    }
+    else if(ch == ":" && !inQuote && sepLocation == -1) {
+      sepLocation = i;
+    }
+    else if(ch.isSpace() && !inQuote) {
+      addWord = true;
+    }
+
+    if(addWord && hasValue) {
+      maybeAddWord(startWordIndex, sepLocation, i);
+      sepLocation = -1;
+      startWordIndex = i+1;
+    }
   }
+  maybeAddWord(startWordIndex, sepLocation, text.length()-1);
+
   return rtn;
 }
 
@@ -205,3 +237,51 @@ QString EvidenceFilters::triToString(const Tri& tri) {
       return "Any";
   }
 }
+
+// once unit tests are available, the should serve as a good starting point
+
+//bool matches(std::vector<std::pair<QString, QString>> a, std::vector<std::pair<QString, QString>> b, QString label="") {
+//  if (label != "") {
+//    std::cout << "[" << label.toStdString() << "]";
+//  }
+
+//  if (a.size() != b.size()) {
+//    std::cout << "No match: size difference" << std::endl;
+//    return false;
+//  }
+
+//  for(size_t i = 0; i < a.size(); i++) {
+//    auto expected = a[i];
+//    auto actual = b[i];
+//    if (expected.first != actual.first || expected.second != actual.second) {
+//      std::cout << "No match: " << expected.first.toStdString() << "!=" << actual.first.toStdString()
+//                << " || " << expected.second.toStdString() << "!=" << actual.second.toStdString()
+//                << std::endl;
+//      return false;
+//    }
+//  }
+
+//  std::cout << "okay!" << std::endl;
+
+//  return true;
+//}
+
+//void unitTestsForTokenize() {
+//  auto mkpair = [](QString a, QString b){
+//    return std::pair<QString,QString>(a, b);
+//  };
+//  // existing cases that should work
+//  matches(tokenizeFilterText("a:b"), {mkpair("a", "b")});
+//  matches(tokenizeFilterText("a:b c:d"), {mkpair("a", "b"), mkpair("c", "d")});
+//  matches(tokenizeFilterText("a:b  c:d"), {mkpair("a", "b"), mkpair("c", "d")});
+//  matches(tokenizeFilterText("a:b c:d "), {mkpair("a", "b"), mkpair("c", "d")});
+//  matches(tokenizeFilterText("a : b c : d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
+//  matches(tokenizeFilterText("a :b c :d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
+//  matches(tokenizeFilterText("a: b c: d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
+
+//  // targets
+//  matches(tokenizeFilterText("name:\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")});
+//  matches(tokenizeFilterText("name:\"joel smith\"age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")});
+//  matches(tokenizeFilterText("name:\"joel : smith\" age:38"), {mkpair("name", "joel : smith"), mkpair("age", "38")});
+//  matches(tokenizeFilterText("\"name\":\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")}); // no good
+//}
