@@ -3,7 +3,7 @@
 
 #include "evidencefilter.h"
 
-EvidenceFilters::EvidenceFilters() = default;
+#include "appservers.h"
 
 QString EvidenceFilters::standardizeFilterKey(QString key) {
   if (FILTER_KEYS_ERROR.contains(key, Qt::CaseInsensitive)) {
@@ -30,6 +30,9 @@ QString EvidenceFilters::standardizeFilterKey(QString key) {
   if (FILTER_KEYS_SERVER_UUID.contains(key, Qt::CaseInsensitive)) {
     return FILTER_KEY_SERVER_UUID;
   }
+  if (FILTER_KEYS_SERVER_NAME.contains(key, Qt::CaseInsensitive)) {
+    return FILTER_KEY_SERVER_NAME;
+  }
   return key;
 }
 
@@ -47,35 +50,39 @@ QString EvidenceFilters::toString() const {
   };
   static auto triToText = [](Tri t) -> QString { return t == Yes ? "yes" : "no"; };
 
+  QString fieldTemplate = " %1: %2"; //intentional space to provide gaps between fields
+  auto quote = [](QString val){ return QString(R"("%1")").arg(val); };
+
   QString rtn = "";
+  auto append = [&rtn, fieldTemplate](QString key, QString value){
+    rtn.append(fieldTemplate.arg(key, value));
+  };
+
   if (!operationSlug.isEmpty()) {
-    rtn.append(" " + FILTER_KEY_OPERATION + ": " + operationSlug);
+    append(FILTER_KEY_OPERATION, operationSlug);
   }
   if (!contentType.isEmpty()) {
-    rtn.append(" " + FILTER_KEY_CONTENT_TYPE + ": " + contentType);
+    append(FILTER_KEY_CONTENT_TYPE, contentType);
   }
   if (hasError != Any) {
-    rtn.append(" " + FILTER_KEY_ERROR + ": " + triToText(hasError));
+    append(FILTER_KEY_ERROR, triToText(hasError));
   }
   if (startDate.isValid() || endDate.isValid()) {
     if (startDate == endDate) {
-      rtn.append(" " + FILTER_KEY_ON + ": " + toCommonDate(startDate));
+      append(FILTER_KEY_ON, toCommonDate(startDate));
     }
-    else {
-      if (startDate.isValid()) {
-        rtn.append(" " + FILTER_KEY_FROM + ": " + toCommonDate(startDate));
-      }
-
-      if (endDate.isValid()) {
-        rtn.append(" " + FILTER_KEY_TO + ": " + toCommonDate(endDate));
-      }
+    else if (startDate.isValid()) {
+      append(FILTER_KEY_FROM, toCommonDate(startDate));
+    }
+    else { // endDate must be valid
+      append(FILTER_KEY_TO, toCommonDate(endDate));
     }
   }
   if (submitted != Any) {
-    rtn.append(" " + FILTER_KEY_SUBMITTED + ": " + triToText(submitted));
+    append(FILTER_KEY_SUBMITTED, triToText(submitted));
   }
   if (!serverUuid.isEmpty()) {
-    rtn.append(" " + FILTER_KEY_SERVER_UUID + ": " + serverUuid);
+    append(FILTER_KEY_SERVER_NAME, quote(getServerName()));
   }
 
   return rtn.trimmed();
@@ -104,8 +111,14 @@ EvidenceFilters EvidenceFilters::parseFilter(const QString& text) {
     else if (key == FILTER_KEY_OPERATION) {
       filter.operationSlug = value;
     }
-    else if (key == FILTER_KEY_SERVER_UUID) {
-      filter.serverUuid = value;
+    else if (key == FILTER_KEY_SERVER_UUID || key == FILTER_KEY_SERVER_NAME) {
+      // these speak to the same field -- prefer the value in serverUuid
+      if (key == FILTER_KEY_SERVER_UUID) {
+        filter.serverUuid = value;
+      }
+      else {
+        filter.setServerByName(value);
+      }
     }
     else if (key == FILTER_KEY_TO) {
       filter.endDate = parseDateString(value);
@@ -126,10 +139,6 @@ EvidenceFilters EvidenceFilters::parseFilter(const QString& text) {
   return filter;
 }
 
-// parseTriFilterValue returns a Tri object given a string. If the given string is "t" or "y"
-// then Tri::Yes will be returned. Otherwise, in non-strict mode, Tri::No will be returned.
-// In strict mode, Tri::No will be returned only if it starts with "f" or "n", otherwise Tri::Any
-// is returned.
 Tri EvidenceFilters::parseTriFilterValue(const QString& text, bool strict) {
   auto val = text.toLower().trimmed();
   if (val.startsWith("t") || val.startsWith("y")) {
@@ -215,9 +224,6 @@ QDate EvidenceFilters::parseDateString(QString text) {
   return QDate::fromString(text, DATE_FORMAT);
 }
 
-// parseTri returns Tri::Yes if the given text is exactly "Yes", Tri::No if the text is exactly "No"
-// otherwise Tri::Any.
-// This is the inverse of triToString
 Tri EvidenceFilters::parseTri(const QString& text) {
   if (text == "Yes") {
     return Yes;
@@ -228,8 +234,6 @@ Tri EvidenceFilters::parseTri(const QString& text) {
   return Any;
 }
 
-// triToString returns "Yes" for Tri::Yes, "No" for Tri::No, otherwise "Any"
-// This is the inverse to parseTri
 QString EvidenceFilters::triToString(const Tri& tri) {
   switch (tri) {
     case Yes:
@@ -241,7 +245,40 @@ QString EvidenceFilters::triToString(const Tri& tri) {
   }
 }
 
+void EvidenceFilters::setServer(QString serverUuid) {
+  this->serverUuid = serverUuid;
+}
+
+QString EvidenceFilters::getServerUuid() {
+  return serverUuid;
+}
+QString EvidenceFilters::getServerUuid() const {
+  return serverUuid;
+}
+
+QString EvidenceFilters::getServerName() {
+  return serverUuid == "" ? "" : AppServers::getInstance().serverName(serverUuid);
+}
+
+QString EvidenceFilters::getServerName() const {
+  return serverUuid == "" ? "" : AppServers::getInstance().serverName(serverUuid);
+}
+
+
+void EvidenceFilters::setServerByName(QString serverName) {
+  auto list = AppServers::getInstance().getServers(true);
+  for(auto server : list) {
+    if (server.serverName == serverName) {
+      setServer(server.getServerUuid());
+    }
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////
 // once unit tests are available, the should serve as a good starting point
+///////////////////////////////////////////////////////////////////////////
+
 
 //void runTests() {
 //  auto matches = [](std::vector<std::pair<QString, QString>> a, std::vector<std::pair<QString, QString>> b, QString label="") {

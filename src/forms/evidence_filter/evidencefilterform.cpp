@@ -207,7 +207,7 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
   filter.hasError = EvidenceFilters::parseTri(erroredComboBox->currentText());
   filter.submitted = EvidenceFilters::parseTri(submittedComboBox->currentText());
   filter.operationSlug = operationComboBox->currentData().toString();
-  filter.serverUuid = serverComboBox->currentData().toString();
+  filter.setServer(serverComboBox->currentData().toString());
   filter.contentType = contentTypeComboBox->currentData().toString();
 
   // swap dates so smaller date is always "from" / after
@@ -229,7 +229,7 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
 }
 
 void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
-  UiHelpers::setComboBoxValue(serverComboBox, model.serverUuid);
+  UiHelpers::setComboBoxValue(serverComboBox, model.getServerUuid());
   UiHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
   UiHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
   erroredComboBox->setCurrentText(EvidenceFilters::triToString(model.hasError));

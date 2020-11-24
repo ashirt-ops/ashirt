@@ -329,7 +329,7 @@ void EvidenceManager::openTableContextMenu(QPoint pos) {
 void EvidenceManager::resetFilterButtonClicked() {
   EvidenceFilters filter;
   filter.operationSlug = AppSettings::getInstance().operationSlug();
-  filter.serverUuid = AppSettings::getInstance().serverUuid();
+  filter.setServer(AppSettings::getInstance().serverUuid());
   filterTextBox->setText(filter.toString());
   loadEvidence();
 }
@@ -428,10 +428,17 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   auto setColText = [this, row](int col, QString text) {
     evidenceTable->item(row, col)->setText(text);
   };
+
+  // try to use normal names for servers, if possible
+  auto serverValue = AppServers::getInstance().serverName(model.serverUuid);
+  if (serverValue.isEmpty()) {
+    serverValue = model.serverUuid;
+  }
+
   setColText(COL_DATE_CAPTURED, model.recordedDate.toLocalTime().toString(dateFormat));
   setColText(COL_DESCRIPTION, model.description);
   setColText(COL_OPERATION, model.operationSlug);
-  setColText(COL_SERVER, model.serverUuid);
+  setColText(COL_SERVER, serverValue);
   setColText(COL_CONTENT_TYPE, model.contentType);
   setColText(COL_SUBMITTED, model.uploadDate.isNull() ? "No" : "Yes");
   setColText(COL_FAILED, model.errorText == "" ? "" : "Yes");

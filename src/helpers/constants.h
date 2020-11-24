@@ -94,7 +94,7 @@ class Constants {
   static QString defaultServerName() { return "default"; }
 
   static QString legacyServerUuid() {
-      return "20a28c7c-ea24-4ee0-bb94-0ee63018d34b";  // randomly generated value
+    return "20a28c7c-ea24-4ee0-bb94-0ee63018d34b"; // randomly generated value -- this needs to match the value in the multiple-backends migration
   }
 
  private:
