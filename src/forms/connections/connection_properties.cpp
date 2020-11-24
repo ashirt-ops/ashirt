@@ -1,6 +1,7 @@
 #include "connection_properties.h"
 
 #include <QToolTip>
+#include <QRegularExpression>
 
 ConnectionProperties::ConnectionProperties(QWidget *parent) : QWidget(parent) {
   buildUi();
