@@ -54,6 +54,25 @@ class EvidenceFilters {
   static QString triToString(const Tri &tri);
 
  private:
+  /**
+   * @brief tokenizeFilterText splits up a string into a list of key-value pairs, in the order they were
+   * encountered. The mechanics are complicated.
+   *
+   * Text should be of the general form: [keyword]:[value] (repeated for each pair needed).
+   * Keywords should contain no colons or spaces (unless in quotes, but this is not preferred).
+   * Underscores, dashes, etc, are allowed.
+   * Values can be multiword, but do need to be enclosed by quotes if they use spaces.
+   * Colons separate the key from the value. Colons may be used in the value.
+   *
+   * Input vs Expected Output
+   * "tag : value" => {("tag", "value")}
+   * "tag1:value1 tag2:value2" => {("tag1", "value1"), ("tag2", "value2")}
+   * 'name: "George Washington" born:"February 22, 1732" aged:67' =>
+   *    {("name", "George Washington")("born", "February 22, 1732"), ("aged", "67")}
+   *
+   * @param text the given text to be tokenized
+   * @return a list of key/value words, in an encountered-ordered list
+   */
   static std::vector<std::pair<QString, QString>> tokenizeFilterText(const QString &text);
   static QDate parseDateString(QString text);
   static Tri parseTriFilterValue(const QString &text, bool strict = false);
