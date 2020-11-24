@@ -1,5 +1,7 @@
 #include "connection_properties.h"
 
+#include <QToolTip>
+
 ConnectionProperties::ConnectionProperties(QWidget *parent) : QWidget(parent) {
   buildUi();
   wireUi();
@@ -45,6 +47,9 @@ void ConnectionProperties::buildUi() {
   saveButton = new QPushButton("Save", this);
   saveButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   saveButton->setDefault(true);
+
+  normalBackground = nameTextBox->palette();
+  errorBackground.setColor(QPalette::Base, QColor(0xFF, 0x99, 0x99));
 
   // Layout
   /*        0                 1            2
@@ -108,7 +113,16 @@ void ConnectionProperties::wireUi() {
 }
 
 void ConnectionProperties::onSaveClicked() {
-  auto rtn = ServerItem(loadedItem.getId(), loadedItem.getServerUuid(), nameTextBox->text(),
+  QString nameText = nameTextBox->text().trimmed();
+  if (!QRegularExpression("^[^\"]+$").match(nameText).hasMatch()) {
+    nameTextBox->setPalette(errorBackground);
+    QToolTip::showText(nameTextBox->mapToGlobal(QPoint(10, -40)),
+                       "Names must be non-empty and must not contain double quotes(\")",
+                       nameTextBox, nameTextBox->rect(), 4000);
+    return;
+  }
+
+  auto rtn = ServerItem(loadedItem.getId(), loadedItem.getServerUuid(), nameText,
                         accessKeyTextBox->text(), secretKeyTextBox->text(), hostPathTextBox->text(),
                         loadedItem.deleted);
   lastItem = loadedItem;
@@ -129,6 +143,7 @@ void ConnectionProperties::loadItem(ServerItem item) {
 
 void ConnectionProperties::resetForm() {
   nameTextBox->setText(loadedItem.serverName);
+  nameTextBox->setPalette(normalBackground);
   accessKeyTextBox->setText(loadedItem.accessKey);
   secretKeyTextBox->setText(loadedItem.secretKey);
   hostPathTextBox->setText(loadedItem.hostPath);

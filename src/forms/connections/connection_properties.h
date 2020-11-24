@@ -53,6 +53,8 @@ class ConnectionProperties : public QWidget {
   ServerItem emptyItem;
   ServerItem loadedItem;
   ServerItem lastItem;
+  QPalette normalBackground;
+  QPalette errorBackground;
 
   // UI Elements
   QGridLayout* gridLayout = nullptr;
