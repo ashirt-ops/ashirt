@@ -149,12 +149,15 @@ std::vector<std::pair<QString, QString>> EvidenceFilters::tokenizeFilterText(con
   bool hasValue = false;
   int sepLocation = -1;
 
-  auto maybeAddWord = [&rtn, &hasValue, text](int startLocation, int sepLocation, int endLocation){
+  // maybeAddWord performs some validation and standardization on the given area. If the validation
+  // succeeds, then the "word" is added. Otherwise, it's dropped.
+  auto maybeAddWord = [&rtn, &hasValue, text](int startLocation, int sepLocation, int endLocation) {
     hasValue = false;
-
     if (sepLocation == -1) {
       return;
     }
+
+    // key and value trim before replacing to allow for leading and/or ending spaces
     QString key = text.mid(startLocation, sepLocation - startLocation).trimmed().replace("\"", "");
     QString value = text.mid(sepLocation+1, endLocation - sepLocation).trimmed().replace("\"", "");
     if (key == "" || value == "") {
@@ -240,48 +243,50 @@ QString EvidenceFilters::triToString(const Tri& tri) {
 
 // once unit tests are available, the should serve as a good starting point
 
-//bool matches(std::vector<std::pair<QString, QString>> a, std::vector<std::pair<QString, QString>> b, QString label="") {
-//  if (label != "") {
-//    std::cout << "[" << label.toStdString() << "]";
-//  }
+//void runTests() {
+//  auto matches = [](std::vector<std::pair<QString, QString>> a, std::vector<std::pair<QString, QString>> b, QString label="") {
+//    if (label != "") {
+//      auto copy = QString(label);
+//      copy.resize(30, ' ');
+//      std::cout << "[" << copy.toStdString() << "]     ";
+//    }
 
-//  if (a.size() != b.size()) {
-//    std::cout << "No match: size difference" << std::endl;
-//    return false;
-//  }
-
-//  for(size_t i = 0; i < a.size(); i++) {
-//    auto expected = a[i];
-//    auto actual = b[i];
-//    if (expected.first != actual.first || expected.second != actual.second) {
-//      std::cout << "No match: " << expected.first.toStdString() << "!=" << actual.first.toStdString()
-//                << " || " << expected.second.toStdString() << "!=" << actual.second.toStdString()
-//                << std::endl;
+//    if (a.size() != b.size()) {
+//      std::cout << "No match: size difference" << std::endl;
 //      return false;
 //    }
-//  }
 
-//  std::cout << "okay!" << std::endl;
+//    for(size_t i = 0; i < a.size(); i++) {
+//      auto expected = a[i];
+//      auto actual = b[i];
+//      if (expected.first != actual.first || expected.second != actual.second) {
+//        std::cout << "No match: [" << expected.first.toStdString() << "]!=[" << actual.first.toStdString()
+//                  << "] || [" << expected.second.toStdString() << "]!=[" << actual.second.toStdString()
+//                  << "]\n";
+//        return false;
+//      }
+//    }
+//    std::cout << "okay!" << std::endl;
 
-//  return true;
-//}
-
-//void unitTestsForTokenize() {
-//  auto mkpair = [](QString a, QString b){
-//    return std::pair<QString,QString>(a, b);
+//    return true;
 //  };
-//  // existing cases that should work
-//  matches(tokenizeFilterText("a:b"), {mkpair("a", "b")});
-//  matches(tokenizeFilterText("a:b c:d"), {mkpair("a", "b"), mkpair("c", "d")});
-//  matches(tokenizeFilterText("a:b  c:d"), {mkpair("a", "b"), mkpair("c", "d")});
-//  matches(tokenizeFilterText("a:b c:d "), {mkpair("a", "b"), mkpair("c", "d")});
-//  matches(tokenizeFilterText("a : b c : d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
-//  matches(tokenizeFilterText("a :b c :d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
-//  matches(tokenizeFilterText("a: b c: d"), {mkpair("a", "b"), mkpair("c", "d")}); // no good
+//  auto mkpair = [](QString a, QString b){ return std::pair<QString,QString>(a, b); };
 
-//  // targets
-//  matches(tokenizeFilterText("name:\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")});
-//  matches(tokenizeFilterText("name:\"joel smith\"age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")});
-//  matches(tokenizeFilterText("name:\"joel : smith\" age:38"), {mkpair("name", "joel : smith"), mkpair("age", "38")});
-//  matches(tokenizeFilterText("\"name\":\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")}); // no good
+//  matches(tokenizeFilterText("a:b"), {mkpair("a", "b")}, "single-plain");
+//  matches(tokenizeFilterText("a:b c:d"), {mkpair("a", "b"), mkpair("c", "d")}, "double-plain");
+//  matches(tokenizeFilterText("a:b  c:d"), {mkpair("a", "b"), mkpair("c", "d")}, "double-extra-space");
+//  matches(tokenizeFilterText("a:b c:d "), {mkpair("a", "b"), mkpair("c", "d")}, "double-trailing-plain");
+//  matches(tokenizeFilterText("a :b c :d"), {mkpair("a", "b"), mkpair("c", "d")}, "left-spaced-sep");
+//  matches(tokenizeFilterText("a: b c: d"), {mkpair("a", "b"), mkpair("c", "d")}, "right-spaced-sep");
+//  matches(tokenizeFilterText("a : b c : d"), {mkpair("a", "b"), mkpair("c", "d")}, "double-spaced-sep");
+//  matches(tokenizeFilterText("name:\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")}, "plain-quote");
+//  matches(tokenizeFilterText("name:\"joel smith\"age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")}, "no-gap-quote-val");
+//  matches(tokenizeFilterText("name:\"joel : smith\" age:38"), {mkpair("name", "joel : smith"), mkpair("age", "38")}, "sep-in-quote-val");
+//  matches(tokenizeFilterText("\"name\":\"joel smith\" age:38"), {mkpair("name", "joel smith"), mkpair("age", "38")}, "quoted-key");
+
+//  matches(tokenizeFilterText("a:b c"), {mkpair("a", "b")}, "malformed-extra-endjunk");
+//  matches(tokenizeFilterText("! a:b"), {mkpair("! a", "b")}, "malformed-extra-startjunk");
+
+//  matches(tokenizeFilterText("op:HPCoS server:abcdefgh-0123-0123-0123-0123456789AB"), {mkpair("op", "HPCoS"), mkpair("server", "abcdefgh-0123-0123-0123-0123456789AB")}, "real-life");
 //}
+
