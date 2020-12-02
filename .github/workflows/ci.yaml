@@ -43,16 +43,26 @@ jobs:
     - name: Build (mac)
       if: matrix.os == 'macos-latest'
       run: |
-        brew install qt
+        brew install qt create-dmg
         export PATH="/usr/local/opt/qt/bin:$PATH"
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg
-        mkdir dist
-        cp -r ashirt.dmg dist/
-        cp LICENSE dist/LICENSE
-        cp README.md dist/README.md
+        echo "APP=ashirt.app" >> $GITHUB_ENV
+        test -f ashirt.dmg && rm ashirt.dmg
+        create-dmg \
+          --hide-extension "$APP" \
+          --volname "ASHIRT Installer" \
+          --volicon "icons/ashirt.icns" \
+          --window-pos 200 120 \
+          --window-size 900 400 \
+          --icon "$APP" 500 190 \
+          --icon-size 100 \
+          --app-drop-link 700 190 \
+          --add-file "LICENSE" "LICENSE" 300 190 \
+          --add-file "README.md" "README.md" 100 190 \
+          "ashirt.dmg" \
+          "$APP/"
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
