@@ -49,7 +49,8 @@ jobs:
         qmake -config release
         make
         echo "APP=ashirt.app" >> $GITHUB_ENV
-        #test -f ashirt.dmg && rm ashirt.dmg
+        find . -name '.DS_Store' -exec rm -rf {} \;
+        test -f ashirt.dmg && rm ashirt.dmg
         create-dmg \
           --hide-extension "$APP" \
           --volname "ASHIRT Installer" \
