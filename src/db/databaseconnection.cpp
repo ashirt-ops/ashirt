@@ -293,6 +293,19 @@ void DatabaseConnection::updateEvidencePath(const QString& newPath, qint64 evide
   executeQuery(getDB(), "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
 }
 
+std::vector<QString> DatabaseConnection::operationSlugsForServer(const QString &serverUUID) {
+  auto resultSet = executeQuery(getDB(),
+      "SELECT DISTINCT operation_slug FROM evidence WHERE server_uuid=?",
+      {serverUUID});
+  std::vector<QString> rtn;
+
+  while (resultSet.next()) {
+    rtn.push_back(resultSet.value("operation_slug").toString());
+  }
+  return rtn;
+}
+
+
 std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     const EvidenceFilters &filters) {
   auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
