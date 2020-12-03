@@ -37,6 +37,9 @@ class EvidenceFilterForm : public QDialog {
   /// populateServerComboBox clears the server combo box and re-populates it with currently known servers
   void populateServerComboBox();
 
+  private slots:
+   void resetOperations();
+
  public:
   /// setForm updates the editor to match the provided filter model
   void setForm(const EvidenceFilters &model);

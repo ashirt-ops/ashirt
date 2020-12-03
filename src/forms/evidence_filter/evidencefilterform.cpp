@@ -85,7 +85,7 @@ void EvidenceFilterForm::buildUi() {
 
   contentTypeComboBox = new QComboBox(this);
   contentTypeComboBox->setEditable(false);
-  contentTypeComboBox->addItem("<None>", "");
+  contentTypeComboBox->addItem("<Any>", "");
   contentTypeComboBox->addItem("Image", "image");
   contentTypeComboBox->addItem("Codeblock", "codeblock");
 
@@ -188,7 +188,14 @@ void EvidenceFilterForm::wireUi() {
   connect(includeEndDateCheckBox, &QCheckBox::stateChanged,
           [this](bool checked) { toDateEdit->setEnabled(checked); });
 
+  connect(serverComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, &EvidenceFilterForm::resetOperations);
+
   connect(closeWindowAction, &QAction::triggered, this, &EvidenceFilterForm::writeAndClose);
+}
+
+void EvidenceFilterForm::resetOperations() {
+    onOperationListUpdated(true, {});
 }
 
 void EvidenceFilterForm::writeAndClose() {
@@ -262,7 +269,7 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   }
 
   operationComboBox->clear();
-  operationComboBox->addItem("<None>", "");
+  operationComboBox->addItem("<Any>", "");
   for (const auto &op : operations) {
     operationComboBox->addItem(op.name, op.slug);
   }
@@ -271,7 +278,7 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
 }
 
 void EvidenceFilterForm::populateServerComboBox() {
-  serverComboBox->addItem("<None>", "");
+  serverComboBox->addItem("<Any>", "");
   try {
     std::vector<ServerItem> servers = AppServers::getInstance().getServers(true);
 
