@@ -26,7 +26,6 @@ class AppServers : public QObject {
   QString getServersFileLocation(const QString& path);
 
   ServerItem selectServer(QString serverUuid="");
-  QString currentServerUuid();
   QString selectServerUuid(QString maybeServerUuid);
 
  public:
@@ -41,6 +40,7 @@ class AppServers : public QObject {
   std::vector<ServerItem> getServers(bool includeDeleted=false);
   void updateServer(ServerItem item);
 
+  QString currentServerUuid();
   QString accessKey(QString serverUuid="");
   QString secretKey(QString serverUuid="");
   QString hostPath(QString serverUuid="");
