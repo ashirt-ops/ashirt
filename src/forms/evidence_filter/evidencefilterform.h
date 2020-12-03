@@ -21,7 +21,7 @@ class EvidenceFilterForm : public QDialog {
   Q_OBJECT
 
  public:
-  explicit EvidenceFilterForm(QWidget *parent = nullptr);
+  explicit EvidenceFilterForm(DatabaseConnection* db, QWidget *parent = nullptr);
   ~EvidenceFilterForm();
 
  private:
@@ -37,12 +37,16 @@ class EvidenceFilterForm : public QDialog {
   /// populateServerComboBox clears the server combo box and re-populates it with currently known servers
   void populateServerComboBox();
 
+  void enableServerSelectionConnection(bool enable);
+
   private slots:
    void resetOperations();
 
  public:
   /// setForm updates the editor to match the provided filter model
   void setForm(const EvidenceFilters &model);
+
+  void updateOperationsList(QString selectedServerUUID, bool success, const std::vector<dto::Operation> &operations);
 
  signals:
   /// evidenceSet alerts listeners when the form has been "saved" by the user
@@ -57,6 +61,7 @@ class EvidenceFilterForm : public QDialog {
 
  private:
   QAction* closeWindowAction = nullptr;
+  DatabaseConnection* db = nullptr; // borrowed
 
   // UI Components
   QGridLayout* gridLayout = nullptr;

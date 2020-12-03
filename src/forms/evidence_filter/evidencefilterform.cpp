@@ -24,8 +24,9 @@ static void initializeDateEdit(QDateEdit *dateEdit) {
   dateEdit->setEnabled(false);
 }
 
-EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
+EvidenceFilterForm::EvidenceFilterForm(DatabaseConnection* db, QWidget *parent)
     : QDialog(parent) {
+  this->db = db;
   buildUi();
   wireUi();
 }
@@ -188,14 +189,32 @@ void EvidenceFilterForm::wireUi() {
   connect(includeEndDateCheckBox, &QCheckBox::stateChanged,
           [this](bool checked) { toDateEdit->setEnabled(checked); });
 
-  connect(serverComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          this, &EvidenceFilterForm::resetOperations);
-
   connect(closeWindowAction, &QAction::triggered, this, &EvidenceFilterForm::writeAndClose);
 }
 
 void EvidenceFilterForm::resetOperations() {
-    onOperationListUpdated(true, {});
+  QString serverUuid = serverComboBox->currentData().toString();
+  if(serverUuid == "") {
+    updateOperationsList("", true, {});
+  }
+  else {
+    auto foundServer = AppServers::getInstance().getServerByUuid(serverUuid);
+    if (foundServer.isValid()) {
+      operationComboBox->setEnabled(false);
+      auto reply = NetMan::getInstance().getAllOperations(foundServer.hostPath, foundServer.accessKey, foundServer.secretKey);
+      connect(reply, &QNetworkReply::finished, [reply, this, serverUuid](){
+        bool success = false;
+        // only update if the current uuid matches -- otherwise we might show the wrong list of operations for a server
+        if(serverComboBox->currentData().toString() == serverUuid) {
+          auto ops = NetMan::getInstance().parseOpsResponse(reply, success);
+          updateOperationsList(serverUuid, success, ops);
+        }
+        reply->close();
+        reply->deleteLater();
+        operationComboBox->setEnabled(true);
+      });
+    }
+  }
 }
 
 void EvidenceFilterForm::writeAndClose() {
@@ -236,6 +255,8 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
 }
 
 void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
+  enableServerSelectionConnection(false);
+  operationComboBox->setEnabled(true);
   UiHelpers::setComboBoxValue(serverComboBox, model.getServerUuid());
   UiHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
   UiHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
@@ -257,24 +278,70 @@ void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
     fromDateEdit->setDate(toDateEdit->date());
     toDateEdit->setDate(copy);
   }
+  enableServerSelectionConnection(true);
+}
+
+void EvidenceFilterForm::enableServerSelectionConnection(bool enable) {
+  if (enable) {
+    connect(serverComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, &EvidenceFilterForm::resetOperations);
+  }
+  else {
+    disconnect(serverComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, &EvidenceFilterForm::resetOperations);
+  }
+}
+
+void EvidenceFilterForm::updateOperationsList(QString selectedServerUUID, bool success, const std::vector<dto::Operation> &operations) {
+  operationComboBox->setEnabled(false);
+  operationComboBox->clear();
+  operationComboBox->addItem("<Any>", "");
+
+  std::vector<QString> knownOperationSlugs;
+  std::vector<QString> missingSlugs;
+  if (selectedServerUUID != "") {
+    knownOperationSlugs = db->operationSlugsForServer(selectedServerUUID);
+  }
+
+  auto addOrphanedSlug = [this](std::vector<QString> slugs){
+    for (const auto &slug : slugs) {
+      operationComboBox->addItem(slug + " (removed)", slug);
+    }
+  };
+
+  if (!success) {
+    operationComboBox->setItemText(0, "Unable to fetch operations");
+    operationComboBox->setCurrentIndex(0);
+    addOrphanedSlug(knownOperationSlugs);
+    return;
+  }
+
+  for (const auto &op : operations) {
+    operationComboBox->addItem(op.name, op.slug);
+    //if(!knownOperationSlugs.contains(op.slug)) {
+  }
+  for (const auto &slug : knownOperationSlugs) {
+    bool found = false;
+    for(const auto &op : operations) {
+      if (slug == op.slug) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      missingSlugs.push_back(slug);
+    }
+  }
+  addOrphanedSlug(missingSlugs);
+
+  UiHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
+  operationComboBox->setEnabled(true);
 }
 
 void EvidenceFilterForm::onOperationListUpdated(bool success,
                                                 const std::vector<dto::Operation> &operations) {
-  operationComboBox->setEnabled(false);
-  if (!success) {
-    operationComboBox->setItemText(0, "Unable to fetch operations");
-    operationComboBox->setCurrentIndex(0);
-    return;
-  }
 
-  operationComboBox->clear();
-  operationComboBox->addItem("<Any>", "");
-  for (const auto &op : operations) {
-    operationComboBox->addItem(op.name, op.slug);
-  }
-  UiHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
-  operationComboBox->setEnabled(true);
+  updateOperationsList(AppServers::getInstance().currentServerUuid(), success, operations);
 }
 
 void EvidenceFilterForm::populateServerComboBox() {
