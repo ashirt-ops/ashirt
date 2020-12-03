@@ -50,23 +50,23 @@ void ConnectionEditor::buildUi() {
   // Layout
   /*        0                 1              2
        +---------------+-------------+--------------------+
-    0  | Add Btn       | Delete Btn  |                    |
-       +---------------+-------------+                    +
-    1  |      Connection Selector    |     Connection     |
-       |              Menu           |     Properties     |
        |                             |                    |
+    0  |       Connection Selector   |                    |
+       |                             |     Connection     |
+       +---------------+-------------+     Properties     |
+    1  | Add Btn       | Delete Btn  |                    |
        +---------------+-------------+--------------------+
   */
 
   // row 0
-  gridLayout->addWidget(addButton, 0, 0);
-  gridLayout->addWidget(deleteButton, 0, 1, Qt::AlignRight);
+  gridLayout->addWidget(addButton, 1, 0);
+  gridLayout->addWidget(deleteButton, 1, 1, Qt::AlignRight);
 
   // row 0 + 1
   gridLayout->addWidget(connectionEditArea, 0, 2, 2, 1);
 
   // row 1
-  gridLayout->addWidget(connectionsList, 1, 0, 1, 2);
+  gridLayout->addWidget(connectionsList, 0, 0, 1, 2);
 
   // adjust how the dialog will expand -- we want the +/- buttons to always align with the list area
   gridLayout->setColumnStretch(0, 0);
