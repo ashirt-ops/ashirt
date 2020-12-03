@@ -72,7 +72,7 @@ QString AppServers::currentServerUuid() {
 }
 
 QString AppServers::selectServerUuid(QString maybeServerUuid) {
-  return maybeServerUuid = (maybeServerUuid == "") ? currentServerUuid() : maybeServerUuid;
+  return (maybeServerUuid == "") ? currentServerUuid() : maybeServerUuid;
 }
 
 QString AppServers::accessKey(QString serverUuid) {
