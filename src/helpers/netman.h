@@ -125,18 +125,9 @@ class NetMan : public QObject {
   /// onGetOpsComplete is called when the network request associated with the method refreshOperationsList
   /// completes. This will emit an operationListUpdated signal.
   void onGetOpsComplete() {
-    bool isValid;
-    auto data = extractResponse(allOpsReply, isValid);
-    if (isValid) {
-      OperationVector ops = dto::Operation::parseDataAsList(data);
-      std::sort(ops.begin(), ops.end(),
-                [](dto::Operation i, dto::Operation j) { return i.name < j.name; });
-
-      emit operationListUpdated(true, ops);
-    }
-    else {
-      emit operationListUpdated(false);
-    }
+    bool success = false;
+    OperationVector ops = parseOpsResponse(allOpsReply, success);
+    emit operationListUpdated(success, ops);
     tidyReply(&allOpsReply);
   }
 
@@ -156,6 +147,25 @@ class NetMan : public QObject {
   }
 
  public:
+
+  OperationVector parseOpsResponse(QNetworkReply* reply, bool &success, bool doSort=true) {
+    bool isValid;
+    auto data = extractResponse(reply, isValid);
+    if (isValid) {
+      OperationVector ops = dto::Operation::parseDataAsList(data);
+      if (doSort) {
+        std::sort(ops.begin(), ops.end(),
+                  [](dto::Operation i, dto::Operation j) { return i.name < j.name; });
+      }
+
+      success = true;
+      return ops;
+    }
+    else {
+      success = false;
+      return {};
+    }
+  }
 
   /// uploadAsset takes the given Evidence model, encodes it (and the file), and uploads this
   /// to the configured ASHIRT API server. Returns a QNetworkReply to track the request
@@ -196,9 +206,9 @@ class NetMan : public QObject {
   /// getAllOperations retrieves all (user-visble) operations from the configured ASHIRT API server.
   /// Note: normally you should opt to use refreshOperationsList and retrieve the results by listening
   /// for the operationListUpdated signal.
-  QNetworkReply *getAllOperations() {
-    auto builder = ashirtGet("/api/operations");
-    addASHIRTAuth(builder);
+  QNetworkReply *getAllOperations(const QString& host="", const QString& apiKey="", const QString& secretKey="") {
+    auto builder = ashirtGet("/api/operations", host);
+    addASHIRTAuth(builder, apiKey, secretKey);
     return builder->execute(nam);
   }
 
