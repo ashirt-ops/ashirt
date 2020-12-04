@@ -65,7 +65,7 @@ void ConnectionProperties::buildUi() {
        +---------------+-------------+-------------+
     4  | Test Connection Area                      |
        +---------------+-------------+-------------+
-    5  | TODO: vertical Spacer                     |
+    5  | vertical Spacer                           |
        +---------------+-------------+-------------+
     6  | <None>        | <None>      | Save Btn    |
        +---------------+-------------+-------------+

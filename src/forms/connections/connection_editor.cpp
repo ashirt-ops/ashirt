@@ -24,56 +24,25 @@ ConnectionEditor::~ConnectionEditor() {
 void ConnectionEditor::buildUi() {
   gridLayout = new QGridLayout(this);
 
-  auto simpleButton = [this](QString name, int maxWidth = 0, int minWidth = 0){
-    QPushButton* btn = new QPushButton(name, this);
-    if (maxWidth > 0) {
-      btn->setMaximumWidth(maxWidth);
-      if(minWidth > 0) {
-        btn->setMinimumWidth(minWidth);
-      }
-      btn->resize(maxWidth, btn->height());
-    }
-    btn->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    return std::move(btn);
-  };
-
-  deleteButton = simpleButton("-", 40, 25);
-  deleteButton->setEnabled(false); // start disabled, since no item is selected
-  addButton = simpleButton("+", 40, 25);
-
   connectionEditArea = new ConnectionProperties(this);
   connectionEditArea->setEnabled(false); // start disabled, since no item is selected
-  connectionsList = new QListWidget(this);
-  connectionsList->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  connectionsList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+  serversList = new ServersList(this);
 
   // Layout
-  /*        0                 1              2
-       +---------------+-------------+--------------------+
-       |                             |                    |
-    0  |       Connection Selector   |                    |
-       |                             |     Connection     |
-       +---------------+-------------+     Properties     |
-    1  | Add Btn       | Delete Btn  |                    |
-       +---------------+-------------+--------------------+
+  /*        0                 1
+       +---------------+--------------+
+    0  |  Servers List |  Connection  |
+       |               |  Properties  |
+       +---------------+--------------+
   */
 
   // row 0
-  gridLayout->addWidget(addButton, 1, 0);
-  gridLayout->addWidget(deleteButton, 1, 1, Qt::AlignRight);
+  gridLayout->addWidget(serversList, 0, 0);
+  gridLayout->addWidget(connectionEditArea, 0, 1);
 
-  // row 0 + 1
-  gridLayout->addWidget(connectionEditArea, 0, 2, 2, 1);
-
-  // row 1
-  gridLayout->addWidget(connectionsList, 0, 0, 1, 2);
-
-  // adjust how the dialog will expand -- we want the +/- buttons to always align with the list area
-  gridLayout->setColumnStretch(0, 0);
-  gridLayout->setColumnStretch(1, 0);
-  gridLayout->setColumnStretch(2, 1);
-  gridLayout->setRowStretch(0, 0);
-  gridLayout->setRowStretch(1, 1);
+  gridLayout->setColumnStretch(0, 1);
+  gridLayout->setColumnStretch(1, 3);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -86,112 +55,32 @@ void ConnectionEditor::buildUi() {
 }
 
 void ConnectionEditor::wireUi() {
-  auto btnClicked = &QPushButton::clicked;
+  connect(connectionEditArea, &ConnectionProperties::onSave, this, &ConnectionEditor::onConnectionSaved);
 
-  connect(addButton, btnClicked, this, &ConnectionEditor::addClicked);
-  connect(deleteButton, btnClicked, this, &ConnectionEditor::deleteClicked);
-  connect(connectionsList, &QListWidget::itemSelectionChanged, this, &ConnectionEditor::onItemSelectionChanged);
-
-  connect(connectionEditArea, &ConnectionProperties::onSave, [this](ServerItem data){
-    // we can only save a single item, so only one row is selected
-    int currentRow = connectionsList->currentRow();
-    AppServers::getInstance().updateServer(data);
-    repopulateTable();
-    connectionsList->setCurrentRow(currentRow);
+  connect(serversList, &ServersList::onServerAdded, [this](ServerItem s){
+    connectionEditArea->highlightNameTextbox();
   });
 
+  connect(serversList, &ServersList::onServersDeleted, [this](std::vector<ServerItem> affectedServers){
+    std::cout << "(deleted) Not yet implemented";
+  });
+  connect(serversList, &ServersList::onServersRestored, [this](std::vector<ServerItem> affectedServers){
+    std::cout << "(restored) Not yet implemented";
+  });
+  connect(serversList, &ServersList::onServerSelectionChanged, [this](std::vector<ServerItem> selectedRows){
+    connectionEditArea->setEnabled(selectedRows.size() == 1);
+    if (selectedRows.size() == 0) {
+      connectionEditArea->clearForm();
+      return;
+    }
+    connectionEditArea->loadItem(selectedRows[0]);
+  });
 }
 
 void ConnectionEditor::showEvent(QShowEvent* evt) {
   QDialog::showEvent(evt);
-  connectionsList->clearSelection();
-  repopulateTable();
-}
-
-void ConnectionEditor::repopulateTable() {
-  connectionsList->clear();
-  std::vector<ServerItem> serverList = AppServers::getInstance().getServers();
-  for (auto server : serverList) {
-    auto item = buildServerItem(server);
-    connectionsList->addItem(item);
-  }
-}
-
-QListWidgetItem* ConnectionEditor::buildServerItem(ServerItem server) {
-  auto item = new QListWidgetItem();
-  auto castedData = QVariant::fromValue(server);
-  item->setData(Qt::UserRole, castedData);
-  item->setText(server.serverName);
-  if( server.deleted ) {
-    auto font = item->font();
-    font.setStrikeOut(true);
-    item->setFont(font);
-  }
-
-  return item;
-}
-
-void ConnectionEditor::addClicked() {
-  ServerItem s("New Connection", "", "", "");
-  AppServers::getInstance().addServer(s);
-
-  repopulateTable();
-  connectionsList->setCurrentRow(connectionsList->count() - 1);
-  connectionEditArea->highlightNameTextbox();
-}
-
-void ConnectionEditor::deleteClicked() {
-  int currentRow = connectionsList->currentRow();
-  auto selectedItems = connectionsList->selectedItems();
-  if (selectedItems.length() == 0) {
-    return;
-  }
-
-  // do the same action for all selected items, based on the first selection
-  auto firstItem = qvariant_cast<ServerItem>(selectedItems[0]->data(Qt::UserRole));
-  bool doDelete = !firstItem.deleted;
-
-  if (doDelete) {
-    QString deleteMsg = "Are you sure you want to delete %1?";
-    deleteMsg = deleteMsg.arg(selectedItems.length() == 1
-                      ? "this server"
-                      : QString("these %1 servers").arg(selectedItems.size()) );
-    auto reply = QMessageBox::question(this, "Delete connections?", deleteMsg);
-    if (reply != QMessageBox::Yes) {
-      return;
-    }
-  }
-
-  for(auto selectedItem : selectedItems) {
-    auto data = qvariant_cast<ServerItem>(selectedItem->data(Qt::UserRole));
-
-    doDelete
-        ? AppServers::getInstance().purgeServer(data.getServerUuid())
-        : AppServers::getInstance().restoreServer(data.getServerUuid());
-  }
-
-  repopulateTable();
-}
-
-void ConnectionEditor::onItemSelectionChanged() {
-  auto selectedItems = connectionsList->selectedItems();
-  if (selectedItems.length() == 0) {
-    connectionEditArea->clearForm();
-    connectionEditArea->setEnabled(false);
-    deleteButton->setEnabled(false);
-    return;
-  }
-  else if( selectedItems.length() > 1) {
-    connectionEditArea->setEnabled(false);
-  }
-  else {
-    connectionEditArea->setEnabled(true);
-  }
-
-  deleteButton->setEnabled(true);
-  QListWidgetItem* item = selectedItems[0];
-  auto data = qvariant_cast<ServerItem>(item->data(Qt::UserRole));
-  connectionEditArea->loadItem(data);
+  serversList->clearSelection();
+  serversList->refreshList();
 }
 
 void ConnectionEditor::selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly) {
@@ -208,4 +97,8 @@ void ConnectionEditor::selectConnectionUuids(std::vector<QString> targetUuids, b
       }
     }
   }
+}
+
+void ConnectionEditor::onConnectionSaved(ServerItem item) {
+  AppServers::getInstance().updateServer(item);
 }

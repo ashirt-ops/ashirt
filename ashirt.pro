@@ -57,6 +57,8 @@ SOURCES += \
     src/components/loading/qprogressindicator.cpp \
     src/components/loading_button/loadingbutton.cpp \
     src/components/connection_checker/connectionchecker.cpp \
+    src/components/servers_editor/connection_properties.cpp \
+    src/components/servers_editor/servers_list.cpp \
     src/components/tagging/tag_cache/tagcache.cpp \
     src/components/tagging/tag_cache/tagcacheitem.cpp \
     src/components/tagging/tageditor.cpp \
@@ -65,7 +67,6 @@ SOURCES += \
     src/db/databaseconnection.cpp \
     src/forms/add_operation/createoperation.cpp \
     src/forms/connections/connection_editor.cpp \
-    src/forms/connections/connection_properties.cpp \
     src/forms/evidence_filter/evidencefilter.cpp \
     src/forms/evidence_filter/evidencefilterform.cpp \
     src/forms/getinfo/getinfo.cpp \
@@ -100,6 +101,8 @@ HEADERS += \
     src/components/loading/qprogressindicator.h \
     src/components/loading_button/loadingbutton.h \
     src/components/connection_checker/connectionchecker.h \
+    src/components/servers_editor/connection_properties.h \
+    src/components/servers_editor/servers_list.h \
     src/components/tagging/tag_cache/tagcache.h \
     src/components/tagging/tag_cache/tagcacheitem.h \
     src/components/tagging/tageditor.h \
@@ -122,7 +125,6 @@ HEADERS += \
     src/exceptions/fileerror.h \
     src/forms/add_operation/createoperation.h \
     src/forms/connections/connection_editor.h \
-    src/forms/connections/connection_properties.h \
     src/forms/connections/connections_table_analysis.h \
     src/forms/evidence_filter/evidencefilter.h \
     src/forms/evidence_filter/evidencefilterform.h \

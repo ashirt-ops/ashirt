@@ -11,7 +11,8 @@
 #include <QListWidget>
 
 #include "components/connection_checker/connectionchecker.h"
-#include "connection_properties.h"
+#include "components/servers_editor/connection_properties.h"
+#include "components/servers_editor/servers_list.h"
 #include "config/server_item.h"
 
 class ConnectionEditor : public QDialog {
@@ -29,15 +30,10 @@ class ConnectionEditor : public QDialog {
   void wireUi();
 
   void showEvent(QShowEvent* evt) override;
-  void repopulateTable();
-  QListWidgetItem* buildServerItem(ServerItem server);
   void selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly=false);
 
  private slots:
-  void addClicked();
-  void deleteClicked();
-  void onItemSelectionChanged();
-
+  void onConnectionSaved(ServerItem data);
 
  private:
   QAction* closeWindowAction = nullptr;
@@ -45,11 +41,12 @@ class ConnectionEditor : public QDialog {
   // UI Elements
   QGridLayout* gridLayout = nullptr;
 
-
   QListWidget* connectionsList = nullptr;
   QPushButton* addButton = nullptr;
   QPushButton* deleteButton = nullptr;
   ConnectionProperties* connectionEditArea = nullptr;
+
+  ServersList* serversList = nullptr;
 };
 
 #endif // CONNECTIONEDITOR_H
