@@ -51,7 +51,7 @@ void ServersList::buildUi() {
     0  |   Connection List           |
        |                             |
        +---------------+-------------+
-    1  | :Add Btn      | Delete Btn: |
+    1  | :Delete Btn   |  Add Btn:   |
        +---------------+-------------+
   */
 
@@ -59,8 +59,8 @@ void ServersList::buildUi() {
   gridLayout->addWidget(connectionsList, 0, 0, 1, 2);
 
   // row 1
-  gridLayout->addWidget(addButton, 1, 0);
-  gridLayout->addWidget(deleteButton, 1, 1, Qt::AlignRight);
+  gridLayout->addWidget(deleteButton, 1, 0);
+  gridLayout->addWidget(addButton, 1, 1, Qt::AlignRight);
 
   this->setLayout(gridLayout);
 }

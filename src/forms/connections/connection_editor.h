@@ -4,13 +4,8 @@
 #include <QAction>
 #include <QDialog>
 #include <QGridLayout>
-#include <QLabel>
 #include <QObject>
-#include <QPushButton>
-#include <QTextEdit>
-#include <QListWidget>
 
-#include "components/connection_checker/connectionchecker.h"
 #include "components/servers_editor/connection_properties.h"
 #include "components/servers_editor/servers_list.h"
 #include "config/server_item.h"
@@ -34,6 +29,7 @@ class ConnectionEditor : public QDialog {
 
  private slots:
   void onConnectionSaved(ServerItem data);
+  void serverSelectionChanged(std::vector<ServerItem> selectedServers);
 
  private:
   QAction* closeWindowAction = nullptr;
@@ -41,11 +37,7 @@ class ConnectionEditor : public QDialog {
   // UI Elements
   QGridLayout* gridLayout = nullptr;
 
-  QListWidget* connectionsList = nullptr;
-  QPushButton* addButton = nullptr;
-  QPushButton* deleteButton = nullptr;
   ConnectionProperties* connectionEditArea = nullptr;
-
   ServersList* serversList = nullptr;
 };
 

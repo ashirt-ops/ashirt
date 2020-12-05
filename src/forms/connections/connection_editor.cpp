@@ -1,9 +1,5 @@
 #include "connection_editor.h"
 
-#include <QVariant>
-#include <iostream>
-#include <QMessageBox>
-
 #include "appservers.h"
 
 ConnectionEditor::ConnectionEditor(QWidget *parent) : QDialog(parent) {
@@ -13,9 +9,7 @@ ConnectionEditor::ConnectionEditor(QWidget *parent) : QDialog(parent) {
 
 ConnectionEditor::~ConnectionEditor() {
   delete connectionEditArea;
-  delete connectionsList;
-  delete deleteButton;
-  delete addButton;
+  delete serversList;
 
   delete closeWindowAction;
   delete gridLayout;
@@ -56,25 +50,9 @@ void ConnectionEditor::buildUi() {
 
 void ConnectionEditor::wireUi() {
   connect(connectionEditArea, &ConnectionProperties::onSave, this, &ConnectionEditor::onConnectionSaved);
+  connect(serversList, &ServersList::onServerSelectionChanged, this, &ConnectionEditor::serverSelectionChanged);
 
-  connect(serversList, &ServersList::onServerAdded, [this](ServerItem s){
-    connectionEditArea->highlightNameTextbox();
-  });
-
-  connect(serversList, &ServersList::onServersDeleted, [this](std::vector<ServerItem> affectedServers){
-    std::cout << "(deleted) Not yet implemented";
-  });
-  connect(serversList, &ServersList::onServersRestored, [this](std::vector<ServerItem> affectedServers){
-    std::cout << "(restored) Not yet implemented";
-  });
-  connect(serversList, &ServersList::onServerSelectionChanged, [this](std::vector<ServerItem> selectedRows){
-    connectionEditArea->setEnabled(selectedRows.size() == 1);
-    if (selectedRows.size() == 0) {
-      connectionEditArea->clearForm();
-      return;
-    }
-    connectionEditArea->loadItem(selectedRows[0]);
-  });
+  connect(serversList, &ServersList::onServerAdded, [this](){ connectionEditArea->highlightNameTextbox(); });
 }
 
 void ConnectionEditor::showEvent(QShowEvent* evt) {
@@ -83,22 +61,16 @@ void ConnectionEditor::showEvent(QShowEvent* evt) {
   serversList->refreshList();
 }
 
-void ConnectionEditor::selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly) {
-  auto allItems = connectionsList->findItems("", Qt::MatchContains);
-
-  for(auto item : allItems) {
-    auto data = qvariant_cast<ServerItem>(item->data(Qt::UserRole));
-    for (auto targetUuid : targetUuids) {
-      if( data.getServerUuid() == targetUuid ) {
-        connectionsList->setCurrentItem(item);
-        if( firstOnly ) {
-          return;
-        }
-      }
-    }
-  }
-}
-
 void ConnectionEditor::onConnectionSaved(ServerItem item) {
   AppServers::getInstance().updateServer(item);
+}
+
+void ConnectionEditor::serverSelectionChanged(std::vector<ServerItem> selectedServers) {
+  connectionEditArea->setEnabled(selectedServers.size() == 1);
+  if (selectedServers.size() == 0) {
+    connectionEditArea->clearForm();
+    return;
+  }
+  connectionEditArea->loadItem(selectedServers[0]);
+
 }
