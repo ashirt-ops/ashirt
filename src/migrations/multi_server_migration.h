@@ -25,7 +25,9 @@ class MultiServerMigration : public Migration {
     ServerItem item(Constants::legacyServerUuid(), Constants::defaultServerName(), config->accessKey(),
                     config->secretKey(), config->apiURL());
 
-    AppServers::getInstance().addServer(item);
+    // overwrite whatever _was_ set, in case a companion application (e.g. Aterm) has already created
+    // this entry. (why overwrite? no real reason, just easier to do so, and no better than doing nothing)
+    AppServers::getInstance().upsertServer(item);
 
     return true;
   }
