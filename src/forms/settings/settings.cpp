@@ -110,6 +110,7 @@ void Settings::showEvent(QShowEvent *evt) {
 
   generalTab->setFocus();
   generalTab->resetForm(values);  // reset the form in case a user left junk in the text boxes and pressed "cancel"
+  connectionsTab->resetForm();
 }
 
 void Settings::closeEvent(QCloseEvent *event) {
