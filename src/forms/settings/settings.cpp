@@ -21,21 +21,9 @@ Settings::Settings(DatabaseConnection* db, HotkeyManager *hotkeyManager, QWidget
 }
 
 Settings::~Settings() {
-  delete _eviRepoLabel;
-  delete _captureAreaCmdLabel;
-  delete _captureAreaShortcutLabel;
-  delete _captureWindowCmdLabel;
-  delete _captureWindowShortcutLabel;
-  delete _recordCodeblockShortcutLabel;
-
-  delete eviRepoTextBox;
-  delete captureAreaCmdTextBox;
-  delete captureAreaShortcutTextBox;
-  delete captureWindowCmdTextBox;
-  delete captureWindowShortcutTextBox;
-  delete recordCodeblockShortcutTextBox;
-  delete eviRepoBrowseButton;
   delete buttonBox;
+
+  delete tabControl; // this will delete all tabs inside
 
   delete gridLayout;
 
@@ -45,26 +33,18 @@ Settings::~Settings() {
 
 void Settings::buildUi() {
   gridLayout = new QGridLayout(this);
-  _eviRepoLabel = new QLabel("Evidence Repository", this);
-  _captureAreaCmdLabel = new QLabel("Capture Area Command", this);
-  _captureAreaShortcutLabel = new QLabel("Shortcut", this);
-  _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
-  _captureWindowShortcutLabel = new QLabel("Shortcut", this);
-  _recordCodeblockShortcutLabel = new QLabel("Record Codeblock Shortcut", this);
-
-  eviRepoTextBox = new QLineEdit(this);
-  captureAreaCmdTextBox = new QLineEdit(this);
-  captureAreaShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  captureWindowCmdTextBox = new QLineEdit(this);
-  captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  eviRepoBrowseButton = new QPushButton("Browse", this);
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Save);
   buttonBox->addButton(QDialogButtonBox::Cancel);
 
-  spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding);
+  tabControl = new QTabWidget(this);
+  generalTab = new GeneralSettingsTab();
+  generalTab->setMargin(5);
+  connectionsTab = new ConnectionsSettingsTab();
+  connectionsTab->setMargin(5);
+
   couldNotSaveSettingsMsg = new QErrorMessage(this);
+
 
   // Layout
   /*        0                 1           2             3
@@ -83,38 +63,16 @@ void Settings::buildUi() {
        +---------------+-------------+------------+-------------+
   */
 
+  tabControl->addTab(generalTab, "&General");
+  tabControl->addTab(connectionsTab, "&Servers");
+
   // row 0
   int row = 0;
-  gridLayout->addWidget(_eviRepoLabel, row, 0);
-  gridLayout->addWidget(eviRepoTextBox, row, 1, 1, 3);
-  gridLayout->addWidget(eviRepoBrowseButton, row, 4);
+  gridLayout->addWidget(tabControl, row, 0);
 
   // row 1
   row++;
-  gridLayout->addWidget(_captureAreaCmdLabel, row, 0);
-  gridLayout->addWidget(captureAreaCmdTextBox, row, 1);
-  gridLayout->addWidget(_captureAreaShortcutLabel, row, 2);
-  gridLayout->addWidget(captureAreaShortcutTextBox, row, 3, 1, 2);
-
-  // row 2
-  row++;
-  gridLayout->addWidget(_captureWindowCmdLabel, row, 0);
-  gridLayout->addWidget(captureWindowCmdTextBox, row, 1);
-  gridLayout->addWidget(_captureWindowShortcutLabel, row, 2);
-  gridLayout->addWidget(captureWindowShortcutTextBox, row, 3, 1, 2);
-
-  // row 3
-  row++;
-  gridLayout->addWidget(_recordCodeblockShortcutLabel, row, 0);
-  gridLayout->addWidget(recordCodeblockShortcutTextBox, row, 1);
-
-  // row 4
-  row++;
-  gridLayout->addItem(spacer, row, 0, 1, gridLayout->columnCount());
-
-  // row 5
-  row++;
-  gridLayout->addWidget(buttonBox, row, 0, 1, gridLayout->columnCount());
+  gridLayout->addWidget(buttonBox, row, 0);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -135,22 +93,23 @@ void Settings::buildUi() {
 void Settings::wireUi() {
   connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
-  connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
 }
 
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
   auto& cfg = AppConfig::getInstance();
-  eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
-  // reset the form in case a user left junk in the text boxes and pressed "cancel"
-  eviRepoTextBox->setText(QDir::toNativeSeparators(cfg.evidenceRepo()));
-  captureAreaCmdTextBox->setText(cfg.captureScreenAreaCmd());
-  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenAreaShortcut()));
-  captureWindowCmdTextBox->setText(cfg.captureScreenWindowCmd());
-  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureScreenWindowShortcut()));
-  recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(cfg.captureCodeblockShortcut()));
+  GeneralSettingsStruct values;
+  values.evidenceRepo = QDir::toNativeSeparators(cfg.evidenceRepo());
+  values.captureAreaCmd = cfg.captureScreenAreaCmd();
+  values.captureAreaShortcut = cfg.captureScreenAreaShortcut();
+  values.captureWindowCmd = cfg.captureScreenWindowCmd();
+  values.captureWindowShortcut = cfg.captureScreenWindowShortcut();
+  values.captureCodeblockShortcut = cfg.captureCodeblockShortcut();
+
+  generalTab->setFocus();
+  generalTab->resetForm(values);  // reset the form in case a user left junk in the text boxes and pressed "cancel"
 }
 
 void Settings::closeEvent(QCloseEvent *event) {
@@ -165,12 +124,14 @@ void Settings::onCancelClicked() {
 void Settings::onSaveClicked() {
   auto &cfg = AppConfig::getInstance();
 
-  cfg.setEvidenceRepo(QDir::fromNativeSeparators(eviRepoTextBox->text()));
-  cfg.setCaptureScreenAreaCmd(captureAreaCmdTextBox->text());
-  cfg.setCaptureScreenAreaShortcut(captureAreaShortcutTextBox->keySequence().toString());
-  cfg.setCaptureScreenWindowCmd(captureWindowCmdTextBox->text());
-  cfg.setCaptureScreenWindowShortcut(captureWindowShortcutTextBox->keySequence().toString());
-  cfg.setCaptureCodeblockShortcut(recordCodeblockShortcutTextBox->keySequence().toString());
+  GeneralSettingsStruct values = generalTab->encodeForm();
+
+  cfg.setEvidenceRepo(values.evidenceRepo);
+  cfg.setCaptureScreenAreaCmd(values.captureAreaCmd);
+  cfg.setCaptureScreenAreaShortcut(values.captureAreaShortcut);
+  cfg.setCaptureScreenWindowCmd(values.captureWindowCmd);
+  cfg.setCaptureScreenWindowShortcut(values.captureWindowShortcut);
+  cfg.setCaptureCodeblockShortcut(values.captureCodeblockShortcut);
 
   try {
     AppConfig::getInstance().writeConfig();
@@ -183,12 +144,3 @@ void Settings::onSaveClicked() {
   close();
 }
 
-void Settings::onBrowseClicked() {
-  auto browseStart = eviRepoTextBox->text();
-  browseStart = QFile(browseStart).exists() ? browseStart : QDir::homePath();
-  auto filename = QFileDialog::getExistingDirectory(this, tr("Select a project directory"),
-                                                    browseStart, QFileDialog::ShowDirsOnly);
-  if (filename != nullptr) {
-    eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
-  }
-}

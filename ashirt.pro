@@ -71,6 +71,8 @@ SOURCES += \
     src/forms/evidence_filter/evidencefilterform.cpp \
     src/forms/getinfo/getinfo.cpp \
     src/forms/porting/porting_dialog.cpp \
+    src/forms/settings/connections_settingstab.cpp \
+    src/forms/settings/general_settingstab.cpp \
     src/helpers/clipboard/clipboardhelper.cpp \
     src/migrations/migration.cpp \
     src/models/codeblock.cpp \
@@ -130,6 +132,8 @@ HEADERS += \
     src/forms/evidence_filter/evidencefilterform.h \
     src/forms/getinfo/getinfo.h \
     src/forms/porting/porting_dialog.h \
+    src/forms/settings/connections_settingstab.h \
+    src/forms/settings/general_settingstab.h \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
     src/helpers/request_builder.h \

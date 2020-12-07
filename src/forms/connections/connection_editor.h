@@ -25,7 +25,6 @@ class ConnectionEditor : public QDialog {
   void wireUi();
 
   void showEvent(QShowEvent* evt) override;
-  void selectConnectionUuids(std::vector<QString> targetUuids, bool firstOnly=false);
 
  private slots:
   void onConnectionSaved(ServerItem data);

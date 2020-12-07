@@ -10,12 +10,10 @@
 #include <QDialogButtonBox>
 #include <QErrorMessage>
 #include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QSpacerItem>
-#include <QKeySequenceEdit>
+#include <QTabWidget>
 
+#include "general_settingstab.h"
+#include "connections_settingstab.h"
 #include "components/connection_checker/connectionchecker.h"
 #include "db/databaseconnection.h"
 #include "hotkeymanager.h"
@@ -52,8 +50,6 @@ class Settings : public QDialog {
   /// closeEvent extends the native closeEvent handler. Saves data prior to closing.
   void closeEvent(QCloseEvent* event) override;
 
-  /// onBrowseClicked triggers when the "browse" button is pressed. Shows a file dialog to the user.
-  void onBrowseClicked();
 
  private:
   /// hotkeyManager is a (shared) reference to the HotkeyManager. Not to be deleted.
@@ -63,26 +59,17 @@ class Settings : public QDialog {
 
   QAction* closeWindowAction = nullptr;
 
-  // UI components
-  QGridLayout* gridLayout = nullptr;
-  QLabel* _eviRepoLabel = nullptr;
-  QLabel* _captureAreaCmdLabel = nullptr;
-  QLabel* _captureAreaShortcutLabel = nullptr;
-  QLabel* _captureWindowCmdLabel = nullptr;
-  QLabel* _captureWindowShortcutLabel = nullptr;
-  QLabel* _recordCodeblockShortcutLabel = nullptr;
+  // Ui Elements
+  QGridLayout* gridLayout;
+  QTabWidget* tabControl;
 
-  QLineEdit* eviRepoTextBox = nullptr;
-  QLineEdit* captureAreaCmdTextBox = nullptr;
-  QKeySequenceEdit* captureAreaShortcutTextBox = nullptr;
-  QLineEdit* captureWindowCmdTextBox = nullptr;
-  QKeySequenceEdit* captureWindowShortcutTextBox = nullptr;
-  QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
-  QPushButton* eviRepoBrowseButton = nullptr;
+  GeneralSettingsTab* generalTab = nullptr;
+  ConnectionsSettingsTab* connectionsTab = nullptr;
+
+  QSpacerItem* spacer = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
 
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
-  QSpacerItem* spacer = nullptr;
 };
 
 #endif  // SETTINGS_H
