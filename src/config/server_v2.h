@@ -119,6 +119,10 @@ class ServersV2 : public ServerSet {
     return dirty;
   }
 
+  bool hasServer(const QString& uuid) override {
+    return getServerByUuid(uuid).isValid();
+  }
+
  protected:
   void parseConfigData(const QByteArray& data) override {
     deserialize(data);

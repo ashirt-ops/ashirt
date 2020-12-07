@@ -40,6 +40,10 @@ class AppServers : public QObject {
   std::vector<ServerItem> getServers(bool includeDeleted=false);
   void updateServer(ServerItem item);
 
+  /// upsertServer tries to either update a server (with the given uuid), or, if not present,
+  /// adds the server instead. The actual mechanism chosen is hidden from the caller.
+  void upsertServer(ServerItem server);
+
   QString currentServerUuid();
   QString accessKey(QString serverUuid="");
   QString secretKey(QString serverUuid="");

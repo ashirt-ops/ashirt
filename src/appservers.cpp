@@ -75,6 +75,15 @@ QString AppServers::selectServerUuid(QString maybeServerUuid) {
   return (maybeServerUuid == "") ? currentServerUuid() : maybeServerUuid;
 }
 
+void AppServers::upsertServer(ServerItem server) {
+  if (serverSet->hasServer(server.getServerUuid())) {
+    updateServer(server);
+  }
+  else {
+    addServer(server);
+  }
+}
+
 QString AppServers::accessKey(QString serverUuid) {
   return selectServer(serverUuid).accessKey;
 }

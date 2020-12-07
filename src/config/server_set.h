@@ -57,7 +57,7 @@ class ServerSet {
   virtual bool deleteServer(const QString& uuid, DeleteType deleteAction=PLAIN_DELETE) = 0;
   virtual bool addServer(ServerItem item) = 0;
   virtual bool updateServer(ServerItem item) = 0;
-
+  virtual bool hasServer(const QString& uuid) = 0;
 
  protected:
   virtual void parseConfigData(const QByteArray& data) = 0;
