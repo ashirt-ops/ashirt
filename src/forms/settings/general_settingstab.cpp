@@ -93,7 +93,7 @@ void GeneralSettingsTab::buildUi() {
 
   // row 4
   row++;
-  gridLayout->addItem(spacer, row, 0);
+  gridLayout->addItem(spacer, row, 0, 1, gridLayout->columnCount());
 
   this->setLayout(gridLayout);
 }

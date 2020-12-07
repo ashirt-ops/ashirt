@@ -34,8 +34,8 @@ void ConnectionsSettingsTab::buildUi() {
   gridLayout->addWidget(serversList, 0, 0);
   gridLayout->addWidget(connectionEditArea, 0, 1);
 
-  gridLayout->setColumnStretch(0, 1);
-  gridLayout->setColumnStretch(1, 3);
+  gridLayout->setColumnStretch(0, 3);
+  gridLayout->setColumnStretch(1, 7);
 
   this->setLayout(gridLayout);
 }
