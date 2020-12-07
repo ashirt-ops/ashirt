@@ -85,7 +85,6 @@ TrayManager::~TrayManager() {
   delete screenshotTool;
   delete hotkeyManager;
   delete settingsWindow;
-  delete connEditorWindow;
   delete evidenceManagerWindow;
   delete importWindow;
   delete exportWindow;
@@ -99,7 +98,6 @@ void TrayManager::buildUi() {
   creditsWindow = new Credits(this);
   importWindow = new PortingDialog(PortingDialog::Import, db, this);
   exportWindow = new PortingDialog(PortingDialog::Export, db, this);
-  connEditorWindow = new ConnectionEditor(this);
   createOperationWindow = new CreateOperation(this);
 
   trayIconMenu = new QMenu(this);
@@ -140,11 +138,8 @@ void TrayManager::buildUi() {
   chooseOpSubmenu->addSeparator();
 
   // settings submenu
-
   addToMenu(tr("Export Data"), &exportAction, &importExportSubmenu);
   addToMenu(tr("Import Data"), &importAction, &importExportSubmenu);
-  addToMenu(tr("Edit Connections"), &openConnEditorAction, &chooseServerSubmenu);
-  chooseServerSubmenu->addSeparator();
 
   setActiveOperationLabel();
 

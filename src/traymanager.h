@@ -14,7 +14,6 @@
 #include "forms/evidence/evidencemanager.h"
 #include "forms/porting/porting_dialog.h"
 #include "forms/settings/settings.h"
-#include "forms/connections/connection_editor.h"
 #include "helpers/screenshot.h"
 #include "hotkeymanager.h"
 #include "tools/UGlobalHotkey/uglobalhotkeys.h"
@@ -106,7 +105,8 @@ class TrayManager : public QDialog {
   Credits *creditsWindow = nullptr;
   PortingDialog *importWindow = nullptr;
   PortingDialog *exportWindow = nullptr;
-  ConnectionEditor *connEditorWindow = nullptr;
+
+
   CreateOperation *createOperationWindow = nullptr;
   ConnectionEditor *connEditorWindow;
 
@@ -121,7 +121,6 @@ class TrayManager : public QDialog {
   QAction *showEvidenceManagerAction = nullptr;
   QAction *showCreditsAction = nullptr;
   QAction *addCodeblockAction = nullptr;
-  QAction *openConnEditorAction;
 
   QMenu *importExportSubmenu = nullptr;
   QAction *exportAction = nullptr;
