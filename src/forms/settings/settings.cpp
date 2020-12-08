@@ -157,6 +157,13 @@ void Settings::saveConnectionsData() {
   for(auto serverUuid : removeUuids) {
     AppServers::getInstance().purgeServer(serverUuid);
   }
+
+  try {
+    AppServers::getInstance().writeServers();
+  }
+  catch(std::exception &e) {
+    couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
+  }
 }
 
 void Settings::saveGeneralData() {

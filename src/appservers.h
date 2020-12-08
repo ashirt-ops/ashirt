@@ -31,6 +31,10 @@ class AppServers : public QObject {
  public:
   bool isLoadSuccessful();
   void loadServers(const QString& path="");
+
+  /// writeServers attempts to write the in-memory server list to disk at the provided path.
+  /// If an empty path is provided, then the write will be attempted at the standard location
+  /// @see constants file
   void writeServers(const QString& path="");
   void addServer(const ServerItem& item);
   void deleteServer(const QString& serverUuid);

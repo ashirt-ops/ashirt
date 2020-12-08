@@ -85,7 +85,6 @@ class ServersV2 : public ServerSet {
       entries.erase(position);
     }
     dirty = true;
-    updateServersFile();
     return dirty;
   }
 
@@ -99,7 +98,6 @@ class ServersV2 : public ServerSet {
 
       entries[itemCopy.getServerUuid()] = itemCopy;
       dirty = true;
-      updateServersFile();
     }
     return dirty;
   }
@@ -114,7 +112,6 @@ class ServersV2 : public ServerSet {
       foundItem->second.hostPath = item.hostPath;
 
       dirty = true;
-      updateServersFile();
     }
     return dirty;
   }
@@ -140,11 +137,6 @@ class ServersV2 : public ServerSet {
 
   void setLoadedPath(QString path) override {
     this->loadedPath = path;
-  }
-
- private:
-  void updateServersFile() {
-    writeToFile(getLoadedPath());
   }
 
  private:

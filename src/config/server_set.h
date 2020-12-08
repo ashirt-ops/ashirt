@@ -22,6 +22,8 @@ class ServerSet {
   virtual ~ServerSet() {};
 
  public:
+  /// writeToFile attempts to copy the in-memory servers list to the given file path.
+  /// @throws an exception if writing fails
   virtual void writeToFile(QString filepath) {
     QByteArray data = toFileEncoding();
     FileHelpers::writeFile(filepath, data);
@@ -37,7 +39,10 @@ class ServerSet {
     else if(!readResult.fileExists){
       makeDefaultServerset();
       setLoadedPath(filepath);
-      writeToFile(filepath);
+      try {
+        writeToFile(filepath);
+      }
+      catch(std::exception &e) {} // make a best effort attempt at saving default  values
     }
     else {
       valid = false;
