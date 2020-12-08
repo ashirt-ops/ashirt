@@ -15,25 +15,34 @@ class ServersV2 : public ServerSet {
   ServersV2() = default;
 
  public:
-  static QJsonArray serialize(ServersV2 manifest) {
+  static QJsonObject serialize(ServersV2 manifest) {
+    QJsonObject o;
     QJsonArray a;
     std::vector<ServerItem> serverList = manifest.getServers(true);
     for(auto item : serverList) {
       a.push_back(ServerItem::serialize(item));
     }
-    return a;
+    o.insert("servers", a);
+    return o;
   }
 
  public:
   void deserialize(QByteArray rawData, bool clearServers=true) {
-    auto servers = parseJSONList<ServerItem>(
-        rawData, &ServerItem::deserialize);
-    if (clearServers) {
-      entries.clear();
-    }
-    for (ServerItem s : servers) {
-      entries[s.getServerUuid()] = s;
-    }
+    std::vector<ServerItem> servers;
+    parseJSONItemV2(rawData, [this, clearServers](QJsonObject obj, QJsonParseError err) {
+      if (err.error == QJsonParseError::NoError) {
+        auto a = obj["servers"].toArray();
+
+        if (clearServers) {
+          entries.clear();
+        }
+
+        for (auto element : a) {
+          auto s = ServerItem::deserialize(element.toObject());
+          entries[s.getServerUuid()] = s;
+        }
+      }
+    });
     dirty = true;
   }
 

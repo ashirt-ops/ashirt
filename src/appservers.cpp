@@ -87,12 +87,15 @@ void AppServers::upsertServer(ServerItem server) {
 QString AppServers::accessKey(QString serverUuid) {
   return selectServer(serverUuid).accessKey;
 }
+
 QString AppServers::secretKey(QString serverUuid) {
   return selectServer(serverUuid).secretKey;
 }
+
 QString AppServers::hostPath(QString serverUuid) {
   return selectServer(serverUuid).hostPath;
 }
+
 QString AppServers::serverName(QString serverUuid) {
   return selectServer(serverUuid).serverName;
 }
