@@ -28,6 +28,10 @@ void ConnectionProperties::buildUi() {
   gridLayout->setMargin(0);
 
   _nameLabel = new QLabel("Name");
+  _nameHelpLabel = new QLabel(this);
+  _nameHelpLabel->setPixmap(QPixmap(":/icons/help-icon-small.png"));
+  _nameHelpLabel->setToolTip("Names must be non-empty and must not contain double quotes(\")");
+
   _hostPathLabel = new QLabel("Host Path");
   _accessKeyLabel = new QLabel("Access Key");
   _secretKeyLabel = new QLabel("Secret Key");
@@ -51,7 +55,7 @@ void ConnectionProperties::buildUi() {
   // Layout
   /*        0                 1            2
        +---------------+-------------+-------------+
-    0  | Name Lbl      | [Name TB]                 |
+    0  | Name Lbl      | [Name TB]   | help icon   |
        +---------------+-------------+-------------+
     1  | Host Lbl      | [Host TB]                 |
        +---------------+-------------+-------------+
@@ -68,7 +72,8 @@ void ConnectionProperties::buildUi() {
   // row 0
   int row = 0;
   gridLayout->addWidget(_nameLabel, row, 0);
-  gridLayout->addWidget(nameTextBox, row, 1, 1, 2);
+  gridLayout->addWidget(nameTextBox, row, 1);
+  gridLayout->addWidget(_nameHelpLabel, row, 2);
 
   // row 1
   row++;
@@ -98,6 +103,9 @@ void ConnectionProperties::buildUi() {
 
 void ConnectionProperties::wireUi() {
   connect(connectionStatus, &ConnectionChecker::pressed, this, &ConnectionProperties::onConnectionCheckerPressed);
+  connect(nameTextBox, &QLineEdit::textChanged, [this](QString value){
+    nameTextBox->setPalette( isNameValid(value) ? normalBackground : errorBackground );
+  });
 }
 
 void ConnectionProperties::saveServer() {
@@ -109,15 +117,8 @@ void ConnectionProperties::saveServer() {
   emit serverChanged(rtn);
 }
 
-void ConnectionProperties::showBadNameNote() {
-  nameTextBox->setPalette(errorBackground);
-  QToolTip::showText(nameTextBox->mapToGlobal(QPoint(10, -40)),
-                     "Names must be non-empty and must not contain double quotes(\")",
-                     nameTextBox, nameTextBox->rect(), 4000);
-}
-
 bool ConnectionProperties::isNameValid(QString proposedName) {
-  return !QRegularExpression("^[^\"]+$").match(proposedName).hasMatch();
+  return proposedName.length() > 0 && !proposedName.contains("\"");
 }
 
 QString ConnectionProperties::sanitizeName(QString proposed) {

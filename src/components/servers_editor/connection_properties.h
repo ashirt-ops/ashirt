@@ -70,6 +70,7 @@ class ConnectionProperties : public QWidget {
   QGridLayout* gridLayout = nullptr;
 
   QLabel* _nameLabel = nullptr;
+  QLabel* _nameHelpLabel = nullptr;
   QLabel* _accessKeyLabel = nullptr;
   QLabel* _secretKeyLabel = nullptr;
   QLabel* _hostPathLabel = nullptr;
