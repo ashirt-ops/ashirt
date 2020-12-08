@@ -41,18 +41,18 @@ void ConnectionsSettingsTab::buildUi() {
 }
 
 void ConnectionsSettingsTab::wireUi() {
-  connect(connectionEditArea, &ConnectionProperties::onSave, this, &ConnectionsSettingsTab::onConnectionSaved);
   connect(serversList, &ServersList::onServerSelectionChanged, this, &ConnectionsSettingsTab::serverSelectionChanged);
-
-  connect(serversList, &ServersList::onServerAdded, [this](){ connectionEditArea->highlightNameTextbox(); });
+  connect(serversList, &ServersList::onServerAdded, [this](ServerItem s){
+    connectionEditArea->loadItem(s);
+    connectionEditArea->highlightNameTextbox();
+  });
+  connect(connectionEditArea, &ConnectionProperties::serverChanged, [this](ServerItem s){
+    serversList->saveServer(s);
+  });
 }
 
 void ConnectionsSettingsTab::setMargin(int width) {
   gridLayout->setMargin(width);
-}
-
-void ConnectionsSettingsTab::onConnectionSaved(ServerItem item) {
-  AppServers::getInstance().updateServer(item);
 }
 
 void ConnectionsSettingsTab::serverSelectionChanged(std::vector<ServerItem> selectedServers) {
@@ -67,4 +67,9 @@ void ConnectionsSettingsTab::serverSelectionChanged(std::vector<ServerItem> sele
 void ConnectionsSettingsTab::resetForm() {
   serversList->clearSelection();
   serversList->refreshList();
+}
+
+std::vector<ServerItem> ConnectionsSettingsTab::encodeServers() {
+  connectionEditArea->saveCurrentItem();
+  return serversList->encodeServers();
 }

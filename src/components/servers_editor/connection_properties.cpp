@@ -14,7 +14,6 @@ ConnectionProperties::~ConnectionProperties() {
   delete _secretKeyLabel;
   delete _hostPathLabel;
 
-  delete saveButton;
   delete connectionStatus;
   delete nameTextBox;
   delete accessKeyTextBox;
@@ -45,9 +44,6 @@ void ConnectionProperties::buildUi() {
   secretKeyTextBox = new QLineEdit(this);
   connectionStatus = new ConnectionChecker(true, this);
   connectionStatus->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
-  saveButton = new QPushButton("Save", this);
-  saveButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  saveButton->setDefault(true);
 
   normalBackground = nameTextBox->palette();
   errorBackground.setColor(QPalette::Base, QColor(0xFF, 0x99, 0x99));
@@ -67,79 +63,88 @@ void ConnectionProperties::buildUi() {
        +---------------+-------------+-------------+
     5  | vertical Spacer                           |
        +---------------+-------------+-------------+
-    6  | <None>        | <None>      | Save Btn    |
-       +---------------+-------------+-------------+
   */
 
-  int row = 0;
-
   // row 0
+  int row = 0;
   gridLayout->addWidget(_nameLabel, row, 0);
   gridLayout->addWidget(nameTextBox, row, 1, 1, 2);
-  row++;
 
   // row 1
+  row++;
   gridLayout->addWidget(_hostPathLabel, row, 0);
   gridLayout->addWidget(hostPathTextBox, row, 1, 1, 2);
-  row++;
 
   // row 2
+  row++;
   gridLayout->addWidget(_accessKeyLabel, row, 0);
   gridLayout->addWidget(accessKeyTextBox, row, 1, 1, 2);
-  row++;
 
   // row 3
+  row++;
   gridLayout->addWidget(_secretKeyLabel, row, 0);
   gridLayout->addWidget(secretKeyTextBox, row, 1, 1, 2);
-  row++;
 
   // row 4
+  row++;
   gridLayout->addWidget(connectionStatus, row, 0, 1, gridLayout->columnCount(), Qt::AlignLeft);
-  row++;
 
   // row 5
+  row++;
   gridLayout->addItem(spacer, row, 0, 1, gridLayout->columnCount());
-  row++;
-
-  // row 5
-  gridLayout->addWidget(saveButton, row, 2);
 
   this->setLayout(gridLayout);
 }
 
 void ConnectionProperties::wireUi() {
-  connect(saveButton, &QPushButton::clicked, this, &ConnectionProperties::onSaveClicked);
-
   connect(connectionStatus, &ConnectionChecker::pressed, this, &ConnectionProperties::onConnectionCheckerPressed);
 }
 
-void ConnectionProperties::onSaveClicked() {
-  QString nameText = nameTextBox->text().trimmed();
-  if (!QRegularExpression("^[^\"]+$").match(nameText).hasMatch()) {
-    nameTextBox->setPalette(errorBackground);
-    QToolTip::showText(nameTextBox->mapToGlobal(QPoint(10, -40)),
-                       "Names must be non-empty and must not contain double quotes(\")",
-                       nameTextBox, nameTextBox->rect(), 4000);
-    return;
-  }
+void ConnectionProperties::saveServer() {
+  QString nameText = sanitizeName(nameTextBox->text().trimmed());
 
   auto rtn = ServerItem(loadedItem.getId(), loadedItem.getServerUuid(), nameText,
                         accessKeyTextBox->text(), secretKeyTextBox->text(), hostPathTextBox->text(),
                         loadedItem.deleted);
-  lastItem = loadedItem;
-  emit onSave(rtn);
+  emit serverChanged(rtn);
 }
 
+void ConnectionProperties::showBadNameNote() {
+  nameTextBox->setPalette(errorBackground);
+  QToolTip::showText(nameTextBox->mapToGlobal(QPoint(10, -40)),
+                     "Names must be non-empty and must not contain double quotes(\")",
+                     nameTextBox, nameTextBox->rect(), 4000);
+}
+
+bool ConnectionProperties::isNameValid(QString proposedName) {
+  return !QRegularExpression("^[^\"]+$").match(proposedName).hasMatch();
+}
+
+QString ConnectionProperties::sanitizeName(QString proposed) {
+  auto revised = proposed.replace("\"", "''");
+  if (revised.trimmed().length() == 0) {
+    revised = QString("Connection-%1").arg(QDateTime::currentMSecsSinceEpoch());
+  }
+  return revised;
+}
 
 void ConnectionProperties::loadItem(ServerItem item) {
-  bool isSameItem = lastItem.getServerUuid() == item.getServerUuid();
-  loadedItem = item;
+  bool isSameItem = loadedItem.getServerUuid() == item.getServerUuid();
   if (!isSameItem) {
+    if (loadedItem.getServerUuid() != "") {
+      saveServer();
+    }
     nameTextBox->setFocus();
-    lastItem = emptyItem; //clear the item, so we don't trigger weird behavior
   }
   connectionStatus->abortRequest();
+  loadedItem = item;
   resetForm();
+}
+
+void ConnectionProperties::saveCurrentItem() {
+  if (loadedItem.getServerUuid() != "") {
+    saveServer();
+  }
 }
 
 void ConnectionProperties::resetForm() {
@@ -177,7 +182,6 @@ void ConnectionProperties::setEnabled(bool enable) {
   accessKeyTextBox->setEnabled(enable);
   secretKeyTextBox->setEnabled(enable);
   connectionStatus->setEnabled(enable);
-  saveButton->setEnabled(enable);
 }
 
 void ConnectionProperties::highlightNameTextbox() {

@@ -23,12 +23,12 @@ class ConnectionsSettingsTab : public QWidget
   void wireUi();
 
  private slots:
-  void onConnectionSaved(ServerItem data);
   void serverSelectionChanged(std::vector<ServerItem> selectedServers);
 
  public:
   void setMargin(int width);
   void resetForm();
+  std::vector<ServerItem> encodeServers();
 
  private:
   QGridLayout* gridLayout;

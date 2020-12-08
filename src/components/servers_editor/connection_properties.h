@@ -28,11 +28,21 @@ class ConnectionProperties : public QWidget {
   /// resetForm sets all fields to the loaded serverItem
   void resetForm();
 
+  /// saveServer records the currently loaded server's updates to
+  void saveServer();
+
+  /// sanitizeName forces a regular name out of the proposed value. Currently quotes are replaced
+  /// with '' and empty strings are replaced with Connection-timestamp
+  QString sanitizeName(QString proposed);
+
+  /// isNameValid performs validation on a given string to see if it meets name rules.
+  /// @returns true if proposedName has no flaws, false otherwise
+  bool isNameValid(QString proposedName);
+
+  void showBadNameNote();
+
  private slots:
   void onConnectionCheckerPressed();
-
-  /// fires when the save button is clicked
-  void onSaveClicked();
 
  public:
   /// isDirty is used to track if the user has made changes.
@@ -43,16 +53,16 @@ class ConnectionProperties : public QWidget {
   void highlightNameTextbox();
 
  signals:
-  void onSave(ServerItem data);
+  void serverChanged(ServerItem data);
 
  public slots:
   void loadItem(ServerItem item);
+  void saveCurrentItem();
 
 
  private:
   ServerItem emptyItem;
   ServerItem loadedItem;
-  ServerItem lastItem;
   QPalette normalBackground;
   QPalette errorBackground;
 
@@ -64,7 +74,6 @@ class ConnectionProperties : public QWidget {
   QLabel* _secretKeyLabel = nullptr;
   QLabel* _hostPathLabel = nullptr;
 
-  QPushButton* saveButton = nullptr;
   ConnectionChecker* connectionStatus = nullptr;
   QLineEdit* nameTextBox = nullptr;
   QLineEdit* accessKeyTextBox = nullptr;

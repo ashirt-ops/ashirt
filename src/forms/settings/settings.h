@@ -44,6 +44,12 @@ class Settings : public QDialog {
   /// onCancelClicked handles the discard operation. Used when the "Cancel" button is pressed.
   void onCancelClicked();
 
+  /// saveConnectionsData saves changes made in the ConnectionsSettingsTab
+  void saveConnectionsData();
+
+  /// saveGeneralData saves changes made in the GeneralSettingsTab
+  void saveGeneralData();
+
  public slots:
   /// showEvent extends the native showEvent handler. Restores the UI to system values.
   void showEvent(QShowEvent* evt) override;

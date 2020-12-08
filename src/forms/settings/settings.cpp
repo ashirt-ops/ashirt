@@ -3,12 +3,12 @@
 
 #include "settings.h"
 
-#include <QDateTime>
 #include <QFileDialog>
 #include <QKeySequence>
 #include <QString>
 
 #include "appconfig.h"
+#include "appservers.h"
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
@@ -123,6 +123,43 @@ void Settings::onCancelClicked() {
 }
 
 void Settings::onSaveClicked() {
+  saveGeneralData();
+  saveConnectionsData();
+
+  close();
+}
+
+void Settings::saveConnectionsData() {
+  // three step process:
+  // 1. add/update servers we know from the mock list
+  // 2. find servers we don't want from the known list
+  // 3. delete servers we don't want from the known list
+
+  auto mockServers = connectionsTab->encodeServers();
+  for (auto server : mockServers) {
+    AppServers::getInstance().upsertServer(server);
+  }
+
+  std::vector<QString> removeUuids;
+  for (auto server : AppServers::getInstance().getServers()) {
+    bool found = false;
+    for (auto it = mockServers.begin(); it != mockServers.end(); ++it) {
+      if (it.base()->getServerUuid() == server.getServerUuid()) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      removeUuids.push_back(server.getServerUuid());
+    }
+  }
+
+  for(auto serverUuid : removeUuids) {
+    AppServers::getInstance().purgeServer(serverUuid);
+  }
+}
+
+void Settings::saveGeneralData() {
   auto &cfg = AppConfig::getInstance();
 
   GeneralSettingsStruct values = generalTab->encodeForm();
@@ -140,8 +177,5 @@ void Settings::onSaveClicked() {
   catch (std::exception &e) {
     couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
   }
-
   hotkeyManager->updateHotkeys();
-  close();
 }
-
