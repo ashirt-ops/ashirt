@@ -70,6 +70,14 @@ void ServersList::wireUi() {
   connect(addButton, btnClicked, this, &ServersList::addClicked);
   connect(deleteButton, btnClicked, this, &ServersList::deleteClicked);
   connect(connectionsList, &QListWidget::itemSelectionChanged, this, &ServersList::onItemSelectionChanged);
+  connect(&AppSettings::getInstance(), &AppSettings::onServerUpdated, this, &ServersList::updateServerNames);
+}
+
+void ServersList::updateServerNames() {
+  for (auto listItem : connectionsList->findItems("", Qt::MatchContains)) {
+    auto serverItem = readItemData(listItem);
+    listItem->setText(getServerName(serverItem));
+  }
 }
 
 void ServersList::addClicked() {
@@ -147,11 +155,20 @@ void ServersList::updateList() {
   }
 }
 
+QString ServersList::getServerName(ServerItem server) {
+  QString postfix = "";
+  if (AppServers::getInstance().currentServerUuid() == server.getServerUuid()) {
+    postfix = " (current)";
+  }
+  return server.serverName + postfix;
+}
+
 QListWidgetItem* ServersList::buildServerItem(ServerItem server) {
   auto item = new QListWidgetItem();
   auto castedData = QVariant::fromValue(server);
   item->setData(Qt::UserRole, castedData);
-  item->setText(server.serverName);
+  item->setText(getServerName(server));
+
   if (server.deleted) {
     auto font = item->font();
     font.setStrikeOut(true);
@@ -179,7 +196,7 @@ void ServersList::saveServer(ServerItem serverItem) {
   for (auto listItem : connectionsList->findItems("", Qt::MatchContains)) {
     if (readItemData(listItem).getServerUuid() == serverItem.getServerUuid()) {
       listItem->setData(Qt::UserRole, QVariant::fromValue(serverItem));
-      listItem->setText(serverItem.serverName);
+      listItem->setText(getServerName(serverItem));
       break;
     }
   }

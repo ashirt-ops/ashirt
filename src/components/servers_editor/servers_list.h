@@ -41,6 +41,8 @@ class ServersList : public QWidget {
 
   ServerItem readItemData(QListWidgetItem* item);
 
+  QString getServerName(ServerItem server);
+
  public:
   void clearSelection();
   void refreshList();
@@ -60,6 +62,7 @@ class ServersList : public QWidget {
   void onItemSelectionChanged();
   void addMockServer(ServerItem item);
   void removeMockServer(QString uuid);
+  void updateServerNames();
 
  private:
   std::vector<ServerItem> mockServers;
