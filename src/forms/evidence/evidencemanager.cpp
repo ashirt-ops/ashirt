@@ -177,8 +177,6 @@ void EvidenceManager::wireUi() {
   connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
 
-  connect(filterTextBox, &QLineEdit::returnPressed, this, &EvidenceManager::loadEvidence);
-
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
   connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
