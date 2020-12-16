@@ -33,12 +33,18 @@ void AppServers::addServer(const ServerItem& item) {
 
 void AppServers::purgeServer(const QString& serverUuid) {
   if (serverSet->deleteServer(serverUuid, ServerSet::PERMANENT_DELETE)) {
+    if (AppSettings::getInstance().serverUuid() == serverUuid) {
+      AppSettings::getInstance().setServerUuid("");
+    }
     emit listUpdated();
   }
 }
 
 void AppServers::deleteServer(const QString& serverUuid) {
   if (serverSet->deleteServer(serverUuid)) {
+    if (AppSettings::getInstance().serverUuid() == serverUuid) {
+      AppSettings::getInstance().setServerUuid("");
+    }
     emit listUpdated();
   }
 }
