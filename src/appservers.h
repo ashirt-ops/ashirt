@@ -36,25 +36,39 @@ class AppServers : public QObject {
   /// If an empty path is provided, then the write will be attempted at the standard location
   /// @see constants file
   void writeServers(const QString& path="");
+  /// addServer creates a new server
   void addServer(const ServerItem& item);
+  /// deleteServer marks the server associated with the given uuid as deleted
   void deleteServer(const QString& serverUuid);
+  /// purgeServer actually deletes the server associated with given uuid
   void purgeServer(const QString& serverUuid);
+  /// restoreServer marks the server associated with the given uuid as not-deleted (undoes deleteServer)
   void restoreServer(const QString& serverUuid);
+  /// getServerByUuid retrieves the serer data associate with the given uuiid
   ServerItem getServerByUuid(const QString& serverUuid);
+  /// getServers retrieves all of the servers known to the system. By default, only the undeleted servers
+  /// are returned. Specify includeDeleted = true to return all servers, deleted or not
   std::vector<ServerItem> getServers(bool includeDeleted=false);
+  /// updateServer updates the server provided. If the server does not exist, then nothing will be done.
   void updateServer(ServerItem item);
 
   /// upsertServer tries to either update a server (with the given uuid), or, if not present,
   /// adds the server instead. The actual mechanism chosen is hidden from the caller.
   void upsertServer(ServerItem server);
 
+  /// currentServerUuid retrieves the currently selected server's uuid
   QString currentServerUuid();
+  /// accessKey is a shorthand for getting the accessKey for the given server uuid (or the current server, if the uuid is empty)
   QString accessKey(QString serverUuid="");
+  /// secretKey is a shorthand for getting the secretKey for the given server uuid (or the current server, if the uuid is empty)
   QString secretKey(QString serverUuid="");
+  /// hostPath is a shorthand for getting the hostPath for the given server uuid (or the current server, if the uuid is empty)
   QString hostPath(QString serverUuid="");
+  /// serverName is a shorthand for getting the serverName for the given server uuid (or the current server, if the uuid is empty)
   QString serverName(QString serverUuid="");
 
  signals:
+  /// listUpdated is signaled whenver a
   void listUpdated();
 
 
