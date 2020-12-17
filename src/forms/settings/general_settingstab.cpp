@@ -1,3 +1,6 @@
+// Copyright 2020, Verizon Media
+// Licensed under the terms of MIT. See LICENSE file in project root for terms.
+
 #include "general_settingstab.h"
 
 #include <QDir>
