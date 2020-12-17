@@ -177,8 +177,6 @@ void EvidenceManager::wireUi() {
   connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
 
-  connect(filterTextBox, &QLineEdit::returnPressed, this, &EvidenceManager::loadEvidence);
-
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
   connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
@@ -338,6 +336,11 @@ void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
 }
 
 void EvidenceManager::loadEvidence() {
+  qint64 reselectId = -1;
+  if (evidenceTable->selectedItems().size() > 0) {
+    reselectId = selectedRowEvidenceID();
+  }
+
   evidenceTable->clearContents();
 
   try {
@@ -367,6 +370,18 @@ void EvidenceManager::loadEvidence() {
       setRowText(row, evi);
     }
     evidenceTable->setSortingEnabled(true);
+    if (evidenceTable->rowCount() > 0) {
+      // try to reselect the last viewed evidence, if it's still in the list
+      int selectRow = 0;
+      for (int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
+        auto evidenceID = evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong();
+        if(evidenceID == reselectId) {
+          selectRow = rowIndex;
+          break;
+        }
+      }
+      evidenceTable->setCurrentCell(selectRow, 0);
+    }
   }
   catch (QSqlError& e) {
     std::cout << "Could not retrieve evidence for operation. Error: " << e.text().toStdString()

@@ -160,6 +160,8 @@ void EvidenceEditor::clearEditor() {
   this->descriptionTextBox->setText("");
   if (loadedPreview != nullptr) {
     loadedPreview->clearPreview();
+    delete loadedPreview;
+    loadedPreview = nullptr;
   }
 }
 
