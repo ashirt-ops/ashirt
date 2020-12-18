@@ -15,7 +15,7 @@ ImageView::~ImageView() {
 
 void ImageView::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   previewImage = new AspectRatioPixmapLabel(this);
   previewImage->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));

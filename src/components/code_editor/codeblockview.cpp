@@ -19,7 +19,7 @@ CodeBlockView::~CodeBlockView() {
 
 void CodeBlockView::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   _languageLabel = new QLabel("Language", this);
   _sourceLabel = new QLabel("Source", this);
