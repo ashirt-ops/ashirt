@@ -57,8 +57,10 @@ int main(int argc, char* argv[]) {
 
   int rtn;
   try {
+#if #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     qRegisterMetaTypeStreamOperators<model::Tag>("Tag");
     qRegisterMetaTypeStreamOperators<std::vector<model::Tag>>("TagVector");
+#endif
     QApplication app(argc, argv);
     qRegisterMetaType<model::Tag>();
 
