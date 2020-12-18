@@ -4,6 +4,7 @@
 #ifndef APPSETTINGS_H
 #define APPSETTINGS_H
 
+#include <QSequentialIterable>
 #include <QSettings>
 #include <QString>
 
@@ -56,11 +57,28 @@ class AppSettings : public QObject {
   QString operationName() { return settings.value(opNameSetting).toString(); }
 
   void setLastUsedTags(std::vector<model::Tag> lastTags) {
-    settings.setValue(lastUsedTagsSetting, QVariant::fromValue(lastTags));
+    QVariantList writeTags;
+    
+    for (auto tag : lastTags) {
+      writeTags << QVariant::fromValue(tag);
+    }
+
+    settings.setValue(lastUsedTagsSetting, QVariant::fromValue(writeTags));
   }
+
   std::vector<model::Tag> getLastUsedTags() {
+    std::vector<model::Tag> rtn;
+
     auto val = settings.value(lastUsedTagsSetting);
-    return qvariant_cast<std::vector<model::Tag>>(val);
+
+    if (val.canConvert<QVariantList>()) {
+      QSequentialIterable iter = val.value<QSequentialIterable>();
+      for (const QVariant& item : iter) {
+        rtn.push_back(qvariant_cast<model::Tag>(item));
+      }
+    }
+
+    return rtn;
   }
 };
 #endif  // APPSETTINGS_H

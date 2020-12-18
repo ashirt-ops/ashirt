@@ -11,6 +11,7 @@ void handleCLI(std::vector<std::string> args);
 #ifndef QT_NO_SYSTEMTRAYICON
 #include <QApplication>
 #include <QMessageBox>
+#include <QMetaType>
 
 #include "appconfig.h"
 #include "appsettings.h"
@@ -18,38 +19,6 @@ void handleCLI(std::vector<std::string> args);
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
-
-QDataStream& operator<<(QDataStream& out, const model::Tag& v) {
-  out << v.tagName << v.id << v.serverTagId;
-  return out;
-}
-
-QDataStream& operator>>(QDataStream& in, model::Tag& v) {
-  in >> v.tagName;
-  in >> v.id;
-  in >> v.serverTagId;
-  return in;
-}
-
-QDataStream& operator<<(QDataStream& out, const std::vector<model::Tag>& v) {
-  out << int(v.size());
-  for (auto tag : v) {
-    out << tag;
-  }
-  return out;
-}
-
-QDataStream& operator>>(QDataStream& in, std::vector<model::Tag>& v) {
-  int qty;
-  in >> qty;
-  v.reserve(qty);
-  for(int i = 0; i < qty; i++) {
-    model::Tag t;
-    in >> t;
-    v.push_back(t);
-  }
-  return in;
-}
 
 int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(res_icons);
@@ -91,6 +60,7 @@ int main(int argc, char* argv[]) {
     qRegisterMetaTypeStreamOperators<model::Tag>("Tag");
     qRegisterMetaTypeStreamOperators<std::vector<model::Tag>>("TagVector");
     QApplication app(argc, argv);
+    qRegisterMetaType<model::Tag>();
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
       handleCLI(std::vector<std::string>(argv, argv + argc));

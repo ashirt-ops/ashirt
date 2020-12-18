@@ -14,11 +14,25 @@ class Tag {
   Tag() = default;
   ~Tag() = default;
   Tag(const Tag &) = default;
+  Tag& operator=(const Tag&) = default;
 
   Tag(qint64 id, qint64 tagId, QString name) : Tag(tagId, name) { this->id = id; }
   Tag(qint64 tagId, QString name) {
     this->serverTagId = tagId;
     this->tagName = name;
+  }
+
+ public:
+  friend QDataStream& operator<<(QDataStream& out, const model::Tag& v) {
+    out << v.tagName << v.id << v.serverTagId;
+    return out;
+  }
+
+  friend QDataStream& operator>>(QDataStream& in, model::Tag& v) {
+    in >> v.tagName;
+    in >> v.id;
+    in >> v.serverTagId;
+    return in;
   }
 
  public:
