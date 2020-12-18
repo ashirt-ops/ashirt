@@ -3,6 +3,7 @@
 
 #include "evidenceeditor.h"
 
+#include <QFile>
 #include <vector>
 
 #include "components/aspectratio_pixmap_label/imageview.h"
