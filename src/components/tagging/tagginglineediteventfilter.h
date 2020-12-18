@@ -41,7 +41,7 @@ class TaggingLineEditEventFilter : public QObject {
     if (event->type() == QEvent::KeyPress) {
       QKeyEvent *ke = static_cast<QKeyEvent *>(event);
 
-      if (matchesKey(ke, QKeySequence(Qt::CTRL + Qt::Key_Space))) {
+      if (matchesKey(ke, QKeySequence(Qt::CTRL | Qt::Key_Space))) {
         emit completePressed();
         return true;
       }
