@@ -18,18 +18,18 @@ class Constants {
 
   static QString configLocation() {
 #ifdef Q_OS_MACOS
-    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/config.json";
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.json";
 #else
     return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/config.json";
 #endif
   }
 
   static QString dbLocation() {
-    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/evidence.sqlite";
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/evidence.sqlite";
   }
 
   static QString defaultEvidenceRepo() {
-    return QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/evidence";
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/evidence";
   }
 
   static QString releaseOwner() {
