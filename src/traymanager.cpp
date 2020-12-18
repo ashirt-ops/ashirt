@@ -7,23 +7,13 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QCheckBox>
 #include <QCloseEvent>
-#include <QComboBox>
 #include <QCoreApplication>
-#include <QDesktopWidget>
-#include <QGroupBox>
-#include <QLabel>
-#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QTextEdit>
-#include <QVBoxLayout>
-#include <iostream>
 #include <QTimer>
 #include <QDesktopServices>
+#include <iostream>
 
 #include "appconfig.h"
 #include "appsettings.h"
