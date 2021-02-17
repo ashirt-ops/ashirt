@@ -45,6 +45,7 @@ jobs:
       env: 
         MACOS_CERT: ${{ secrets.MACOS_CERT }}
         MACOS_PASS: ${{ secrets.MACOS_PASS }}
+        MACOS_KEYC: ${{ secrets.MACOS_KEYC }}
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -53,10 +54,10 @@ jobs:
         make
         macdeployqt ashirt.app -dmg
         echo $MACOS_CERT | base64 —d > certificate.p12
-        security create-keychain -p $MACOS_PASS build.keychain security default-keychain -s build.keychain
-        security unlock-keychain -p $MACOS_PASS build.keychain
+        security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
+        security unlock-keychain -p $MACOS_KEYC build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_PASS -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_PASS build.keychain
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC build.keychain
         /usr/bin/codesign --force -s ashirt ashirt.app -v
         mkdir dist
         cp -r ashirt.dmg dist/
