@@ -68,10 +68,7 @@ jobs:
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC build.keychain
         /usr/bin/codesign --force -s ashirt ashirt.app -v
         macdeployqt ashirt.app -dmg
-        mkdir dist
         cp -r ashirt.dmg dist/
-        cp LICENSE dist/LICENSE
-        cp README.md dist/README.md
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
