@@ -53,7 +53,7 @@ jobs:
         qmake -config release
         make
         macdeployqt ashirt.app -dmg
-        echo $MACOS_CERT | base64 —d > certificate.p12
+        echo $MACOS_CERT | base64 —D > certificate.p12
         security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
         security unlock-keychain -p $MACOS_KEYC build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_PASS -T /usr/bin/codesign
