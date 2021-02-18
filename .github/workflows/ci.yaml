@@ -48,11 +48,14 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg
         mkdir dist
-        cp -r ashirt.dmg dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
+
+    - name: Install gon via HomeBrew for code signing and app notarization
+      run: |
+        brew tap mitchellh/gon
+        brew install mitchellh/gon/gon
 
     - name: Sign (mac)
       if: matrix.os == 'macos-latest'
@@ -60,14 +63,15 @@ jobs:
         MACOS_CERT: ${{ secrets.MACOS_CERT }}
         MACOS_PASS: ${{ secrets.MACOS_PASS }}
         MACOS_KEYC: ${{ secrets.MACOS_KEYC }}
+        GON_CONF: ${{ secrets.GON_CONF }}
       run: |
+        echo $GON_CONF | base64 --decode > sign.json
         echo $MACOS_CERT | base64 —-decode > certificate.p12
         security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
         security unlock-keychain -p $MACOS_KEYC build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_PASS -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC build.keychain
-        /usr/bin/codesign --force -s ashirt ashirt.app -v
-        macdeployqt ashirt.app -dmg
+        gon sign.json
         cp -r ashirt.dmg dist/
 
     - name: Archive production artifacts
