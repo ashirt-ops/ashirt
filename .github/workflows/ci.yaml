@@ -54,7 +54,7 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg -codesign="John Kennedy"
+        macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
         mkdir dist
         cp ashirt.dmg dist/ashirt.dmg
         cp LICENSE dist/LICENSE
