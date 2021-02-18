@@ -50,6 +50,7 @@ jobs:
         make
         macdeployqt ashirt.app -dmg
         mkdir dist
+        cp -r ashirt.dmg dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
