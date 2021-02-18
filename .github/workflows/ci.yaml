@@ -60,7 +60,7 @@ jobs:
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
         p12-password: ${{ secrets.MACOS_PASS }}
-        
+
     - name: Build and Sign Release (mac)
       if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
       run: |
@@ -86,7 +86,6 @@ jobs:
         gon notarize.json
 
     - name: Archive production artifacts
-      if: contains(github.ref, 'tags/v')
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.name }}
@@ -132,7 +131,7 @@ jobs:
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
           asset_path: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
