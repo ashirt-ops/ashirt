@@ -66,8 +66,8 @@ jobs:
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
         which base64
-        echo "${{ secrets.GON_CONF }}" | base64 -D -i - > sign.json
-        echo "$MACOS_CERT" | base64 —-decode > certificate.p12
+        echo "$GON_CONF" | base64 -D -i - > sign.json
+        echo "$MACOS_CERT" | base64 -D -i - > certificate.p12
         security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
         security unlock-keychain -p $MACOS_KEYC build.keychain
         security import certificate.p12 -k build.keychain -P $MACOS_PASS -T /usr/bin/codesign
