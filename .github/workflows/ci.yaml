@@ -48,9 +48,8 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg
+        macdeployqt ashirt.app
         mkdir dist
-        cp -r ashirt.dmg dist/
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
@@ -72,6 +71,7 @@ jobs:
       run: |
         echo "$GON_CONF" | base64 -D -i - > sign.json
         gon sign.json
+        zip -r release.zip dist/*
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
