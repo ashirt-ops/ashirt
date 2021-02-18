@@ -55,14 +55,14 @@ jobs:
         cp README.md dist/README.md
 
     - name: Import Code-Signing Certificates
-      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master'))
       uses: Apple-Actions/import-codesign-certs@v1
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
         p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Build and Sign Release (mac)
-      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master'))
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -76,7 +76,7 @@ jobs:
         cp README.md dist/README.md
 
     - name: Install gon via HomeBrew and Notarize Release (mac)
-      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master'))
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
