@@ -65,6 +65,9 @@ jobs:
         MACOS_KEYC: ${{ secrets.MACOS_KEYC }}
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
+        which base64
+        which b64
+        base64 -h
         echo ${{ secrets.GON_CONF }} | base64 --decode > sign.json
         echo $MACOS_CERT | base64 —-decode > certificate.p12
         security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
