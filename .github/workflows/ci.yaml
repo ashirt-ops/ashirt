@@ -70,13 +70,7 @@ jobs:
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
-        #which base64
-        #echo "$GON_CONF" | base64 -D -i - > sign.json
-        #echo "$MACOS_CERT" | base64 -D -i - > certificate.p12
-        #security create-keychain -p $MACOS_KEYC ashirt.keychain
-        #security unlock-keychain -p $MACOS_KEYC ashirt.keychain
-        #security import certificate.p12 -k ashirt.keychain -P $MACOS_PASS -T /usr/bin/codesign
-        #security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC ashirt.keychain
+        echo "$GON_CONF" | base64 -D -i - > sign.json
         gon sign.json
 
     - name: Archive production artifacts
