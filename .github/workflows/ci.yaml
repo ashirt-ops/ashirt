@@ -69,8 +69,6 @@ jobs:
       if: matrix.os == 'macos-latest'
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
-        APPL_USER: ${{secrets.APPL_USER}}
-        APPL_PASS: ${{secrets.APPL_PASS}}
       run: |
         echo "$GON_CONF" | base64 -D -i - > sign.json
         gon sign.json
