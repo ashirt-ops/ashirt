@@ -48,6 +48,7 @@ jobs:
         brew link -f qt
         qmake -config release
         make
+        macdeployqt ashirt.app -dmg
         mkdir dist
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
@@ -68,12 +69,11 @@ jobs:
         which base64
         echo "$GON_CONF" | base64 -D -i - > sign.json
         echo "$MACOS_CERT" | base64 -D -i - > certificate.p12
-        security create-keychain -p $MACOS_KEYC build.keychain security default-keychain -s build.keychain
-        security unlock-keychain -p $MACOS_KEYC build.keychain
-        security import certificate.p12 -k build.keychain -P $MACOS_PASS -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC build.keychain
+        security create-keychain -p $MACOS_KEYC ashirt.keychain security default-keychain -s ashirt.keychain
+        security unlock-keychain -p $MACOS_KEYC ashirt.keychain
+        security import certificate.p12 -k ashirt.keychain -P $MACOS_PASS -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYC ashirt.keychain
         gon sign.json
-        cp -r ashirt.dmg dist/
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
