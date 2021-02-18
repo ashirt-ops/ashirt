@@ -134,6 +134,7 @@ include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
   ICON = icons/ashirt.icns
+  QMAKE_TARGET_BUNDLE_PREFIX = com.theparanoids
 }
 
 # Default rules for deployment.

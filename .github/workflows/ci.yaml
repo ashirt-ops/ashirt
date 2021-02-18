@@ -41,13 +41,28 @@ jobs:
         submodules: true
 
     - name: Import Code-Signing Certificates
+      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
       uses: Apple-Actions/import-codesign-certs@v1
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
         p12-password: ${{ secrets.MACOS_PASS }}
 
-    - name: Build (mac)
-      if: matrix.os == 'macos-latest'
+    - name: Build PR (mac)
+      if: matrix.os == 'macos-latest' && !contains(github.ref, 'tags/v')
+      run: |
+        brew install qt
+        export PATH="/usr/local/opt/qt/bin:$PATH"
+        brew link -f qt
+        qmake -config release
+        make
+        macdeployqt ashirt.app -dmg
+        mkdir dist
+        cp ashirt.dmg dist/ashirt.dmg
+        cp LICENSE dist/LICENSE
+        cp README.md dist/README.md
+
+    - name: Build and Sign Release (mac)
+      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -60,20 +75,18 @@ jobs:
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
-    - name: Install gon via HomeBrew for code signing and app notarization
-      run: |
-        brew tap mitchellh/gon
-        brew install mitchellh/gon/gon
-
-    - name: Sign (mac)
-      if: matrix.os == 'macos-latest'
+    - name: Install gon via HomeBrew and Notarize Release (mac)
+      if: matrix.os == 'macos-latest' && contains(github.ref, 'tags/v')
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
-        echo "$GON_CONF" | base64 -D -i - > sign.json
-        gon sign.json
+        brew tap mitchellh/gon
+        brew install mitchellh/gon/gon
+        echo "$GON_CONF" | base64 -D -i - > notarize.json
+        gon notarize.json
 
     - name: Archive production artifacts
+      if: contains(github.ref, 'tags/v')
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.name }}
