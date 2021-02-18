@@ -40,6 +40,12 @@ jobs:
       with:
         submodules: true
 
+    - name: Import Code-Signing Certificates
+      uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{ secrets.MACOS_CERT }}
+        p12-password: ${{ secrets.MACOS_PASS }}
+
     - name: Build (mac)
       if: matrix.os == 'macos-latest'
       run: |
@@ -48,16 +54,11 @@ jobs:
         brew link -f qt
         qmake -config release
         make
-        macdeployqt ashirt.app
+        macdeployqt ashirt.app -dmg -codesign="John Kennedy"
         mkdir dist
+        cp ashirt.dmg dist/ashirt.dmg
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
-
-    - name: Import Code-Signing Certificates
-      uses: Apple-Actions/import-codesign-certs@v1
-      with:
-        p12-file-base64: ${{ secrets.MACOS_CERT }}
-        p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Install gon via HomeBrew for code signing and app notarization
       run: |
@@ -71,7 +72,6 @@ jobs:
       run: |
         echo "$GON_CONF" | base64 -D -i - > sign.json
         gon sign.json
-        zip -r release.zip dist/*
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
