@@ -124,7 +124,22 @@ void PortingDialog::onBrowsePresed() {
   }
 }
 
+void PortingDialog::resetForm() {
+    portDone = false;
+    pathTextBox->clear();
+    progressBar->setRange(0, 1);
+    progressBar->setValue(0);
+    portStatusLabel->setText("");
+    portConfigCheckBox->setCheckState(Qt::Unchecked);
+    portEvidenceCheckBox->setCheckState(Qt::Unchecked);
+    submitButton->setText(dialogType == Import ? "Import" : "Export");
+}
+
 void PortingDialog::onSubmitPressed() {
+  if (portDone) {
+      this->close();
+      resetForm();
+  }
   auto portingPath = pathTextBox->text().trimmed();
   if (pathTextBox->text().trimmed().isEmpty()) {
     portStatusLabel->setText("Please set a valid path first");
@@ -163,6 +178,8 @@ void PortingDialog::onSubmitPressed() {
 void PortingDialog::onPortComplete(bool success) {
   if(success) {
     portStatusLabel->setText(dialogType == Import ? "Import Complete" : "Export Complete");
+    submitButton->setText("Close");
+    portDone = true;
   }
   if(executedManifest != nullptr) {
     delete executedManifest;

@@ -64,6 +64,9 @@ class PortingDialog : public QDialog {
   /// Import and Export dialogs
   void onBrowsePresed();
 
+  /// resetForm places the form back to it's original configuration.
+  void resetForm();
+
   /// doExport begins the export process with the given System manifest and export path
   void doExport(porting::SystemManifest* manifest, const QString& exportPath);
 
@@ -84,6 +87,7 @@ class PortingDialog : public QDialog {
  private:
   QString portPath = "";
   PortType dialogType;
+  bool portDone = false;
 
   DatabaseConnection* db; // borrowed
 
