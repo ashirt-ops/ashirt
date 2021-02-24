@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, release-* ]
     tags:
       'v*'
   pull_request:
@@ -22,7 +22,6 @@ jobs:
         id: calc-short
         run: echo "::set-output name=sha8::${GITHUB_SHA::8}"
 
-
   build:
     name: Build
     needs: [store-sha8]
@@ -40,8 +39,8 @@ jobs:
       with:
         submodules: true
 
-    - name: Build (mac)
-      if: matrix.os == 'macos-latest'
+    - name: Build PR (mac)
+      if: matrix.os == 'macos-latest' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -50,9 +49,40 @@ jobs:
         make
         macdeployqt ashirt.app -dmg
         mkdir dist
-        cp -r ashirt.dmg dist/
+        cp ashirt.dmg dist/ashirt.dmg
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
+
+    - name: Import Code-Signing Certificates
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+      uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{ secrets.MACOS_CERT }}
+        p12-password: ${{ secrets.MACOS_PASS }}
+
+    - name: Build and Sign Release (mac)
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+      run: |
+        brew install qt
+        export PATH="/usr/local/opt/qt/bin:$PATH"
+        brew link -f qt
+        qmake -config release
+        make
+        macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
+        mkdir dist
+        cp ashirt.dmg dist/ashirt.dmg
+        cp LICENSE dist/LICENSE
+        cp README.md dist/README.md
+
+    - name: Install gon via HomeBrew and Notarize Release (mac)
+      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+      env: 
+        GON_CONF: ${{ secrets.GON_CONF }}
+      run: |
+        brew tap mitchellh/gon
+        brew install mitchellh/gon/gon
+        echo "$GON_CONF" | base64 -D -i - > notarize.json
+        gon notarize.json
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
