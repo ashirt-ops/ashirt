@@ -4,9 +4,9 @@
 #ifndef MODEL_TAG_H
 #define MODEL_TAG_H
 
+#include <QDataStream>
 #include <QString>
 #include <QVariant>
-#include <QDataStream>
 
 namespace model {
 class Tag {
@@ -15,6 +15,7 @@ class Tag {
   ~Tag() = default;
   Tag(const Tag &) = default;
 
+  Tag(qint64 id, qint64 evidenceID, qint64 tagId, QString name) : Tag(id, tagId, name) { this->evidenceId = evidenceID; }
   Tag(qint64 id, qint64 tagId, QString name) : Tag(tagId, name) { this->id = id; }
   Tag(qint64 tagId, QString name) {
     this->serverTagId = tagId;
@@ -25,6 +26,7 @@ class Tag {
   qint64 id;
   qint64 serverTagId;
   QString tagName;
+  qint64 evidenceId;
 };
 }  // namespace model
 

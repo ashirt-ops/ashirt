@@ -5,6 +5,7 @@
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 #include "dtos/ashirt_error.h"
+#include "appsettings.h"
 
 CreateOperation::CreateOperation(QWidget* parent) : QDialog(parent) {
   buildUi();

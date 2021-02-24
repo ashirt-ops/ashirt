@@ -10,6 +10,11 @@
 
 class FileError : public std::runtime_error {
  public:
+  /// mkError constructs an std::runtime_error with the given details.
+  static FileError mkError(QString msg, QString path, QFileDevice::FileError err) {
+    return FileError::mkError(msg.toStdString(), path.toStdString(), err);
+  }
+  /// mkError constructs an std::runtime_error with the given details.
   static FileError mkError(std::string msg, std::string path, QFileDevice::FileError err) {
     std::string suberror;
     switch (err) {
@@ -59,8 +64,13 @@ class FileError : public std::runtime_error {
         suberror = "Actually, no error occurred -- just bad programming.";
         break;
     }
-    return msg + " (path: " + path + "): " + suberror;
+    FileError wrappedErr(msg + " (path: " + path + "): " + suberror);
+    wrappedErr.fileDeviceError = err;
+    return wrappedErr;
   }
+
+ public:
+  QFileDevice::FileError fileDeviceError;
 
  private:
   FileError(std::string msg) : std::runtime_error(msg) {}

@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <utility> 
 #include "helpers/file_helpers.h"
+#include "helpers/system_helpers.h"
 #include "helpers/jsonhelpers.h"
 
 static Codeblock fromJson(QJsonObject obj) {
@@ -22,11 +23,17 @@ static Codeblock fromJson(QJsonObject obj) {
 Codeblock::Codeblock() = default;
 
 Codeblock::Codeblock(QString content) {
-  this->filename =
-      FileHelpers::randomFilename(FileHelpers::pathToEvidence() + "ashirt_codeblock_XXXXXX.json");
+  this->filename = SystemHelpers::pathToEvidence() + Codeblock::mkName();
   this->content = std::move(content);
   this->subtype = "";
   this->source = "";
+}
+
+QString Codeblock::mkName() {
+  return FileHelpers::randomFilename("ashirt_codeblock_XXXXXX." + extension());
+}
+QString Codeblock::extension() {
+  return "json";
 }
 
 void Codeblock::saveCodeblock(Codeblock codeblock) {
@@ -39,6 +46,10 @@ Codeblock Codeblock::readCodeblock(const QString& filepath) {
   Codeblock rtn = parseJSONItem<Codeblock>(data, fromJson);
   rtn.filename = filepath;
   return rtn;
+}
+
+QString Codeblock::contentType() {
+  return "codeblock";
 }
 
 QByteArray Codeblock::encode() {

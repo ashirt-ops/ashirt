@@ -6,6 +6,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QJsonValue>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
@@ -15,6 +16,8 @@
 
 #include "exceptions/fileerror.h"
 #include "helpers/constants.h"
+#include "helpers/file_helpers.h"
+#include "helpers/jsonhelpers.h"
 
 // AppConfig is a singleton construct for accessing the application's configuration.
 // singleton design borrowed from:
@@ -50,13 +53,14 @@ class AppConfig {
     }
   }
 
-  QString saveLocation = Constants::configLocation();
-
-  void readConfig() {
-    QFile configFile(saveLocation);
+  /// readConfig attempts to read the provided path and parse the configuration file.
+  /// If successful, the config file is loaded. If the config file is missing, then a
+  /// default file will be generated. If some other error occurs, a FileError is thrown.
+  void readConfig(QString location=Constants::configLocation()) {
+    QFile configFile(location);
     if (!configFile.open(QIODevice::ReadOnly)) {
       if (configFile.exists()) {
-        throw FileError::mkError("Error reading config file", saveLocation.toStdString(),
+        throw FileError::mkError("Error reading config file", location.toStdString(),
                                  configFile.error());
       }
       try {
@@ -70,28 +74,21 @@ class AppConfig {
 
     QByteArray data = configFile.readAll();
     if (configFile.error() != QFile::NoError) {
-      throw FileError::mkError("Error reading config file", saveLocation.toStdString(),
+      throw FileError::mkError("Error reading config file", location.toStdString(),
                                configFile.error());
     }
 
-    QJsonParseError err;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
-    if (err.error != QJsonParseError::NoError) {
-      // ignoring specific type -- unlikely to occur in practice.
+    auto result = parseJSONItem<QString>(data, [this](QJsonObject src) {
+      applyConfig(src);
+      return "";
+    });
+    if (result.isNull()) {
       throw std::runtime_error("Unable to parse config file");
     }
-
-    this->evidenceRepo = doc["evidenceRepo"].toString();
-    this->accessKey = doc["accessKey"].toString();
-    this->secretKey = doc["secretKey"].toString();
-    this->apiURL = doc["apiURL"].toString();
-    this->screenshotExec = doc["screenshotCommand"].toString();
-    this->screenshotShortcutCombo = doc["screenshotShortcut"].toString();
-    this->captureWindowExec = doc["captureWindowExec"].toString();
-    this->captureWindowShortcut = doc["captureWindowShortcut"].toString();
-    this->captureCodeblockShortcut = doc["captureCodeblockShortcut"].toString();
   }
 
+  /// writeDefaultConfig attempts to write a basic configuration to disk.
+  /// This is useful on first runs/when no config data is set.
   void writeDefaultConfig() {
     evidenceRepo = Constants::defaultEvidenceRepo();
 
@@ -109,8 +106,32 @@ class AppConfig {
   }
 
  public:
-  void writeConfig() {
-    QJsonObject root = QJsonObject();  // QFiles close automatically, so no need for close here.
+
+  /// applyConfig takes a parsed json configuration, and applies it to the current running app instance
+  void applyConfig(QJsonObject src) {
+    std::vector<std::pair<QString, QString*>> fields = {
+        std::pair<QString, QString*>("evidenceRepo", &evidenceRepo),
+        std::pair<QString, QString*>("accessKey", &accessKey),
+        std::pair<QString, QString*>("secretKey", &secretKey),
+        std::pair<QString, QString*>("apiURL", &apiURL),
+        std::pair<QString, QString*>("screenshotCommand", &screenshotExec),
+        std::pair<QString, QString*>("screenshotShortcut", &screenshotShortcutCombo),
+        std::pair<QString, QString*>("captureWindowExec", &captureWindowExec),
+        std::pair<QString, QString*>("captureWindowShortcut", &captureWindowShortcut),
+        std::pair<QString, QString*>("captureCodeblockShortcut", &captureCodeblockShortcut),
+        };
+
+    for (auto fieldPair : fields) {
+      QJsonValue val = src.value(fieldPair.first);
+      if (!val.isUndefined() && val.isString()) {
+        *fieldPair.second = val.toString();
+      }
+    }
+  }
+
+  /// serializeConfig creates a Json Object from the currently-used configuration
+  QJsonObject serializeConfig() {
+    QJsonObject root;
     root["evidenceRepo"] = evidenceRepo;
     root["accessKey"] = accessKey;
     root["secretKey"] = secretKey;
@@ -120,24 +141,27 @@ class AppConfig {
     root["captureWindowExec"] = captureWindowExec;
     root["captureWindowShortcut"] = captureWindowShortcut;
     root["captureCodeblockShortcut"] = captureCodeblockShortcut;
-
-    auto saveRoot = saveLocation.left(saveLocation.lastIndexOf("/"));
-    QDir().mkpath(saveRoot);
-    QFile configFile(saveLocation);
-    if (!configFile.open(QIODevice::WriteOnly)) {
-      throw FileError::mkError("Error writing config file", saveLocation.toStdString(),
-                               configFile.error());
-    }
-
-    QJsonDocument doc(root);
-    auto written = configFile.write(doc.toJson());
-    if (written == -1) {
-      throw FileError::mkError("Error writing config file", saveLocation.toStdString(),
-                               configFile.error());
-    }
-
-    return;
+    return root;
   }
+
+  /// writeConfig serializes the running config, and writes the assoicated file to the given path.
+  /// The path defaults to Constants::configLocation()
+  void writeConfig(QString alternateSavePath="") {
+    QString writeLoc = alternateSavePath == "" ? Constants::configLocation() : alternateSavePath;
+
+    auto configContent = QJsonDocument(serializeConfig()).toJson();
+
+    try {
+      FileHelpers::mkdirs(writeLoc, true); // ensure the path exists
+      FileHelpers::writeFile(writeLoc, configContent);
+    }
+    catch(const FileError &e) {
+      // rewrap error for easier identification
+      throw FileError::mkError("Error writing config file", writeLoc.toStdString(),
+                               e.fileDeviceError);
+    }
+    return;
+   }
 };
 
 #endif  // DATA_H

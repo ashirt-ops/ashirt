@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <functional>
 #include <vector>
 
 // parseJSONList parses a JSON list into a vector of concrete types from a byte[]. If any error
@@ -32,7 +33,7 @@ static std::vector<T> parseJSONList(QByteArray data, T (*dataToItem)(QJsonObject
 // parseJSONItem parses a single item (assumed to be a Json Object) from a byte[]. If any error
 // occurs during parsing, an empty object is returned.
 template <typename T>
-static T parseJSONItem(QByteArray data, T (*dataToItem)(QJsonObject)) {
+static T parseJSONItem(QByteArray data, std::function<T(QJsonObject)>dataToItem) {
   QJsonParseError err;
   QJsonDocument doc = QJsonDocument::fromJson(data, &err);
   if (err.error != QJsonParseError::NoError) {
