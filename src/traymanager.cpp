@@ -86,7 +86,7 @@ TrayManager::~TrayManager() {
 
   delete chooseOpStatusAction;
   delete chooseOpSubmenu;
-  delete settingsSubmenu;
+  delete importExportSubmenu;
 
   delete updateCheckTimer;
   delete trayIconMenu;
@@ -132,7 +132,8 @@ void TrayManager::buildUi() {
   addToMenu(tr(""), &currentOperationMenuAction, &trayIconMenu);
   addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
   trayIconMenu->addSeparator();
-  addMenuToMenu(tr("Edit"), &settingsSubmenu, &trayIconMenu);
+  addMenuToMenu(tr("Import/Export"), &importExportSubmenu, &trayIconMenu);
+  addToMenu(tr("Settings"), &showSettingsAction, &trayIconMenu);
   addToMenu(tr("About"), &showCreditsAction, &trayIconMenu);
   addToMenu(tr("Quit"), &quitAction, &trayIconMenu);
 
@@ -146,9 +147,9 @@ void TrayManager::buildUi() {
   chooseOpSubmenu->addSeparator();
 
   // settings submenu
-  addToMenu(tr("Settings"), &showSettingsAction, &settingsSubmenu);
-  addToMenu(tr("Export Data"), &exportAction, &settingsSubmenu);
-  addToMenu(tr("Import Data"), &importAction, &settingsSubmenu);
+
+  addToMenu(tr("Export Data"), &exportAction, &importExportSubmenu);
+  addToMenu(tr("Import Data"), &importAction, &importExportSubmenu);
 
   setActiveOperationLabel();
 

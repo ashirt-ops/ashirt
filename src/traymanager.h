@@ -115,7 +115,7 @@ class TrayManager : public QDialog {
   QAction *showCreditsAction = nullptr;
   QAction *addCodeblockAction = nullptr;
 
-  QMenu *settingsSubmenu = nullptr;
+  QMenu *importExportSubmenu = nullptr;
   QAction *exportAction = nullptr;
   QAction *importAction = nullptr;
   QAction *showSettingsAction = nullptr;
