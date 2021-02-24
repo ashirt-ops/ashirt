@@ -115,6 +115,30 @@ When trying to apply both a "before" date and "after" date filter, the system wi
 
 When applying only one date, the range is unbounded on the other end. That is, dates are implicitly "from the start of time" to "until the end of time"
 
+## Migrating Data
+
+All data collected from the ASHIRT application can be exported, and then re-imported, into a new ASHIRT instance. Doing so creates a _copy_ on the new system, and the user can pick up where they left off. It is currently recommended that this be used only for moving (rather than copying) data from one computer to the other, when the latter will _replace_ the former. For sharing content, it is recommended that the Web UI be used instead.
+
+To begin an export, open the tray menu, and select Edit > Export. This will open a window where the user can choose a destination, and opt to export only configuration details (specifically, the server connection details), only the accumulated evidence, or both. Finally, press the "Export" button. This will kick off a process that gathers this data, and starts moving it into a central directory for easy migration.
+
+To import content, open the tray and select Edit > Import. This will open a similar dialog to export, but for importing content. Navigate to the export directory, and select the `system.json` file, and then press the "Import" button. This will kick off a process to bring the exported data into the new system.
+
+Once an import or export has been started, you can close the window. A tray message will display once the action completes. To get progress updates, you can simply reopen the import/export menu. Progress will update once the total number of files is known, and for each file copied.
+
+### Caveats
+
+There are a handful of points to be aware of when importing and exporting.
+
+1. **You can only export ALL content or NO content** Individual asset selection is currently not supported.
+2. **Imports and Exports cannot be cancelled once started**
+3. **Creating or editing evidence while importing may be slower**  The underlying database only allows a single write connection, which means that the import process and main process that allows writing to the local database will need to take turns writing. Depending on your usecase and system, this may or may not delay concurrent work.
+4. **Importing while Exporing (or vice versa) may be confusing** Import and export actions are done as a point-in-time action. This means that export will only export what is known to it at the time the "Export" button is pressed. This remains true for import as well, though is less relevant for concurrent actions. As a general peice of guidance, import and export should not be done simultaneously.
+5. **Imports can be re-run, though this is of questionable value** Currently there is no way to know if an import has been previously run. Re-importing _evidence_ will cause duplicated files and database records. This does not hamper the system, but is difficult (and manual) to clean up. Please be sure that content has not been previously imported before pressing the import button.
+6. **Exports are unprotected and easily sharable** For better or worse, when creating an export file, know that anyone can read or copy this data. Encrypting or decrypting is left as an exercise to the user, should they wish to do so.
+7. **Limitations** Currently, the following limitations exist for importing and exporting data:
+   1. "Settings" are not transfered -- specifically, last used tags and operation
+   2. Things that could be operating system dependent are not transfers. This is most of the configuration: hotkey bindings, screenshot commands, and the evidence directory
+
 ## Local Files
 
 You should never need to access these files outside of the application, however, for clarity, the following files are generate and maintained by this application:

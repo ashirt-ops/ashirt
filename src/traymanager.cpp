@@ -26,6 +26,7 @@
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
 #include "tools/UGlobalHotkey/uglobalhotkeys.h"
+#include "porting/system_manifest.h"
 
 // Tray icons are handled differently between different OS and desktop
 // environments. MacOS uses a monochrome mask to render a light or dark icon
@@ -60,6 +61,9 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 TrayManager::~TrayManager() {
   setVisible(false);
 
+  delete exportAction;
+  delete importAction;
+
   delete quitAction;
   delete showSettingsAction;
   delete currentOperationMenuAction;
@@ -72,6 +76,7 @@ TrayManager::~TrayManager() {
 
   delete chooseOpStatusAction;
   delete chooseOpSubmenu;
+  delete importExportSubmenu;
 
   delete updateCheckTimer;
   delete trayIconMenu;
@@ -81,6 +86,8 @@ TrayManager::~TrayManager() {
   delete hotkeyManager;
   delete settingsWindow;
   delete evidenceManagerWindow;
+  delete importWindow;
+  delete exportWindow;
   delete creditsWindow;
 }
 
@@ -89,39 +96,50 @@ void TrayManager::buildUi() {
   settingsWindow = new Settings(hotkeyManager, this);
   evidenceManagerWindow = new EvidenceManager(db, this);
   creditsWindow = new Credits(this);
+  importWindow = new PortingDialog(PortingDialog::Import, db, this);
+  exportWindow = new PortingDialog(PortingDialog::Export, db, this);
   createOperationWindow = new CreateOperation(this);
 
   trayIconMenu = new QMenu(this);
-  chooseOpSubmenu = new QMenu(tr("Select Operation"));
 
-  // small helper to create an action and assign it to the tray
-  auto addToTray = [this](QString text, QAction** act){
-    *act = new QAction(text, this);
-    trayIconMenu->addAction(*act);
+  auto addMenuToMenu = [this](const QString& text, QMenu** submenu, QMenu** parent) {
+    *submenu = new QMenu(text, this);
+    (*parent)->addMenu(*submenu);
   };
 
-  // Tray Ordering
-  addToTray(tr("Add Codeblock from Clipboard"), &addCodeblockAction);
-  addToTray(tr("Capture Screen Area"), &captureScreenAreaAction);
-  addToTray(tr("Capture Window"), &captureWindowAction);
-  addToTray(tr("View Accumulated Evidence"), &showEvidenceManagerAction);
-  addToTray(tr("Settings"), &showSettingsAction);
-  trayIconMenu->addSeparator();
-  addToTray(tr(""), &currentOperationMenuAction);
-  trayIconMenu->addMenu(chooseOpSubmenu);
-  trayIconMenu->addSeparator();
-  addToTray(tr("About"), &showCreditsAction);
-  addToTray(tr("Quit"), &quitAction);
+  // small helper to create an action and assign it to a menu
+  auto addToMenu = [this](const QString& text, QAction** act, QMenu** menu) {
+    *act = new QAction(text, this);
+    (*menu)->addAction(*act);
+  };
 
-  // finish action config
+  // Tray menu
+  addToMenu(tr("Add Codeblock from Clipboard"), &addCodeblockAction, &trayIconMenu);
+  addToMenu(tr("Capture Screen Area"), &captureScreenAreaAction, &trayIconMenu);
+  addToMenu(tr("Capture Window"), &captureWindowAction, &trayIconMenu);
+  addToMenu(tr("View Accumulated Evidence"), &showEvidenceManagerAction, &trayIconMenu);
+  trayIconMenu->addSeparator();
+  addToMenu(tr(""), &currentOperationMenuAction, &trayIconMenu);
+  addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
+  trayIconMenu->addSeparator();
+  addMenuToMenu(tr("Import/Export"), &importExportSubmenu, &trayIconMenu);
+  addToMenu(tr("Settings"), &showSettingsAction, &trayIconMenu);
+  addToMenu(tr("About"), &showCreditsAction, &trayIconMenu);
+  addToMenu(tr("Quit"), &quitAction, &trayIconMenu);
+
+  // Operations Submenu
   currentOperationMenuAction->setEnabled(false);
-  chooseOpStatusAction = new QAction("Loading operations...", chooseOpSubmenu);
+  addToMenu(tr("Loading operations..."), &chooseOpStatusAction, &chooseOpSubmenu);
+  addToMenu(tr("New Operation"), &newOperationAction, &chooseOpSubmenu);
+
   chooseOpStatusAction->setEnabled(false);
-  newOperationAction = new QAction("New Operation", chooseOpSubmenu);
-  newOperationAction->setEnabled(false); // only enable when we have an internet connection
-  chooseOpSubmenu->addAction(chooseOpStatusAction);
-  chooseOpSubmenu->addAction(newOperationAction);
+  newOperationAction->setEnabled(false);  // only enable when we have an internet connection
   chooseOpSubmenu->addSeparator();
+
+  // settings submenu
+
+  addToMenu(tr("Export Data"), &exportAction, &importExportSubmenu);
+  addToMenu(tr("Import Data"), &importAction, &importExportSubmenu);
 
   setActiveOperationLabel();
 
@@ -146,6 +164,8 @@ void TrayManager::wireUi() {
   auto actTriggered = &QAction::triggered;
   // connect actions
   connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
+  connect(exportAction, actTriggered, [this, toTop](){toTop(exportWindow);});
+  connect(importAction, actTriggered, [this, toTop](){toTop(importWindow);});
   connect(showSettingsAction, actTriggered, [this, toTop](){toTop(settingsWindow);});
   connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
   connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);
@@ -153,6 +173,14 @@ void TrayManager::wireUi() {
   connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
+
+  connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
+    openServicesPath = path;
+    setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path + "\nClick to view");
+  });
+  connect(importWindow, &PortingDialog::portCompleted, [this](const QString& path) {
+    setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);
+  });
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
           &TrayManager::onScreenshotCaptured);
@@ -172,7 +200,7 @@ void TrayManager::wireUi() {
   connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
           &TrayManager::setActiveOperationLabel);
   
-  connect(trayIcon, &QSystemTrayIcon::messageClicked, [](){QDesktopServices::openUrl(Constants::releasePageUrl());});
+  connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, [this] {
     chooseOpStatusAction->setText("Loading operations...");
     newOperationAction->setEnabled(false);
@@ -206,17 +234,17 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
   auto getInfoWindow = new GetInfo(db, evidenceID, this);
-  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](model::Evidence evi){
+  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](const model::Evidence& evi){
     AppSettings::getInstance().setLastUsedTags(evi.tags);
   });
   getInfoWindow->show();
 }
 
-qint64 TrayManager::createNewEvidence(QString filepath, QString evidenceType) {
+qint64 TrayManager::createNewEvidence(const QString& filepath, const QString& evidenceType) {
   AppSettings& inst = AppSettings::getInstance();
   auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), evidenceType);
   auto tags = inst.getLastUsedTags();
-  if (tags.size() > 0) {
+  if (!tags.empty()) {
     db->setEvidenceTags(tags, evidenceID);
   }
   return evidenceID;
@@ -272,7 +300,7 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  trayIcon->showMessage("Unable to Record Evidence",
+  setTrayMessage(NO_ACTION, "Unable to Record Evidence",
                         "No Operation has been selected. Please select an operation first.",
                         QSystemTrayIcon::Warning);
 }
@@ -331,7 +359,7 @@ void TrayManager::checkForUpdate() {
   NetMan::getInstance().checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
 }
 
-void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases) {
+void TrayManager::onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases) {
   if (!success) {
     return;  // doesn't matter if this fails -- another request will be made later.
   }
@@ -339,7 +367,26 @@ void TrayManager::onReleaseCheck(bool success, std::vector<dto::GithubRelease> r
   auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
 
   if (digest.hasUpgrade()) {
-    this->trayIcon->showMessage("A new version is available!", "Click for more info");
+    setTrayMessage(UPGRADE, "A new version is available!", "Click for more info");
+  }
+}
+
+void TrayManager::setTrayMessage(MessageType type, const QString& title, const QString& message,
+                                 QSystemTrayIcon::MessageIcon icon, int millisecondsTimeoutHint) {
+  trayIcon->showMessage(title, message, icon, millisecondsTimeoutHint);
+  this->currentTrayMessage = type;
+}
+
+void TrayManager::onTrayMessageClicked() {
+  switch(currentTrayMessage) {
+    case UPGRADE:
+      QDesktopServices::openUrl(Constants::releasePageUrl());
+      break;
+    case OPEN_PATH:
+      QDesktopServices::openUrl(openServicesPath);
+    case NO_ACTION:
+    default:
+      break;
   }
 }
 

@@ -12,6 +12,7 @@
 #include "dtos/github_release.h"
 #include "forms/credits/credits.h"
 #include "forms/evidence/evidencemanager.h"
+#include "forms/porting/porting_dialog.h"
 #include "forms/settings/settings.h"
 #include "helpers/screenshot.h"
 #include "hotkeymanager.h"
@@ -35,6 +36,19 @@ class QSpinBox;
 class QTextEdit;
 QT_END_NAMESPACE
 
+/**
+ * @brief The MessageType enum specifies how to respond to a click on a tray message
+ * @see openServicesPath
+ */
+enum MessageType {
+  /// NO_ACTION indicates that nothing should happen on a tray message click
+  NO_ACTION,
+  /// UPGRADE indicates that the user should be taken to the releases page
+  UPGRADE,
+  /// OPEN_PATH indicates that the user should be taken to a file browser
+  OPEN_PATH
+};
+
 class TrayManager : public QDialog {
   Q_OBJECT
 
@@ -45,15 +59,20 @@ class TrayManager : public QDialog {
  private:
   void buildUi();
   void wireUi();
-  qint64 createNewEvidence(QString filepath, QString evidenceType);
+  qint64 createNewEvidence(const QString& filepath, const QString& evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
+  /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,
+  /// providing a mechanism to smartly route the click to an action.
+  void setTrayMessage(MessageType type, const QString& title, const QString& message,
+                      QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
 
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
-  void onReleaseCheck(bool success, std::vector<dto::GithubRelease> releases);
+  void onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases);
+  void onTrayMessageClicked();
 
  public slots:
   void onScreenshotCaptured(const QString &filepath);
@@ -71,11 +90,17 @@ class TrayManager : public QDialog {
   HotkeyManager *hotkeyManager = nullptr;
   Screenshot *screenshotTool = nullptr;
   QTimer *updateCheckTimer = nullptr;
+  MessageType currentTrayMessage = NO_ACTION;
+
+  /// openServicesPath is a variable to store where, on click, to open a path the next time a tray message is displayed
+  QString openServicesPath = "";
 
   // Subwindows
   Settings *settingsWindow = nullptr;
   EvidenceManager *evidenceManagerWindow = nullptr;
   Credits *creditsWindow = nullptr;
+  PortingDialog *importWindow = nullptr;
+  PortingDialog *exportWindow = nullptr;
   CreateOperation *createOperationWindow = nullptr;
 
   // UI Elements
@@ -83,13 +108,17 @@ class TrayManager : public QDialog {
   QMenu *trayIconMenu = nullptr;
 
   QAction *quitAction = nullptr;
-  QAction *showSettingsAction = nullptr;
   QAction *currentOperationMenuAction = nullptr;
   QAction *captureScreenAreaAction = nullptr;
   QAction *captureWindowAction = nullptr;
   QAction *showEvidenceManagerAction = nullptr;
   QAction *showCreditsAction = nullptr;
   QAction *addCodeblockAction = nullptr;
+
+  QMenu *importExportSubmenu = nullptr;
+  QAction *exportAction = nullptr;
+  QAction *importAction = nullptr;
+  QAction *showSettingsAction = nullptr;
 
   QMenu *chooseOpSubmenu = nullptr;
   QAction *chooseOpStatusAction = nullptr;

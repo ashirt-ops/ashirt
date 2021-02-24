@@ -65,11 +65,13 @@ SOURCES += \
     src/forms/evidence_filter/evidencefilter.cpp \
     src/forms/evidence_filter/evidencefilterform.cpp \
     src/forms/getinfo/getinfo.cpp \
+    src/forms/porting/porting_dialog.cpp \
     src/helpers/clipboard/clipboardhelper.cpp \
     src/models/codeblock.cpp \
     src/helpers/multipartparser.cpp \
     src/hotkeymanager.cpp \
     src/main.cpp \
+    src/porting/system_manifest.cpp \
     src/traymanager.cpp \
     src/helpers/screenshot.cpp \
     src/helpers/stopreply.cpp \
@@ -98,6 +100,7 @@ HEADERS += \
     src/components/tagging/tagview.h \
     src/components/tagging/tagwidget.h \
     src/db/databaseconnection.h \
+    src/db/query_result.h \
     src/dtos/github_release.h \
     src/dtos/checkConnection.h \
     src/exceptions/databaseerr.h \
@@ -106,9 +109,11 @@ HEADERS += \
     src/forms/evidence_filter/evidencefilter.h \
     src/forms/evidence_filter/evidencefilterform.h \
     src/forms/getinfo/getinfo.h \
+    src/forms/porting/porting_dialog.h \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
     src/helpers/request_builder.h \
+    src/helpers/system_helpers.h \
     src/helpers/ui_helpers.h \
     src/models/codeblock.h \
     src/helpers/file_helpers.h \
@@ -116,6 +121,9 @@ HEADERS += \
     src/hotkeymanager.h \
     src/models/evidence.h \
     src/models/tag.h \
+    src/porting/evidence_manifest.h \
+    src/porting/system_manifest.h \
+    src/porting/system_porting_options.h \
     src/traymanager.h \
     src/appconfig.h \
     src/appsettings.h \
@@ -134,6 +142,7 @@ include(tools/UGlobalHotkey/uglobalhotkey.pri)
 
 macx {
   ICON = icons/ashirt.icns
+  QMAKE_TARGET_BUNDLE_PREFIX = com.theparanoids
 }
 
 # Default rules for deployment.
