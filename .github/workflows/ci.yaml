@@ -40,7 +40,11 @@ jobs:
         submodules: true
 
     - name: Build PR (mac)
-      if: matrix.os == 'macos-latest' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
+      if: |
+        matrix.os == 'macos-latest' &&
+        contains(github.ref, 'tags/v') != true &&
+        contains(github.ref, 'refs/heads/master') != true &&
+        contains(github.ref, 'refs/heads/release') != true
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -54,14 +58,18 @@ jobs:
         cp README.md dist/README.md
 
     - name: Import Code-Signing Certificates
-      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+      if: |
+        matrix.os == 'macos-latest' &&
+        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/master' || contains(github.ref, 'refs/heads/release'))
       uses: Apple-Actions/import-codesign-certs@v1
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
         p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Build and Sign Release (mac)
-      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+      if: |
+        matrix.os == 'macos-latest' &&
+        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/master' || contains(github.ref, 'refs/heads/release'))
       run: |
         brew install qt
         export PATH="/usr/local/opt/qt/bin:$PATH"
@@ -74,8 +82,10 @@ jobs:
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
-    - name: Install gon via HomeBrew and Notarize Release (mac)
-      if: matrix.os == 'macos-latest' && (contains(github.ref, 'tags/v') || contains(github.ref, 'refs/heads/master') || contains(github.ref, 'refs/heads/release-'))
+    - name: Install gon via HomeBrew and Notarize (mac)
+      if: |
+        matrix.os == 'macos-latest' &&
+        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/master' || contains(github.ref, 'refs/heads/release'))
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
       run: |
