@@ -13,7 +13,7 @@ ErrorView::~ErrorView() {
 
 void ErrorView::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   errorLabel = new QLabel(errorText, this);
 

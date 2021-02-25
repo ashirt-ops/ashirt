@@ -33,7 +33,7 @@ TagEditor::~TagEditor() {
 
 void TagEditor::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   couldNotCreateTagMsg = new QErrorMessage(this);
 

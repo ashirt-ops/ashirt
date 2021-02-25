@@ -16,7 +16,7 @@ TagView::~TagView() {
 
 void TagView::buildUi() {
   mainLayout = new QHBoxLayout(this);
-  mainLayout->setMargin(0);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
 
   tagGroupBox = new QGroupBox("Tags", this);
   layout = new FlowLayout();

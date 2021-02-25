@@ -8,6 +8,7 @@
 #include <QString>
 #include <utility>
 #include <vector>
+#include <QStringList>
 
 enum Tri { Any, Yes, No };
 
