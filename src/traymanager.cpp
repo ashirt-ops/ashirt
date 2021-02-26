@@ -173,7 +173,6 @@ void TrayManager::wireUi() {
   connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
   connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
-  connect(openConnEditorAction, actTriggered, [this, toTop]() { toTop(connEditorWindow); });
 
   connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
     openServicesPath = path;

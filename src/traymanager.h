@@ -108,7 +108,6 @@ class TrayManager : public QDialog {
 
 
   CreateOperation *createOperationWindow = nullptr;
-  ConnectionEditor *connEditorWindow;
 
   // UI Elements
   QSystemTrayIcon *trayIcon = nullptr;
