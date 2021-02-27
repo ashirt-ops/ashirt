@@ -20,9 +20,9 @@ void handleCLI(std::vector<std::string> args);
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
-#include "models/type_streams.h"
 #include "migrations/migration.h"
 #include "helpers/netman.h"
+#include "config/server_item.h"
 
 void initResources() {
   Q_INIT_RESOURCE(res_icons);
@@ -97,16 +97,20 @@ DatabaseConnection* readySupportSystems() {
 int guiMain(int argc, char* argv[]) {
   initResources();
   setApplicationAttributes();
-  TypeStreams::registerTypes();
   DatabaseConnection* conn = readySupportSystems();
 
   int exitCode;
   try {
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-//     qRegisterMetaTypeStreamOperators<model::Tag>("Tag");
-// #endif
+ #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+     qRegisterMetaTypeStreamOperators<model::Tag>("Tag");
+     qRegisterMetaTypeStreamOperators<model::ServerSetting>("ServerSetting");
+     qRegisterMetaTypeStreamOperators<ServerItem>("ServerItem");
+     qRegisterMetaTypeStreamOperators<QMap<QString, model::ServerSetting>>("ServerSettingMap");
+ #endif
     QApplication app(argc, argv);
     qRegisterMetaType<model::Tag>();
+    qRegisterMetaType<model::ServerSetting>();
+    qRegisterMetaType<ServerItem>();
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
       handleCLI(std::vector<std::string>(argv, argv + argc));

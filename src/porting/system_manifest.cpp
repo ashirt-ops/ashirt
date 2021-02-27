@@ -18,21 +18,23 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
 }
 
 void SystemManifest::migrateConfig() {
-  auto data = FileHelpers::readFile(pathToFile(configPath));
-  parseJSONItem<QString>(data, [](QJsonObject src) {
-    for(const QString& key : src.keys()) {
-      src.remove("evidenceRepo"); // removing evidenceRepo, as we never want to replace what the user has set there.
+    std::cerr << "Cannot migrate config" << std::endl; // TODO
 
-      // only opting to migrate connection settings, given that translating other options may
-      // cause problems (especially if migrating between oses)
-      if (key != "accessKey" && key != "secretKey" && key != "apiURL") {
-        src.remove(key);
-      }
-    }
-    AppConfig::getInstance().applyConfig(src); // TODO: figure out how this will work now
-    return "";
-  });
-  AppConfig::getInstance().writeConfig(); // save updated config
+//  auto data = FileHelpers::readFile(pathToFile(configPath));
+//  parseJSONItem<QString>(data, [](QJsonObject src) {
+//    for(const QString& key : src.keys()) {
+//      src.remove("evidenceRepo"); // removing evidenceRepo, as we never want to replace what the user has set there.
+
+//      // only opting to migrate connection settings, given that translating other options may
+//      // cause problems (especially if migrating between oses)
+//      if (key != "accessKey" && key != "secretKey" && key != "apiURL") {
+//        src.remove(key);
+//      }
+//    }
+//    AppConfig::getInstance().applyConfig(src); // TODO: figure out how this will work now
+//    return "";
+//  });
+//  AppConfig::getInstance().writeConfig(); // save updated config
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb) {

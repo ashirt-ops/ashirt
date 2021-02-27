@@ -34,6 +34,31 @@ class ServerItem {
   }
 
  public:
+  friend QDataStream& operator<<(QDataStream& out, const ServerItem& v) {
+    auto copy = ServerItem(v);
+    out << copy.getServerUuid() << copy.getId() << copy.serverName
+        << copy.accessKey << copy.secretKey << copy.hostPath << copy.deleted;
+    return out;
+  }
+
+  friend QDataStream& operator>>(QDataStream& in, ServerItem& v) {
+    int id;
+    QString uuid, name, accessKey, secretKey, hostPath;
+    bool deleted;
+
+    in >> uuid;
+    in >> id;
+    in >> name;
+    in >> accessKey;
+    in >> secretKey;
+    in >> hostPath;
+    in >> deleted;
+    auto temp = ServerItem(id, uuid, name, accessKey, secretKey, hostPath, deleted);
+    v = temp;
+    return in;
+  }
+
+ public:
   static QJsonObject serialize(const ServerItem& item) {
     QJsonObject o;
     o.insert("id", item.id);
