@@ -25,23 +25,17 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
 }
 
 void SystemManifest::migrateConfig() {
-    std::cerr << "Cannot migrate config" << std::endl; // TODO
+  auto data = FileHelpers::readFile(pathToFile(configPath));
 
-//  auto data = FileHelpers::readFile(pathToFile(configPath));
-//  parseJSONItem<QString>(data, [](QJsonObject src) {
-//    for(const QString& key : src.keys()) {
-//      src.remove("evidenceRepo"); // removing evidenceRepo, as we never want to replace what the user has set there.
+  auto config = AppConfig::getInstance().parseConfig(data);
+  // ignoring EvidencePath, as this can be dangerous to overwrite
+  AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureCodeblockShortcut, config->captureCodeblockShortcut());
+  AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenAreaCmd, config->captureScreenAreaCmd());
+  AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenAreaShortcut, config->captureScreenAreaShortcut());
+  AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenWindowCmd, config->captureScreenWindowCmd());
+  AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenWindowShortcut, config->captureScreenWindowShortcut());
 
-//      // only opting to migrate connection settings, given that translating other options may
-//      // cause problems (especially if migrating between oses)
-//      if (key != "accessKey" && key != "secretKey" && key != "apiURL") {
-//        src.remove(key);
-//      }
-//    }
-//    AppConfig::getInstance().applyConfig(src); // TODO: figure out how this will work now
-//    return "";
-//  });
-//  AppConfig::getInstance().writeConfig(); // save updated config
+  AppConfig::getInstance().writeConfig(); // save updated config
 }
 
 void SystemManifest::migrateServers() {

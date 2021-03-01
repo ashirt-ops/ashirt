@@ -5,6 +5,16 @@
 
 class Config {
  public:
+  enum Fields {
+    EvidenceRepo = 0,
+    CaptureScreenAreaCmd = 1,
+    CaptureScreenWindowCmd = 2,
+    CaptureScreenAreaShortcut = 3,
+    CaptureScreenWindowShortcut = 4,
+    CaptureCodeblockShortcut = 5,
+  };
+
+ public:
   virtual ~Config() {};
 
   /// toJson converts the object into a json string (represented as a QByteArray)

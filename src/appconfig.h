@@ -162,6 +162,31 @@ class AppConfig {
     return nullptr;
   }
 
+  void setIfEmpty(Config::Fields field, QString newVal) {
+
+    if (field == Config::Fields::EvidenceRepo && evidenceRepo().isEmpty()) {
+      _config->setEvidenceRepo(newVal);
+    }
+    else if (field == Config::Fields::CaptureCodeblockShortcut
+             && captureCodeblockShortcut().isEmpty()) {
+      _config->setCaptureCodeblockShortcut(newVal);
+    }
+    else if(field == Config::Fields::CaptureScreenAreaCmd && captureScreenAreaCmd().isEmpty()) {
+      _config->setCaptureScreenAreaCmd(newVal);
+    }
+    else if(field == Config::Fields::CaptureScreenAreaShortcut
+            && captureScreenAreaShortcut().isEmpty()) {
+      _config->setCaptureScreenAreaShortcut(newVal);
+    }
+    else if(field == Config::Fields::CaptureScreenWindowCmd && captureScreenWindowCmd().isEmpty()) {
+      _config->setCaptureScreenWindowCmd(newVal);
+    }
+    else if(field == Config::Fields::CaptureScreenWindowShortcut
+            && captureScreenWindowShortcut().isEmpty()) {
+      _config->setCaptureScreenWindowShortcut(newVal);
+    }
+  }
+
   QString evidenceRepo() { return _config->evidenceRepo(); }
   QString captureScreenAreaCmd() { return _config->captureScreenAreaCmd(); }
   QString captureScreenAreaShortcut() { return _config->captureScreenAreaShortcut(); }
