@@ -125,6 +125,12 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
     AppConfig::getInstance().writeConfig(basePath + "/" + configPath);
   }
 
+  if (options.exportServers) {
+    emit onStatusUpdate("Exporting servers");
+    serversPath = "servers.json";
+    AppServers::getInstance().writeServers(basePath + "/" + serversPath);
+  }
+
   if (options.exportDb) {
     emit onStatusUpdate("Exporting Evidence");
     dbPath = "db.sqlite";
