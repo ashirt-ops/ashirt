@@ -66,29 +66,7 @@ class AppConfig {
                                configFile.error());
     }
 
-    int version = -1;
-    try {
-      version = BasicConfig::parseVersion(data);
-    }
-    catch (std::exception &e) {
-      throw std::runtime_error("Unable to parse config file");
-    }
-
-    switch(version) {
-      case 0:
-      case 1:
-        _config = ConfigV1::fromJson(data);
-        break;
-      case 2:
-        _config = ConfigV2::fromJson(data);
-        break;
-    }
-    if (_config == nullptr ) {
-      throw std::runtime_error("Unknown Config file");
-    }
-    if (_config->errorText() != "") {
-      throw std::runtime_error("Unable to parse config file");
-    }
+    _config = parseConfig(data);
   }
 
   void writeDefaultConfig() noexcept {
@@ -142,7 +120,38 @@ class AppConfig {
     return;
   }
 
+  Config* parseConfig(QByteArray bytes) {
+    int version = -1;
+    try {
+      version = BasicConfig::parseVersion(bytes);
+    }
+    catch (std::exception &e) {
+      throw std::runtime_error("Unable to parse config file");
+    }
+
+    Config* rtn = nullptr;
+    switch(version) {
+    case 0:
+    case 1:
+      rtn = ConfigV1::fromJson(bytes);
+      break;
+    case 2:
+      rtn = ConfigV2::fromJson(bytes);
+      break;
+    }
+
+    if (rtn == nullptr ) {
+      throw std::runtime_error("Unknown Config file");
+    }
+    if (rtn->errorText() != "") {
+      throw std::runtime_error("Unable to parse config file");
+    }
+
+    return rtn;
+  }
+
  public:
+
   // accessors
   QString errorText() { return _config->errorText(); }
 
