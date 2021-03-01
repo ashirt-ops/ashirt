@@ -5,11 +5,18 @@ using namespace porting;
 void SystemManifest::applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb) {
   bool shouldMigrateConfig = options.importConfig && !configPath.isEmpty();
   bool shouldMigrateDb = options.importDb == SystemManifestImportOptions::Merge && !dbPath.isEmpty();
+  bool shouldMigrateServers = options.importServers && !serversPath.isEmpty();
 
   if (shouldMigrateConfig) {
     emit onStatusUpdate("Importing Settings");
     migrateConfig();
   }
+
+  if (shouldMigrateServers) {
+    emit onStatusUpdate("Importing Servers");
+    migrateServers();
+  }
+
 
   if (shouldMigrateDb) {
     migrateDb(systemDb);
@@ -35,6 +42,10 @@ void SystemManifest::migrateConfig() {
 //    return "";
 //  });
 //  AppConfig::getInstance().writeConfig(); // save updated config
+}
+
+void SystemManifest::migrateServers() {
+  std::cerr << "Cannot migrate servers" << std::endl;  // TODO
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
