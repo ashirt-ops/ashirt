@@ -34,6 +34,7 @@ class AppServers : public QObject {
  public:
   bool isLoadSuccessful();
   void loadServers(const QString& path="");
+  ServerSet* parseServers(const QByteArray& data);
 
   /// writeServers attempts to write the in-memory server list to disk at the provided path.
   /// If an empty path is provided, then the write will be attempted at the standard location

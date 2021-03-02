@@ -39,7 +39,17 @@ void SystemManifest::migrateConfig() {
 }
 
 void SystemManifest::migrateServers() {
-  std::cerr << "Cannot migrate servers" << std::endl;  // TODO
+  auto data = FileHelpers::readFile(pathToFile(serversPath));
+  auto serverData = AppServers::getInstance().parseServers(data);
+
+  // merge only unknown servers
+  for (auto importServer : serverData->getServers(false)) {
+    auto foundServer = AppServers::getInstance().getServerByUuid(importServer.getServerUuid());
+    if (foundServer.getServerUuid().isEmpty()) {
+      AppServers::getInstance().addServer(importServer);
+    }
+  }
+  AppServers::getInstance().writeServers();
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb) {

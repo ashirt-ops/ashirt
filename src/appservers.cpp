@@ -20,6 +20,12 @@ void AppServers::loadServers(const QString& path) {
   serverSet->readFromServers(filepath);
 }
 
+ServerSet* AppServers::parseServers(const QByteArray& data) {
+  serverSet = new ServersV2();
+  serverSet->parseBytes(data);
+  return serverSet;
+}
+
 bool AppServers::isLoadSuccessful() {
   return serverSet->isValid();
 }

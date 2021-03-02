@@ -32,6 +32,10 @@ class ServerSet {
     FileHelpers::writeFile(filepath, data);
   }
 
+  virtual void parseBytes(QByteArray content) {
+    parseConfigData(content);
+  }
+
   virtual void readFromServers(QString filepath) {
     readResult = FileHelpers::readFileNoError(filepath);
     if(readResult.success) {
