@@ -164,6 +164,9 @@ void Settings::saveConnectionsData() {
   catch(std::exception &e) {
     couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
   }
+  if( mockServers.size() == 1 ) {
+    AppSettings::getInstance().setServerUuid(mockServers.at(0).getServerUuid());
+  }
 }
 
 void Settings::saveGeneralData() {
