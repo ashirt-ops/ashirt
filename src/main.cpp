@@ -27,6 +27,10 @@ int main(int argc, char* argv[]) {
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setApplicationName("ashirt");
 
+#ifdef Q_OS_WIN
+  QCoreApplication::setOrganizationName("ashirt");
+#endif
+
   DatabaseConnection* conn;
   try {
     conn = new DatabaseConnection(Constants::dbLocation(), Constants::defaultDbName());
