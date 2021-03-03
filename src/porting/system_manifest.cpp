@@ -35,6 +35,19 @@ void SystemManifest::migrateConfig() {
   AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenWindowCmd, config->captureScreenWindowCmd());
   AppConfig::getInstance().setIfEmpty(Config::Fields::CaptureScreenWindowShortcut, config->captureScreenWindowShortcut());
 
+  // allow migrations from old style config (v1, which included server info) to the new style
+  // (servers hosted via AppServers)
+  if(config->version() == 1) {
+    auto cfg = (ConfigV1*)config;
+    auto legacyServer = AppServers::getInstance().getServerByUuid(Constants::legacyServerUuid());
+    if( legacyServer.getServerUuid().isEmpty() ) {
+      AppServers::getInstance().addServer(
+        ServerItem(Constants::defaultServerName(), cfg->accessKey(), cfg->secretKey(), cfg->apiURL())
+      );
+      AppServers::getInstance().writeServers();
+    }
+  }
+
   AppConfig::getInstance().writeConfig(); // save updated config
 }
 
