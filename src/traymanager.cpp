@@ -333,6 +333,8 @@ void TrayManager::onTrayMenuOpened() {
   std::vector<ServerItem> allConnections = AppServers::getInstance().getServers();
   QString currentServerUuid = AppSettings::getInstance().serverUuid();
 
+  std::sort(allConnections.begin(), allConnections.end(), [](ServerItem a, ServerItem b){return a.serverName < b.serverName;});
+
   for (auto item : allConnections) {
     const QString serverUuid = item.getServerUuid();
     auto newAction = new QAction(item.serverName, chooseServerSubmenu);
