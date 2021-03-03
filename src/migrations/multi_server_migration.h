@@ -31,6 +31,7 @@ class MultiServerMigration : public Migration {
     // overwrite whatever _was_ set, in case a companion application (e.g. Aterm) has already created
     // this entry. (why overwrite? no real reason, just easier to do so, and no better than doing nothing)
     AppServers::getInstance().upsertServer(item);
+    AppServers::getInstance().writeServers();
 
     return true;
   }
