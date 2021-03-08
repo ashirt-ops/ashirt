@@ -42,7 +42,7 @@ jobs:
     - name: Build PR (mac)
       if: matrix.os == 'macos-latest' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
       run: |
-        brew install qt
+        brew install qt@5
         export PATH="/usr/local/opt/qt/bin:$PATH"
         brew link -f qt
         qmake -config release
