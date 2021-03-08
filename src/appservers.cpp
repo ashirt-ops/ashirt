@@ -90,13 +90,18 @@ QString AppServers::selectServerUuid(QString maybeServerUuid) {
   return (maybeServerUuid == "") ? currentServerUuid() : maybeServerUuid;
 }
 
-void AppServers::upsertServer(ServerItem server) {
+AppServers::UpsertResult AppServers::upsertServer(ServerItem server) {
   if (serverSet->hasServer(server.getServerUuid())) {
-    updateServer(server);
+    auto originalEntry = serverSet->getServerByUuid(server.getServerUuid());
+    if (!originalEntry.equals(server)) {
+      updateServer(server);
+      return UpsertResult::Updated;
+    }
+    return UpsertResult::NoAction;
   }
-  else {
-    addServer(server);
-  }
+
+  addServer(server);
+  return UpsertResult::Inserted;
 }
 
 QString AppServers::accessKey(QString serverUuid) {

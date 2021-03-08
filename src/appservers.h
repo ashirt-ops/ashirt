@@ -13,6 +13,12 @@ class AppServers : public QObject {
   Q_OBJECT;
 
  public:
+  enum UpsertResult {
+    NoAction = 0,
+    Inserted = 1,
+    Updated = 2,
+  };
+
   static AppServers &getInstance() {
     static AppServers instance;
     return instance;
@@ -57,8 +63,9 @@ class AppServers : public QObject {
   void updateServer(ServerItem item);
 
   /// upsertServer tries to either update a server (with the given uuid), or, if not present,
-  /// adds the server instead. The actual mechanism chosen is hidden from the caller.
-  void upsertServer(ServerItem server);
+  /// adds the server instead. The resulting action is returned back to the caller
+  /// @see UpsertResult
+  UpsertResult upsertServer(ServerItem server);
 
   /// currentServerUuid retrieves the currently selected server's uuid
   QString currentServerUuid();

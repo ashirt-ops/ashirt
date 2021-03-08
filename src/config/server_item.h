@@ -87,6 +87,17 @@ class ServerItem {
   QString getServerUuid() { return uuid; }
   int getId() { return id; }
 
+  bool isEquivalentTo(ServerItem si) {
+    return this->serverName == si.serverName &&
+        this->hostPath == si.hostPath &&
+        this->accessKey == si.accessKey &&
+        this->secretKey == si.secretKey;
+  }
+
+  bool equals(ServerItem si) {
+    return this->uuid == si.uuid && this->isEquivalentTo(si);
+  }
+
  public:
   QString serverName = "";
   QString accessKey = "";

@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QKeySequence>
 #include <QString>
+#include <algorithm>
 
 #include "appconfig.h"
 #include "appservers.h"
@@ -135,21 +136,28 @@ void Settings::saveConnectionsData() {
   // 2. find servers we don't want from the known list
   // 3. delete servers we don't want from the known list
 
+  QString nextServerUuid = "";
+  bool limitToNewOnly = false;
+
   auto mockServers = connectionsTab->encodeServers();
   for (auto server : mockServers) {
-    AppServers::getInstance().upsertServer(server);
+    auto result = AppServers::getInstance().upsertServer(server);
+    if (result == AppServers::Inserted) {
+      nextServerUuid = server.getServerUuid();
+      limitToNewOnly = true;
+    }
+    else if (result == AppServers::Updated && !limitToNewOnly) {
+      nextServerUuid = server.getServerUuid();
+    }
   }
 
   std::vector<QString> removeUuids;
   for (auto server : AppServers::getInstance().getServers()) {
-    bool found = false;
-    for (auto it = mockServers.begin(); it != mockServers.end(); ++it) {
-      if (it.base()->getServerUuid() == server.getServerUuid()) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
+    auto itr = std::find_if(mockServers.begin(), mockServers.end(), [&server](ServerItem item) {
+      return item.getServerUuid() == server.getServerUuid();
+    });
+
+    if (itr == mockServers.end()) {
       removeUuids.push_back(server.getServerUuid());
     }
   }
@@ -161,10 +169,14 @@ void Settings::saveConnectionsData() {
   try {
     AppServers::getInstance().writeServers();
   }
-  catch(std::exception &e) {
+  catch (std::exception &e) {
     couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
   }
-  if( mockServers.size() == 1 ) {
+
+  if (nextServerUuid != "") {
+    AppSettings::getInstance().setServerUuid(nextServerUuid);
+  }
+  else if (mockServers.size() == 1) {
     AppSettings::getInstance().setServerUuid(mockServers.at(0).getServerUuid());
   }
 }
