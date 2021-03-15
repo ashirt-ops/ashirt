@@ -3,6 +3,7 @@
 
 #include "evidenceeditor.h"
 
+#include <QFile>
 #include <vector>
 
 #include "components/aspectratio_pixmap_label/imageview.h"
@@ -41,7 +42,7 @@ EvidenceEditor::~EvidenceEditor() {
 
 void EvidenceEditor::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   splitter = new QSplitter(this);
   splitter->setOrientation(Qt::Vertical);
@@ -56,7 +57,7 @@ void EvidenceEditor::buildUi() {
   descriptionArea->setLayout(descriptionAreaLayout);
   descriptionAreaLayout->addWidget(_descriptionLabel);
   descriptionAreaLayout->addWidget(descriptionTextBox);
-  descriptionAreaLayout->setMargin(0);
+  descriptionAreaLayout->setContentsMargins(0, 0, 0, 0);
 
   // Layout
   /*        0

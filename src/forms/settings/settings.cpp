@@ -292,10 +292,8 @@ void Settings::onTestRequestComplete() {
         connStatusLabel->setText("Could not connect: Not Found (check URL)");
         break;
       default:
-        QString msg = "Could not connect: Unexpected Error (code: ";
-        msg.append(statusCode);
-        msg.append(")");
-        connStatusLabel->setText(msg);
+        QString msg = "Could not connect: Unexpected Error (code: %1)";
+        connStatusLabel->setText(msg.arg(statusCode));
     }
   }
   else {

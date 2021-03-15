@@ -46,9 +46,9 @@ jobs:
         contains(github.ref, 'refs/heads/master') != true &&
         contains(github.ref, 'refs/heads/release') != true
       run: |
-        brew install qt
-        export PATH="/usr/local/opt/qt/bin:$PATH"
-        brew link -f qt
+        brew install qt@5
+        export PATH="/usr/local/opt/qt@5/bin:$PATH"
+        brew link -f qt@5
         qmake -config release
         make
         macdeployqt ashirt.app -dmg
