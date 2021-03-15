@@ -20,6 +20,8 @@ void handleCLI(std::vector<std::string> args);
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
 
+QIcon getWindowIcon();
+
 int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(res_icons);
   Q_INIT_RESOURCE(res_migrations);
@@ -67,6 +69,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     qRegisterMetaType<model::Tag>();
 
+    app.setWindowIcon(getWindowIcon());
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
       handleCLI(std::vector<std::string>(argv, argv + argc));
     }
@@ -87,6 +90,10 @@ int main(int argc, char* argv[]) {
   delete conn;
 
   return rtn;
+}
+
+QIcon getWindowIcon() {
+  return QIcon(":icons/windowIcon.png");
 }
 
 #else

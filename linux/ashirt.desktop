@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=ashirt
+Comment=Collect and add evidence to remote AShirt Instances
+Terminal=false
+Categories=Qt;Development;
+Type=Application
+Icon=ashirt
+Exec=ashirt
