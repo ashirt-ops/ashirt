@@ -181,6 +181,8 @@ void Settings::wireUi() {
 
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
+  this->hotkeyManager->disableHotkeys();
+  
   AppConfig &inst = AppConfig::getInstance();
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
@@ -202,11 +204,13 @@ void Settings::showEvent(QShowEvent *evt) {
 
 void Settings::closeEvent(QCloseEvent *event) {
   onSaveClicked();
+  this->hotkeyManager->enableHotkeys();
   QDialog::closeEvent(event);
 }
 
 void Settings::onCancelClicked() {
   stopReply(&currentTestReply);
+  this->hotkeyManager->enableHotkeys();
   reject();
 }
 
