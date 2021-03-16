@@ -185,13 +185,13 @@ std::vector<std::pair<QString, QString>> EvidenceFilters::tokenizeFilterText(con
       hasValue = true;
     }
 
-    if(ch == "\"") {
+    if(ch == '\"') {
       inQuote = !inQuote;
       if(inQuote == false) {
         addWord = true;
       }
     }
-    else if(ch == ":" && !inQuote && sepLocation == -1) {
+    else if(ch == ':' && !inQuote && sepLocation == -1) {
       sepLocation = i;
     }
     else if(ch.isSpace() && !inQuote) {

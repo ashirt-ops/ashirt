@@ -23,7 +23,7 @@ ServersList::~ServersList() {
 
 void ServersList::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   auto simpleButton = [this](QString name, int maxWidth = 0, int minWidth = 0){
     QPushButton* btn = new QPushButton(name, this);

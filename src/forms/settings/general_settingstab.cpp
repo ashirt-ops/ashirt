@@ -106,7 +106,7 @@ void GeneralSettingsTab::wireUi() {
 }
 
 void GeneralSettingsTab::setMargin(int width) {
-  gridLayout->setMargin(width);
+  gridLayout->setContentsMargins(width, width, width, width);
 }
 
 void GeneralSettingsTab::setFocus() {

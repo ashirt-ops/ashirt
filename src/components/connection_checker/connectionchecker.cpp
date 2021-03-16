@@ -21,7 +21,7 @@ ConnectionChecker::~ConnectionChecker() {
 
 void ConnectionChecker::buildUi(bool useAltLayout) {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   testConnButton = new LoadingButton("Test Connection");
   testConnButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);

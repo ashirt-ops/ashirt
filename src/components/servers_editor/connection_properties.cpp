@@ -28,7 +28,7 @@ ConnectionProperties::~ConnectionProperties() {
 
 void ConnectionProperties::buildUi() {
   gridLayout = new QGridLayout(this);
-  gridLayout->setMargin(0);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
 
   _nameLabel = new QLabel("Name");
   _nameHelpLabel = new QLabel(this);
