@@ -32,6 +32,10 @@ void initResources() {
 void setApplicationAttributes() {
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setApplicationName("ashirt");
+
+#ifdef Q_OS_WIN
+  QCoreApplication::setOrganizationName("ashirt");
+#endif
 }
 
 DatabaseConnection* createDBConnection() {
