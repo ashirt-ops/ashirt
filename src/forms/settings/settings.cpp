@@ -40,9 +40,9 @@ void Settings::buildUi() {
 
   tabControl = new QTabWidget(this);
   generalTab = new GeneralSettingsTab();
-  generalTab->setMargin(5);
+  generalTab->setContentsMargins(0, 0, 0, 0);
   connectionsTab = new ConnectionsSettingsTab();
-  connectionsTab->setMargin(5);
+  connectionsTab->setContentsMargins(0, 0, 0, 0);
 
   couldNotSaveSettingsMsg = new QErrorMessage(this);
 
