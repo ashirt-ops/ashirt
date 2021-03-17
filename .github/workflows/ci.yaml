@@ -51,9 +51,9 @@ jobs:
         brew link -f qt@5
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg
+        macdeployqt ashirt.app
         mkdir dist
-        cp ashirt.dmg dist/ashirt.dmg
+        cp -r ashirt.app dist/ashirt.app
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
@@ -76,9 +76,9 @@ jobs:
         brew link -f qt@5
         qmake -config release
         make
-        macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
+        macdeployqt ashirt.app -always-overwrite -sign-for-notarization="John Kennedy"
         mkdir dist
-        cp ashirt.dmg dist/ashirt.dmg
+        cp -r ashirt.app dist/ashirt.app
         cp LICENSE dist/LICENSE
         cp README.md dist/README.md
 
