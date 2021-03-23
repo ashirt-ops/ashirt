@@ -18,6 +18,37 @@ This application allows users to connect to a remote ASHIRT backend and create a
 
 Official releases for Mac and Linux will be provided via the releases tab in GitHub along with source code for users to build themselves if desired.
 
+### Installing for Linux
+
+The official Linux release is delivered as an AppImage. Certain systems may require specialized information. For most distributions, "installation" is easy: simply set the execute flag on the AppImage, then run the application either in a terminal, or via the UI.
+
+#### Support Matrix
+
+| Distribution               | Support Status    | Notes                                                             |
+| -------------------------- | ----------------- | ----------------------------------------------------------------- |
+| Kali (xfce)                | Supported¹        | Status is as of March, 2021                                       |
+| Ubuntu 20.04 (Gnome)       | Supported¹        | The operations menu does not update properly                      |
+| Fedora 33 (Gnome)          | Partial Support¹² | Key capture may not work properly                                 |
+| KDE Neon                   | Supported¹        | Status as of January 2021                                         |
+| Linux Mint 20.1 (Cinnamon) | Supported¹        |                                                                   |
+| Linux Mint 20.1 (Mate)     | Partial Support¹  | An alternate screenshotting tool is needed. e.g. gnome-screenshot |
+
+¹ The application icon does not display properly
+
+² Pure Gnome installations require a taskbar implementation, which is absent on newer versions of gnome. This can be solved by installing gnome extensions. See the list below of compatible Gnome Extensions
+
+##### Valid Gnome Extensions
+
+Various gnome extensions work. The below list is a subset. Before using one of these, check that the
+gnome version they target is the same as the version you are using. Version mismatch could be buggy,
+or just not work at all
+
+| Extension Name                                                                           | Notes |
+| ---------------------------------------------------------------------------------------- | ----- |
+| [Tray Icons](https://extensions.gnome.org/extension/1503/tray-icons/)                    |       |
+| [Tray Icons: Reloaded](https://extensions.gnome.org/extension/2890/tray-icons-reloaded/) |       |
+| [TopIcons Plus](https://extensions.gnome.org/extension/1031/topicons/)                   |       |
+
 ## Non-tray OSes
 
 Current Status: Non-functional
@@ -52,12 +83,15 @@ Theoretically, any application that satisfies this requirement will work. For Ma
 
 This tool will replace the above filename with `%file` as noted below:
 
-| OS/DE/App   | Capture Window               | Capture Area                 | Notes                                                                                                                                               |
-| ----------- | ---------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Linux/Gnome | gnome-screenshot -w -f %file | gnome-screenshot -a -f %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
-| MacOS X     | screencapture -w %file       | screencapture -s %file       |                                                                                                                                                     |
+| OS/DE/App        | Capture Window               | Capture Area                 | Notes                                                                                                                                               |
+| ---------------- | ---------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux/Gnome      | gnome-screenshot -w -f %file | gnome-screenshot -a -f %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| Linux/Xfce4      | xfce4-screenshot -w -s %file | xfce4-screenshot -r -s %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| Linux/KDE Plasma | spectacle -a -bno %file      | spectacle -r -bno %file      | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| MacOS X          | screencapture -w %file       | screencapture -s %file       |                                                                                                                                                     |
 
 Note: this application expects a _single, basic command_. While piping output to another command _may_ work, it is not guaranteed. Likewise, providing multiple commands on the same "line" _may_ work, but is also not guaranteed. Officially, both of these techniques are unsupported.
+Note 2: Mate-screenshot is unsupported, as it does not appear possible to specify where to write the file without opening up a GUI window
 
 ### Shortcuts
 
