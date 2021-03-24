@@ -37,6 +37,8 @@ The official Linux release is delivered as an AppImage. Certain systems may requ
 
 ² Pure Gnome installations require a taskbar implementation, which is absent on newer versions of gnome. This can be solved by installing gnome extensions. See the list below of compatible Gnome Extensions
 
+Note that, due to Wayland simply operating differently, global hotkeys are not supported on those platforms.
+
 ##### Valid Gnome Extensions
 
 Various gnome extensions work. The below list is a subset. Before using one of these, check that the
