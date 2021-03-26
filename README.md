@@ -85,12 +85,12 @@ Theoretically, any application that satisfies this requirement will work. For Ma
 
 This tool will replace the above filename with `%file` as noted below:
 
-| OS/DE/App        | Capture Window               | Capture Area                 | Notes                                                                                                                                               |
-| ---------------- | ---------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Linux/Gnome      | gnome-screenshot -w -f %file | gnome-screenshot -a -f %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
-| Linux/Xfce4      | xfce4-screenshot -w -s %file | xfce4-screenshot -r -s %file | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
-| Linux/KDE Plasma | spectacle -a -bno %file      | spectacle -r -bno %file      | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
-| MacOS X          | screencapture -w %file       | screencapture -s %file       |                                                                                                                                                     |
+| OS/DE/App        | Capture Window                    | Capture Area                      | Notes                                                                                                                                               |
+| ---------------- | --------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux/Gnome      | `gnome-screenshot -w -f %file`    | `gnome-screenshot -a -f %file`    | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| Linux/Xfce4      | `xfce4-screenshooter -w -s %file` | `xfce4-screenshooter -r -s %file` | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| Linux/KDE Plasma | `spectacle -a -bno %file`         | `spectacle -r -bno %file`         | Capture window captures the focused window, rather than allowing a selection; adding the `--delay` flag can help mitigate choosing the wrong window |
+| MacOS X          | `screencapture -w %file`          | `screencapture -s %file`          |                                                                                                                                                     |
 
 Note: this application expects a _single, basic command_. While piping output to another command _may_ work, it is not guaranteed. Likewise, providing multiple commands on the same "line" _may_ work, but is also not guaranteed. Officially, both of these techniques are unsupported.
 Note 2: Mate-screenshot is unsupported, as it does not appear possible to specify where to write the file without opening up a GUI window
