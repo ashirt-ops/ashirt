@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [darwin]
+        platform: [darwin, linux]
     steps:
       - name: Set Version
         run: echo "version=$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $GITHUB_ENV
