@@ -63,6 +63,8 @@ EvidenceManager::~EvidenceManager() {
   delete evidenceTableContextMenu;
   delete filterForm;
   delete evidenceEditor;
+  delete editButton;
+  delete cancelEditButton;
   delete editFiltersButton;
   delete applyFilterButton;
   delete resetFilterButton;
@@ -110,6 +112,10 @@ void EvidenceManager::buildUi() {
   applyFilterButton = new QPushButton("Apply", this);
   resetFilterButton = new QPushButton("Reset", this);
 
+  editButton = new QPushButton("Edit", this);
+  cancelEditButton = new QPushButton("Cancel", this);
+  cancelEditButton->setVisible(false);
+
   applyFilterButton->setDefault(true);
 
   buildEvidenceTableUi();
@@ -138,7 +144,7 @@ void EvidenceManager::buildUi() {
        |                     Evidence Editor                    |
        |                                                        |
        +---------------+-------------+------------+-------------+
-    3  | Loading Ani   | Hor Spacer  | <None>     | <None>      |
+    3  | Loading Ani   | Hor Spacer  | Cancel Btn | Edit Btn    |
        +---------------+-------------+------------+-------------+
   */
 
@@ -157,6 +163,8 @@ void EvidenceManager::buildUi() {
   // row 3
   gridLayout->addWidget(loadingAnimation, 3, 0);
   gridLayout->addItem(spacer, 3, 1);
+  gridLayout->addWidget(cancelEditButton, 3, 2);
+  gridLayout->addWidget(editButton, 3, 3);
 
   closeWindowAction = new QAction(this);
   closeWindowAction->setShortcut(QKeySequence::Close);
@@ -176,6 +184,8 @@ void EvidenceManager::wireUi() {
   connect(applyFilterButton, btnClicked, this, &EvidenceManager::loadEvidence);
   connect(resetFilterButton, btnClicked, this, &EvidenceManager::resetFilterButtonClicked);
   connect(editFiltersButton, btnClicked, this, &EvidenceManager::openFiltersMenu);
+  connect(editButton, btnClicked, this, &EvidenceManager::editEvidenceButtonClicked);
+  connect(cancelEditButton, btnClicked, this, &EvidenceManager::cancelEditEvidenceButtonClicked);
 
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
@@ -189,6 +199,26 @@ void EvidenceManager::wireUi() {
   connect(evidenceTable, &QTableWidget::currentCellChanged, this, &EvidenceManager::onRowChanged);
   connect(evidenceTable, &QTableWidget::customContextMenuRequested, this,
           &EvidenceManager::openTableContextMenu);
+}
+
+void EvidenceManager::editEvidenceButtonClicked() {
+  if( editButton->text() == "Save") {
+    evidenceEditor->saveEvidence();
+    cancelEditEvidenceButtonClicked();
+    refreshRow(evidenceTable->currentRow());
+  }
+  else {
+    evidenceEditor->setEnabled(true);
+    editButton->setText("Save");
+    cancelEditButton->setVisible(true);
+  }
+}
+
+void EvidenceManager::cancelEditEvidenceButtonClicked() {
+  evidenceEditor->setEnabled(false);
+  cancelEditButton->setVisible(false);
+  //refreshRow(evidenceTable->currentRow());
+  editButton->setText("Edit");
 }
 
 void EvidenceManager::showEvent(QShowEvent* evt) {
@@ -472,7 +502,10 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   Q_UNUSED(_previousRow);
   Q_UNUSED(_previousColumn);
 
+  cancelEditEvidenceButtonClicked();
   if (currentRow == -1) {
+    editButton->setEnabled(false);
+    editButton->setToolTip("You must have some evidence selected to edit");
     emit evidenceChanged(-1, true);
     return;
   }
@@ -482,6 +515,18 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   auto readonly = evidence.uploadDate.isValid();
   submitEvidenceAction->setEnabled(!readonly);
   emit evidenceChanged(evidence.id, true);
+
+  int selectedRowCount = evidenceTable->selectionModel()->selectedRows().count();
+  if (selectedRowCount > 1) {
+    editButton->setEnabled(false);
+    editButton->setToolTip("Only one evidence item may be edited at once.");
+  }
+  else {
+    this->editButton->setEnabled(!readonly);
+    this->editButton->setToolTip(readonly
+                                     ? "Edit is only available on unsubmitted evidence"
+                                     : "Update this data before submitting");
+  }
 }
 
 void EvidenceManager::onUploadComplete() {
