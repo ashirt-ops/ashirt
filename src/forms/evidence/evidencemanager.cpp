@@ -202,7 +202,7 @@ void EvidenceManager::wireUi() {
 }
 
 void EvidenceManager::editEvidenceButtonClicked() {
-  if( editButton->text() == "Save") {
+  if(editButton->text() == "Save") {
     evidenceEditor->saveEvidence();
     cancelEditEvidenceButtonClicked();
     refreshRow(evidenceTable->currentRow());
