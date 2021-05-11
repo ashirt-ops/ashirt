@@ -116,6 +116,14 @@ void EvidenceManager::buildUi() {
   cancelEditButton = new QPushButton("Cancel", this);
   cancelEditButton->setVisible(false);
 
+  // remove button defaults (i.e. enter-submits-form functionality)
+  editFiltersButton->setAutoDefault(false);
+  applyFilterButton->setAutoDefault(false);
+  resetFilterButton->setAutoDefault(false);
+  editButton->setAutoDefault(false);
+  cancelEditButton->setAutoDefault(false);
+
+  // apply a default for apply-filter, which is the typical action
   applyFilterButton->setDefault(true);
 
   buildEvidenceTableUi();
@@ -206,8 +214,12 @@ void EvidenceManager::editEvidenceButtonClicked() {
     evidenceEditor->saveEvidence();
     cancelEditEvidenceButtonClicked();
     refreshRow(evidenceTable->currentRow());
+    // restore default form action
+    applyFilterButton->setDefault(true);
   }
   else {
+    // remove default form action to prevent accidental reloading of evidence
+    applyFilterButton->setDefault(false);
     evidenceEditor->setEnabled(true);
     editButton->setText("Save");
     cancelEditButton->setVisible(true);
