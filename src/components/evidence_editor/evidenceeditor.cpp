@@ -116,7 +116,6 @@ void EvidenceEditor::wireUi() {
 void EvidenceEditor::loadData() {
   // get local db evidence data
   clearEditor();
-  delete loadedPreview;
   try {
     originalEvidenceData = db->getEvidenceDetails(evidenceID);
     descriptionTextBox->setText(originalEvidenceData.description);
