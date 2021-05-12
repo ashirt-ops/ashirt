@@ -231,6 +231,7 @@ void EvidenceManager::cancelEditEvidenceButtonClicked() {
   cancelEditButton->setVisible(false);
   //refreshRow(evidenceTable->currentRow());
   editButton->setText("Edit");
+  evidenceEditor->revert();
 }
 
 void EvidenceManager::showEvent(QShowEvent* evt) {

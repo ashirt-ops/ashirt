@@ -199,6 +199,7 @@ void TagEditor::onCreateTagComplete() {
     auto newTag = dto::Tag::parseData(data);
     addTag(newTag);
     tagView->addTag(newTag);
+    tagCache->requestExpiry(this->operationSlug);
     updateCompleterModel();
   }
   else {
