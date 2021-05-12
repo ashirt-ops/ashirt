@@ -36,7 +36,7 @@ jobs:
     - name: Set artifact name
       run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
     - name: Check out code
-      uses: actions/checkout@v2 
+      uses: actions/checkout@v2.3.4 
       with:
         submodules: true
 
