@@ -80,6 +80,7 @@ void Settings::buildUi() {
   recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   eviRepoBrowseButton = new QPushButton("Browse", this);
   testConnectionButton = new LoadingButton("Test Connection", this);
+  clearHotkeysButton = new QPushButton("Clear Shortcuts", this);
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Save);
   buttonBox->addButton(QDialogButtonBox::Cancel);
@@ -102,7 +103,7 @@ void Settings::buildUi() {
        +---------------+-------------+------------+-------------+
     5  | Cap W Cmd Lbl | [CapWCmdTB] | CapWSh lbl | [CapWSh TB] |
        +---------------+-------------+------------+-------------+
-    6  | CodeblkSh Lbl | [CodeblkSh TB] |                       |
+    6  | CodeblkSh Lbl | [CodeblkSh TB] |  Clear Hotkey Btn     |
        +---------------+-------------+------------+-------------+
     7  | Test Conn Btn |  StatusLabel                           |
        +---------------+-------------+------------+-------------+
@@ -144,6 +145,7 @@ void Settings::buildUi() {
   // row 6 (reserved for codeblocks)
   gridLayout->addWidget(_recordCodeblockShortcutLabel, 6, 0);
   gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
+  gridLayout->addWidget(clearHotkeysButton, 6, 2, 1, 3, Qt::AlignRight);
 
   // row 7
   gridLayout->addWidget(testConnectionButton, 7, 0);
@@ -177,6 +179,7 @@ void Settings::wireUi() {
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
+  connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
 }
 
 void Settings::showEvent(QShowEvent *evt) {
@@ -255,6 +258,12 @@ void Settings::onBrowseClicked() {
   if (filename != nullptr) {
     eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
   }
+}
+
+void Settings::onClearShortcutsClicked() {
+  captureAreaShortcutTextBox->clear();
+  captureWindowShortcutTextBox->clear();
+  recordCodeblockShortcutTextBox->clear();
 }
 
 void Settings::onTestConnectionClicked() {

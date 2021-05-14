@@ -46,6 +46,9 @@ class Settings : public QDialog {
   /// onCancelClicked handles the discard operation. Used when the "Cancel" button is pressed.
   void onCancelClicked();
 
+  /// onClearShortcutsClicked handles the clear shortcuts button action.
+  void onClearShortcutsClicked();
+
  public slots:
   /// showEvent extends the native showEvent handler. Restores the UI to system values.
   void showEvent(QShowEvent* evt) override;
@@ -90,6 +93,7 @@ class Settings : public QDialog {
   QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
+  QPushButton* clearHotkeysButton = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
 
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
