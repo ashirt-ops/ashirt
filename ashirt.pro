@@ -1,8 +1,7 @@
-QT       += core gui network sql
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui network sql widgets
 
 CONFIG += c++11
+TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -144,14 +143,35 @@ macx {
   ICON = icons/ashirt.icns
   QMAKE_TARGET_BUNDLE_PREFIX = com.theparanoids
 }
+unix {
+  isEmpty(PREFIX) {
+    PREFIX = /usr
+  }
+
+  isEmpty(BINDIR) {
+    BINDIR = $$PREFIX/bin
+  }
+
+  isEmpty(DATADIR) {
+    DATADIR = $$PREFIX/share
+  }
+  message("INSTROOT: |$$INSTROOT|")
+  message("PREFIX: |$$PREFIX|")
+
+  INSTALLS += target desktop icons
+  target.path = $$BINDIR
+
+  # Create appimage structure
+  desktop.path = $$DATADIR/applications
+  desktop.files += linux/ashirt.desktop
+  icons.path = $$DATADIR/icons/hicolor
+  icons.files += linux/icons/*
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
+# else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-DISTFILES += \
-    bin/update_migration_resource.py
 
 RESOURCES += \
     res_migrations.qrc \
