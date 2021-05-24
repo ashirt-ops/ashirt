@@ -180,6 +180,41 @@ void Settings::wireUi() {
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
   connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
+
+  connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+    checkForDuplicateShortcuts(keySequence, captureAreaShortcutTextBox);
+  });
+  connect(captureWindowShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+    checkForDuplicateShortcuts(keySequence, captureWindowShortcutTextBox);
+  });
+  connect(recordCodeblockShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+    checkForDuplicateShortcuts(keySequence, recordCodeblockShortcutTextBox);
+  });
+}
+
+void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeySequenceEdit* parentComponent) {
+  // these events are generated for every key sequence change, but all except the last are blank
+  if(keySequence.isEmpty()) {
+    return;
+  }
+
+  auto usesKeySequence = [keySequence, parentComponent](QKeySequenceEdit* keySequenceEdit) {
+    return parentComponent != keySequenceEdit && // check that we don't compare to itself
+           keySequenceEdit->keySequence() == keySequence;
+  };
+
+  bool alreadyUsed = usesKeySequence(captureWindowShortcutTextBox)
+                     || usesKeySequence(recordCodeblockShortcutTextBox)
+                     || usesKeySequence(captureAreaShortcutTextBox)
+      ;
+
+  if(alreadyUsed) {
+    parentComponent->clear();
+    parentComponent->setStyleSheet("background-color: lightcoral");
+  }
+  else {
+    parentComponent->setStyleSheet("");
+  }
 }
 
 void Settings::showEvent(QShowEvent *evt) {

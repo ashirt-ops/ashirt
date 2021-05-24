@@ -49,6 +49,8 @@ class Settings : public QDialog {
   /// onClearShortcutsClicked handles the clear shortcuts button action.
   void onClearShortcutsClicked();
 
+  void checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeySequenceEdit* parentComponent);
+
  public slots:
   /// showEvent extends the native showEvent handler. Restores the UI to system values.
   void showEvent(QShowEvent* evt) override;
