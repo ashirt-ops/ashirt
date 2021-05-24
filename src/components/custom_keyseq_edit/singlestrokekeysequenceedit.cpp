@@ -21,6 +21,7 @@ bool SingleStrokeKeySequenceEdit::eventFilter(QObject *object, QEvent *event) {
   if (event->type() == QEvent::FocusOut) {
     // restore the current/saved sequence
     setKeySequence(previousSequence);
+    emit keySequenceChanged(previousSequence);
   }
   return QKeySequenceEdit::eventFilter(object, event);
 }
