@@ -42,6 +42,10 @@ class EvidenceEditor : public QWidget {
   /// file location of the provided evidence IDs
   std::vector<DeleteEvidenceResponse> deleteEvidence(std::vector<qint64> evidenceIDs);
 
+  /// revert re-loads the evidence to restore the content to the saved version.
+  /// Only useful when used in the evidence manager.
+  void revert();
+
  signals:
   void onWidgetReady();
 

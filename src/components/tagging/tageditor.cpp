@@ -147,6 +147,7 @@ void TagEditor::loadTags(const QString &operationSlug, std::vector<model::Tag> i
 
 void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
   if (this->operationSlug == operationSlug) {
+    clearTags();
     for (auto tag : tags) {
       addTag(tag);
 
@@ -198,6 +199,7 @@ void TagEditor::onCreateTagComplete() {
     auto newTag = dto::Tag::parseData(data);
     addTag(newTag);
     tagView->addTag(newTag);
+    tagCache->requestExpiry(this->operationSlug);
     updateCompleterModel();
   }
   else {
@@ -215,6 +217,11 @@ void TagEditor::onCreateTagComplete() {
 void TagEditor::addTag(dto::Tag tag) {
   tagNames << tag.name;
   tagMap.emplace(standardizeTagKey(tag.name), tag);
+}
+
+void TagEditor::clearTags() {
+  tagNames.clear();
+  tagMap.clear();
 }
 
 QString TagEditor::standardizeTagKey(const QString& tagName) {

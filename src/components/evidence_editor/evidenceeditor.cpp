@@ -116,7 +116,6 @@ void EvidenceEditor::wireUi() {
 void EvidenceEditor::loadData() {
   // get local db evidence data
   clearEditor();
-  delete loadedPreview;
   try {
     originalEvidenceData = db->getEvidenceDetails(evidenceID);
     descriptionTextBox->setText(originalEvidenceData.description);
@@ -144,6 +143,13 @@ void EvidenceEditor::loadData() {
     loadedPreview = new ErrorView("Unable to load evidence: " + e.text(), this);
   }
   splitter->insertWidget(0, loadedPreview);
+}
+
+void EvidenceEditor::revert() {
+  tagEditor->clear();
+  originalEvidenceData = db->getEvidenceDetails(evidenceID);
+  descriptionTextBox->setText(originalEvidenceData.description);
+  tagEditor->loadTags(operationSlug, originalEvidenceData.tags);
 }
 
 void EvidenceEditor::updateEvidence(qint64 evidenceID, bool readonly) {

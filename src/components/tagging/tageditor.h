@@ -34,6 +34,7 @@ class TagEditor : public QWidget {
   void tagTextEntered(QString text);
   inline void showCompleter() { completer->complete(); }
   void addTag(dto::Tag tag);
+  void clearTags();
   QString standardizeTagKey(const QString &tagName);
 
  private slots:

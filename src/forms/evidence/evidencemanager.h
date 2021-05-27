@@ -88,6 +88,13 @@ class EvidenceManager : public QDialog {
   void resetFilterButtonClicked();
   /// deleteAllTriggered recieves the triggered event from the delete table action
   void deleteAllTriggered();
+
+  /// editEvidenceButtonClicked saves (but does not submit) the evidence currently being edited.
+  /// After saving, the edit/cancel button is reset. Note: this will change the name of the button to "Save"
+  void editEvidenceButtonClicked();
+
+  /// cancelEditEvidenceButtonClicked resets the edit/cancel buttons 
+  void cancelEditEvidenceButtonClicked();
   
   /// deleteSet is a small helper to iterate through the provided list, delete the ids, and process
   /// the result
@@ -129,6 +136,8 @@ class EvidenceManager : public QDialog {
   QPushButton* editFiltersButton = nullptr;
   QPushButton* applyFilterButton = nullptr;
   QPushButton* resetFilterButton = nullptr;
+  QPushButton* editButton = nullptr;
+  QPushButton* cancelEditButton = nullptr;
   QLineEdit* filterTextBox = nullptr;
   QTableWidget* evidenceTable = nullptr;
   EvidenceEditor* evidenceEditor = nullptr;
