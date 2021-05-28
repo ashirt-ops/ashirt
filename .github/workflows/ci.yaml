@@ -43,7 +43,7 @@ jobs:
     - name: Cache Qt
       if: matrix.os == 'ubuntu-16.04' # We might want to do this for both mac and linux
       id: cache-qt
-      uses: actions/cache@v2.1.5
+      uses: actions/cache@v2.1.6
       with:
         path: ../Qt
         key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
