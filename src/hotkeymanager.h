@@ -39,6 +39,13 @@ class HotkeyManager : public QObject {
   /// no key has been registered.
   void unregisterKey(GlobalHotkeyEvent evt);
 
+  /// disableHotkeys removes all of the keybindings.
+  void disableHotkeys();
+
+  /// enableHotkeys "restores" all of the currently set hotkeys. This acts as the counterpoint to
+  /// disableHotkeys, but functionally is identical to updateHotKeys.
+  void enableHotkeys();
+
  signals:
   /// codeblockHotkeyPressed signals when the ACTION_CAPTURE_CODEBLOCK event has been triggered.
   void codeblockHotkeyPressed();

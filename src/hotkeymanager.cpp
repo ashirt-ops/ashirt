@@ -36,6 +36,14 @@ void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
   }
 }
 
+void HotkeyManager::disableHotkeys() {
+  hotkeyManager->unregisterAllHotkeys();
+}
+
+void HotkeyManager::enableHotkeys() {
+  updateHotkeys();
+}
+
 void HotkeyManager::updateHotkeys() {
   hotkeyManager->unregisterAllHotkeys();
   auto regKey = [this](QString combo, GlobalHotkeyEvent evt) {
