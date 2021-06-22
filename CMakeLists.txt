@@ -12,8 +12,10 @@ set(ENV{COMMIT_HASH} "")
 set(ENV{VERSION_TAG} "")
 set(ENV{SOURCE_CONTROL_REPO} "")
 
-set(VERSION_TAG_PLAIN ENV{GITHUB_REF})
-set(COMMIT_HASH_PLAIN ENV{GITHUB_SHA})
+#set(VERSION_TAG_PLAIN ENV{GITHUB_REF})
+#set(COMMIT_HASH_PLAIN ENV{GITHUB_SHA})
+set(VERSION_TAG_PLAIN "v0.0.0-development")
+set(COMMIT_HASH_PLAIN "Unknown")
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt6 COMPONENTS Gui REQUIRED)
@@ -22,6 +24,9 @@ find_package(Qt6 COMPONENTS Sql REQUIRED)
 find_package(Qt6 COMPONENTS Core REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR})
 
+#####################################################################
+## Shared Sources
+#####################################################################
 set(SOURCE
         src/appconfig.h
         src/appsettings.h
@@ -84,7 +89,7 @@ set(SOURCE
     )
 
 #####################################################################
-## UGlobalHotkey Library:
+## UGlobalHotkey Library
 #####################################################################
 add_library(UGlobalHotkey
         tools/UGlobalHotkey/hotkeymap.h
@@ -95,7 +100,7 @@ add_library(UGlobalHotkey
 target_link_libraries(UGlobalHotkey PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 
 #####################################################################
-## ashirt OS Customizations:
+## ashirt OS Customizations
 #####################################################################
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -127,11 +132,16 @@ elseif (WIN32 AND MSVC)
     target_link_libraries(ashirt PUBLIC user32.lib)
 endif()
 
+#####################################################################
+## ashirt Common
+#####################################################################
 target_link_libraries(ashirt PRIVATE Qt6::Widgets Qt6::Sql Qt6::Gui Qt6::Network)
 target_link_libraries(ashirt PRIVATE UGlobalHotkey)
 target_include_directories(ashirt PUBLIC src src/components)
 
-# Resources:
+#####################################################################
+## Resources
+#####################################################################
 set(res_migrations_resource_files
     "migrations/20200521190124-initial.sql"
     "migrations/20200521210407-add-screenshots-table.sql"
@@ -162,19 +172,11 @@ qt_add_resources(ashirt "res_icons"
         ${res_icons_resource_files}
 )
 
-
-
 #### Keys ignored in scope 1:.:.:ashirt.pro:<TRUE>:
 # TEMPLATE = "app"
 
 ## Scopes:
 #####################################################################
-
-#### Keys ignored in scope 2:.:.:ashirt.pro:NOT VERSION_TAG_PLAIN___contains___._x_tags/v._x_:
-set(VERSION_TAG_PLAIN "v0.0.0-development")
-
-#### Keys ignored in scope 3:.:.:ashirt.pro:COMMIT_HASH_PLAIN___equals___:
-set(COMMIT_HASH_PLAIN "Unknown")
 
 #### Keys ignored in scope 5:.:.:ashirt.pro:MACOS:
 # ICON = "icons/ashirt.icns"
