@@ -6,9 +6,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(MACOSX_RPATH 0)
+
 set(ENV{COMMIT_HASH} "")
 set(ENV{VERSION_TAG} "")
 set(ENV{SOURCE_CONTROL_REPO} "")
+
+set(VERSION_TAG_PLAIN ENV{GITHUB_REF})
+set(COMMIT_HASH_PLAIN ENV{GITHUB_SHA})
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt6 COMPONENTS Gui REQUIRED)
@@ -94,6 +99,8 @@ target_link_libraries(UGlobalHotkey PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 #####################################################################
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    # I don't know why the below line works for my static build
+    include_directories(/opt/Qt6/include/QtGui/6.1.1/QtGui/)
     qt_add_executable(ashirt ${SOURCE})
     target_link_libraries(ashirt PUBLIC Qt::GuiPrivate XCB::XCB xcb-keysyms)
 endif()
