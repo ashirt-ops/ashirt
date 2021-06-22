@@ -79,16 +79,6 @@ set(SOURCE
     )
 
 #####################################################################
-## ashirt Binary:
-#####################################################################
-#qt_add_executable(ashirt MACOSX_BUNDLE ${SOURCE})
-
-#target_link_libraries(ashirt PRIVATE Qt6::Widgets Qt6::Sql Qt6::Gui Qt6::Network)
-#target_link_libraries(ashirt PRIVATE UGlobalHotkey)
-#target_include_directories(ashirt PUBLIC src src/components)
-
-
-#####################################################################
 ## UGlobalHotkey Library:
 #####################################################################
 add_library(UGlobalHotkey
@@ -97,7 +87,7 @@ add_library(UGlobalHotkey
         tools/UGlobalHotkey/uglobalhotkeys.cpp tools/UGlobalHotkey/uglobalhotkeys.h
         tools/UGlobalHotkey/ukeysequence.cpp tools/UGlobalHotkey/ukeysequence.h
 )
-target_link_libraries(UGlobalHotkey PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+target_link_libraries(UGlobalHotkey PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 
 #####################################################################
 ## ashirt OS Customizations:
@@ -113,7 +103,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
     find_library(CARBON_LIBRARY Carbon)
     #target_link_libraries(ashirt PUBLIC Carbon)
     target_link_libraries(UGlobalHotkey PUBLIC ${CARBON_LIBRARY})
-    set(CUR_TARGET myappname)
     set_target_properties(ashirt PROPERTIES
     BUNDLE True
     MACOSX_BUNDLE_GUI_IDENTIFIER com.theparanoids.ashirt
@@ -124,8 +113,10 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif()
 
 if (WIN32 AND NOT MSVC)
+    qt_add_executable(ashirt ${SOURCE})
     target_link_libraries(ashirt PUBLIC user32)
 elseif (WIN32 AND MSVC)
+    qt_add_executable(ashirt ${SOURCE})
     target_link_libraries(ashirt PUBLIC user32.lib)
 endif()
 
@@ -173,10 +164,10 @@ qt_add_resources(ashirt "res_icons"
 #####################################################################
 
 #### Keys ignored in scope 2:.:.:ashirt.pro:NOT VERSION_TAG_PLAIN___contains___._x_tags/v._x_:
-# VERSION_TAG_PLAIN = "v0.0.0-development"
+set(VERSION_TAG_PLAIN "v0.0.0-development")
 
 #### Keys ignored in scope 3:.:.:ashirt.pro:COMMIT_HASH_PLAIN___equals___:
-# COMMIT_HASH_PLAIN = "Unknown"
+set(COMMIT_HASH_PLAIN "Unknown")
 
 #### Keys ignored in scope 5:.:.:ashirt.pro:MACOS:
 # ICON = "icons/ashirt.icns"
