@@ -1,10 +1,7 @@
-# Generated from ashirt.pro.
-
 cmake_minimum_required(VERSION 3.16.0)
 project(ashirt VERSION 1.2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -17,14 +14,10 @@ find_package(Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt6 COMPONENTS Gui REQUIRED)
 find_package(Qt6 COMPONENTS Network REQUIRED)
 find_package(Qt6 COMPONENTS Sql REQUIRED)
+find_package(Qt6 COMPONENTS Core REQUIRED)
+include_directories(${PROJECT_SOURCE_DIR})
 
-include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
-include_directories(${PROJECT_SOURCE_DIR}/tools/UGlobalHotkey)
-
-#####################################################################
-## ashirt Binary:
-#####################################################################
-qt_add_executable(ashirt
+set(SOURCE
         src/appconfig.h
         src/appsettings.h
         src/components/aspectratio_pixmap_label/aspectratiopixmaplabel.cpp src/components/aspectratio_pixmap_label/aspectratiopixmaplabel.h
@@ -83,15 +76,62 @@ qt_add_executable(ashirt
         src/porting/system_manifest.cpp src/porting/system_manifest.h
         src/porting/system_porting_options.h
         src/traymanager.cpp src/traymanager.h
+    )
+
+#####################################################################
+## ashirt Binary:
+#####################################################################
+#qt_add_executable(ashirt MACOSX_BUNDLE ${SOURCE})
+
+#target_link_libraries(ashirt PRIVATE Qt6::Widgets Qt6::Sql Qt6::Gui Qt6::Network)
+#target_link_libraries(ashirt PRIVATE UGlobalHotkey)
+#target_include_directories(ashirt PUBLIC src src/components)
+
+
+#####################################################################
+## UGlobalHotkey Library:
+#####################################################################
+add_library(UGlobalHotkey
         tools/UGlobalHotkey/hotkeymap.h
         tools/UGlobalHotkey/uglobal.h
         tools/UGlobalHotkey/uglobalhotkeys.cpp tools/UGlobalHotkey/uglobalhotkeys.h
         tools/UGlobalHotkey/ukeysequence.cpp tools/UGlobalHotkey/ukeysequence.h
 )
+target_link_libraries(UGlobalHotkey PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 
-target_include_directories(ashirt PUBLIC src tools/UGlobalHotkey)
+#####################################################################
+## ashirt OS Customizations:
+#####################################################################
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    qt_add_executable(ashirt ${SOURCE})
+    target_link_libraries(ashirt PUBLIC Qt::GuiPrivate XCB::XCB xcb-keysyms)
+endif()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    qt_add_executable(ashirt MACOSX_BUNDLE ${SOURCE})
+    find_library(CARBON_LIBRARY Carbon)
+    #target_link_libraries(ashirt PUBLIC Carbon)
+    target_link_libraries(UGlobalHotkey PUBLIC ${CARBON_LIBRARY})
+    set(CUR_TARGET myappname)
+    set_target_properties(ashirt PROPERTIES
+    BUNDLE True
+    MACOSX_BUNDLE_GUI_IDENTIFIER com.theparanoids.ashirt
+    MACOSX_BUNDLE_BUNDLE_NAME ashirt
+    MACOSX_BUNDLE_BUNDLE_VERSION "1.2"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.2"
+    )
+endif()
+
+if (WIN32 AND NOT MSVC)
+    target_link_libraries(ashirt PUBLIC user32)
+elseif (WIN32 AND MSVC)
+    target_link_libraries(ashirt PUBLIC user32.lib)
+endif()
 
 target_link_libraries(ashirt PRIVATE Qt6::Widgets Qt6::Sql Qt6::Gui Qt6::Network)
+target_link_libraries(ashirt PRIVATE UGlobalHotkey)
+target_include_directories(ashirt PUBLIC src src/components)
 
 # Resources:
 set(res_migrations_resource_files
@@ -123,6 +163,7 @@ qt_add_resources(ashirt "res_icons"
     FILES
         ${res_icons_resource_files}
 )
+
 
 
 #### Keys ignored in scope 1:.:.:ashirt.pro:<TRUE>:
@@ -163,25 +204,3 @@ qt_add_resources(ashirt "res_icons"
 
 #### Keys ignored in scope 11:.:.:ashirt.pro:NOT target.path_ISEMPTY:
 # INSTALLS = "target"
-
-#qt_extend_target(ashirt CONDITION LINUX
-#    PUBLIC_LIBRARIES
-#        Qt::GuiPrivate
-#        XCB::XCB
-#        xcb-keysyms
-#)#
-
-#qt_extend_target(ashirt CONDITION APPLE
-#    PUBLIC_LIBRARIES
-#        ${FWCarbon}
-#)#
-
-#qt_extend_target(ashirt CONDITION GCC AND windows
-#    PUBLIC_LIBRARIES
-#        user32
-#)#
-
-#qt_extend_target(ashirt CONDITION _x_-msvc_x_ AND windows
-#    PUBLIC_LIBRARIES
-#        user32.lib
-#)
