@@ -80,6 +80,7 @@ This application requires taking screenshots from the command line. The applicat
 
 1. Allow for saving the screenshot to a named file.
 2. Create the file _must_ before the application exits.
+3. Support a png output format
 
 Theoretically, any application that satisfies this requirement will work. For Mac, the system command to do this is pre-populated, since this is a standard feature. For Linux, there are a number of screenshot commands, and so none are provided. For Windows, a 3rd party application must be used, as there is currently no way to save a screenshot to a named file.
 
@@ -177,7 +178,7 @@ There are a handful of points to be aware of when importing and exporting.
 
 ## Local Files
 
-You should never need to access these files outside of the application, however, for clarity, the following files are generate and maintained by this application:
+You should never need to access these files outside of the application, however, for clarity, the following files are generated and maintained by this application:
 
 | File type      | Path                                                              | Notes                                                                                                                            |
 | -------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
