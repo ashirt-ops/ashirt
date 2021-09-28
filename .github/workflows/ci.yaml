@@ -14,7 +14,7 @@ jobs:
   # interpolation, only github expression interpolation
   store-sha8:
     name: Store The Short Hash
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       sha8: ${{ steps.calc-short.outputs.sha8 }}
     steps:
@@ -27,7 +27,7 @@ jobs:
     needs: [store-sha8]
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-16.04]
+        os: [macos-latest, ubuntu-20.04]
         qt-version: ['6.1.0']
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -41,7 +41,7 @@ jobs:
         submodules: true
 
     - name: Cache Qt
-      if: matrix.os == 'ubuntu-16.04' # We might want to do this for both mac and linux
+      if: matrix.os == 'ubuntu-20.04' # We might want to do this for both mac and linux
       id: cache-qt
       uses: actions/cache@v2.1.6
       with:
@@ -56,7 +56,7 @@ jobs:
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Build Pr (Linux)
-      if: matrix.os == 'ubuntu-16.04' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
+      if: matrix.os == 'ubuntu-20.04' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
       run: |
         echo "Building!"
         sudo apt install libxcb-keysyms1-dev desktop-file-utils libxcb-icccm4 libxcb-image0 libxcb-util1 \
@@ -142,7 +142,7 @@ jobs:
     name: Create GitHub Release
     if: contains(github.ref, 'tags/v')
     needs: [store-sha8, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       upload_url: ${{ steps.create-release.outputs.upload_url }}
 
@@ -161,7 +161,7 @@ jobs:
   publish:
     if: contains(github.ref, 'tags/v')
     needs: [store-sha8, build, release]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         platform: [darwin, linux]
