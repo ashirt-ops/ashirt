@@ -53,7 +53,7 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
         version: ${{ matrix.qt-version }}
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        #cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Build Pr (Linux)
       if: matrix.os == 'ubuntu-18.04' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/master') && !contains(github.ref, 'refs/heads/release-')
