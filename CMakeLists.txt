@@ -8,28 +8,31 @@ set(CMAKE_AUTOUIC ON)
 
 set(MACOSX_RPATH 0)
 
-set(ENV{COMMIT_HASH} "")
-set(ENV{VERSION_TAG} "")
-set(ENV{SOURCE_CONTROL_REPO} "")
+# Read some values from the build environment
+set(COMMIT_HASH $ENV{GITHUB_SHA})
+set(UNVERSIONED_TAG "v0.0.0-development")
+set(VERSION_TAG $ENV{GITHUB_REF})
+set(SOURCE_CONTROL_REPO $ENV{GITHUB_REPOSITORY})
 
-if(ENV{GITHUB_SHA} STREQUAL "")
-    message(WARNING "commit hash not specified. Please ensure GITHUB_SHA environment variable is set.")
+# Validate the values set from the build environment (with defaults)
+if(NOT DEFINED COMMIT_HASH)
+    message(WARNING "Commit hash not specified. Please ensure GITHUB_SHA environment variable is set.")
     set(COMMIT_HASH "Unknown")
-else()
-    set(COMMIT_HASH ENV{GITHUB_SHA})
 endif()
 
-if(NOT ENV{GITHUB_REF} MATCHES ".*tags/v.*")
-    message(WARNING "Ref appears to not be a tag (Value: ${GITHUB_REF}). Using non-version instead.")
-    set(VERSION_TAG "v0.0.0-development")
-else()
-    set(VERSION_TAG ENV{GITHUB_REF})
+if(NOT DEFINED VERSION_TAG)
+    message(WARNING "Version tag was not specified. Please ensure GITHUB_REF environment variable is set.")
+    set(VERSION_TAG ${UNVERSIONED_TAG})
+elseif(NOT VERSION_TAG MATCHES ".*tags/v.*")
+    message(WARNING "Ref appears to not be a tag (Value: ${VERSION_TAG}). Using non-version instead.")
+    set(VERSION_TAG ${UNVERSIONED_TAG})
 endif()
 
-set(SOURCE_CONTROL_REPO ENV{GITHUB_REPOSITORY})
-if(ENV{GITHUB_REPOSITORY} STREQUAL "")
+if(NOT DEFINED SOURCE_CONTROL_REPO)
     message(WARNING "Source control repo not specified. Please ensure GITHUB_REPOSITORY environment variable is set.")
 endif()
+
+message("Building with vars: COMMIT_HASH=[${COMMIT_HASH}] VERSION_TAG=[${VERSION_TAG}] SOURCE_CONTROL_REPO=[${SOURCE_CONTROL_REPO}]")
 
 add_definitions( 
     -DCOMMIT_HASH="${COMMIT_HASH}"
