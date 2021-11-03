@@ -12,10 +12,30 @@ set(ENV{COMMIT_HASH} "")
 set(ENV{VERSION_TAG} "")
 set(ENV{SOURCE_CONTROL_REPO} "")
 
-#set(VERSION_TAG_PLAIN ENV{GITHUB_REF})
-#set(COMMIT_HASH_PLAIN ENV{GITHUB_SHA})
-set(VERSION_TAG_PLAIN "v0.0.0-development")
-set(COMMIT_HASH_PLAIN "Unknown")
+if(ENV{GITHUB_SHA} STREQUAL "")
+    message(WARNING "commit hash not specified. Please ensure GITHUB_SHA environment variable is set.")
+    set(COMMIT_HASH "Unknown")
+else()
+    set(COMMIT_HASH ENV{GITHUB_SHA})
+endif()
+
+if(NOT ENV{GITHUB_REF} MATCHES ".*tags/v.*")
+    message(WARNING "Ref appears to not be a tag (Value: ${GITHUB_REF}). Using non-version instead.")
+    set(VERSION_TAG "v0.0.0-development")
+else()
+    set(VERSION_TAG ENV{GITHUB_REF})
+endif()
+
+set(SOURCE_CONTROL_REPO ENV{GITHUB_REPOSITORY})
+if(ENV{GITHUB_REPOSITORY} STREQUAL "")
+    message(WARNING "Source control repo not specified. Please ensure GITHUB_REPOSITORY environment variable is set.")
+endif()
+
+add_definitions( 
+    -DCOMMIT_HASH="${COMMIT_HASH}"
+    -DVERSION_TAG="${VERSION_TAG}"
+    -DSOURCE_CONTROL_REPO="${SOURCE_CONTROL_REPO}"
+)
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt6 COMPONENTS Gui REQUIRED)
