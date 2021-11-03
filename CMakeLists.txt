@@ -104,8 +104,11 @@ target_link_libraries(UGlobalHotkey PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 #####################################################################
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    # I don't know why the below line works for my static build
-    include_directories(/opt/Qt6/include/QtGui/6.1.1/QtGui/)
+    # Needed to build QGlobalHotkey -- includes private Qt6 Gui headers
+    # See https://stackoverflow.com/a/21438687
+    find_package(Qt6Gui)
+    include_directories(${Qt6Gui_PRIVATE_INCLUDE_DIRS})
+
     qt_add_executable(ashirt ${SOURCE})
     target_link_libraries(ashirt PUBLIC Qt::GuiPrivate XCB::XCB xcb-keysyms)
 endif()
