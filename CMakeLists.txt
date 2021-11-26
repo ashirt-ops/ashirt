@@ -133,7 +133,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     include_directories(${Qt6Gui_PRIVATE_INCLUDE_DIRS})
 
     qt_add_executable(ashirt ${SOURCE})
-    target_link_libraries(ashirt PUBLIC Qt::GuiPrivate xcb-keysyms)
+    target_link_libraries(UGlobalHotkey PUBLIC Qt::GuiPrivate xcb xcb-keysyms)
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
