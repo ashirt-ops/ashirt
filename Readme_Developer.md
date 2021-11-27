@@ -2,13 +2,77 @@
 
 ## Building and Build Requirements
 
-This application is built off of Qt 5, and utilizes's Qt's networking and Sql featuresets. To build, your specific system may need the following:
+This application is built off of Qt6, and thus will require a minimum version of Qt 6.0, though the latest version is suggested.
 
-1. Qt 5, `qmake`, and possibly Qt Creator IDE.
-   1. Binaries located [here](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4). You may need to alter which downloader you install.
-2. SQLite C driver (for SQLite version 3)
-   1. On Fedora, this can be installed with `yum install sqlite-devel`
-   2. On Arch systems, this can be installed with `pacman -S sqlite-doc`
+Specifically, this uses the following Qt libraries:
+
+* Qt Widgets
+* Qt Gui
+* Qt Network
+* Qt Sql
+* Qt Core
+
+This also uses:
+
+* SQLite C driver
+
+Finally, this also takes advantage of some OS-specific libraries, detailed below.
+
+### Linux
+
+Generally speaking, all Linux builds require XCB to enable some hotkeys, plus a variety of libraries
+to compile the application. The below is likely incomplete, but may help provide a starting point.
+
+Universal requirements:
+
+* `git` (technically optional), for retriving and contributing to the project
+* `cmake` and `make` for building the application
+* A C++ compiler. This is currently built with `gcc` or `g++`
+
+#### Ubuntu
+
+Ubuntu requires the following libraries:
+
+Note: This list might be shrinking
+
+| Need                       | libraries                                                                                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Environment                | `git` `cmake` `g++`                                                                                                          |
+| OpenGL/Vulkan              | `libglu1-mesa-dev` `freeglut3-dev` `mesa-common-dev` `libvulkan-dev`                                                         |
+| Keyboard / Hotkeys (build) | `libxcb-keysyms1-dev`  `libxcb-xkb-dev` `libxkbcommon-dev` `xcb`                                                             |
+| Keyboard / Hotkeys (use)   | `libxkbcommon0` `libxcb-keysyms1`                                                                                            |
+| SSL                        | `libssl-dev`                                                                                                                 |
+| Maybe others?              | `libxkbfile libxkbfile-dev libxcb-icccm4 libxcb-image0-dev libxcb-image0 libxcb-randr0 libxcb-randr0-dev desktop-file-utils` |
+
+Or, if you want to just install it all, then:
+
+```sh
+apt-get install \
+  git cmake g++ \
+  libglu1-mesa-dev freeglut3-dev mesa-common-dev libvulkan-dev \
+  libxcb-keysyms1-dev libxcb-xkb-dev libxkbcommon-dev xcb \
+  libxkbcommon0 libxcb-keysyms1 \
+  libssl-dev \
+  libxkbfile libxkbfile-dev libxcb-icccm4 libxcb-image0-dev libxcb-image0 libxcb-randr0 libxcb-randr0-dev \
+  desktop-file-utils
+```
+### CMake
+
+To build with CMake, first:
+
+1. Configure CMake for ashirt. This generally only needs to be done once. After this, CMake should remember its findings, and can build with the simplier command below
+
+   `cmake -DCMAKE_PREFIX_PATH="$QT6_HOME/$QT6_VERSION/gcc_64/lib/cmake" .`
+
+   Where `QT6_HOME` is the install directory of Qt, and `QT6_VERSION` is the specific version of Qt installed e.g.
+
+   `cmake -DCMAKE_PREFIX_PATH="~/Qt/6.2.1/gcc_64/lib/cmake" .`
+
+2. Actually build.
+
+   `cmake --build .`
+
+Note that this will build to the root directory.
 
 ## Versioning and Update Checks
 
