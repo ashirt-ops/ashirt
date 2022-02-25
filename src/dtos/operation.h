@@ -28,7 +28,6 @@ class Operation {
   QString name;
   int numUsers;
   OperationStatus status;
-  qint64 id;
 
   static Operation parseData(QByteArray data) {
     return parseJSONItem<Operation>(data, Operation::fromJson);
@@ -57,7 +56,6 @@ class Operation {
     o.name = obj["name"].toString();
     o.numUsers = obj["numUsers"].toInt();
     o.status = static_cast<OperationStatus>(obj["status"].toInt());
-    o.id = obj["id"].toVariant().toLongLong();
 
     return o;
   }
