@@ -23,72 +23,110 @@ jobs:
         run: echo "::set-output name=sha8::${GITHUB_SHA::8}"
 
   build:
-    name: Build
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     needs: [store-sha8]
     strategy:
-      matrix:
-        os: [macos-latest, ubuntu-16.04]
-        qt-version: ['5.15.2']
       fail-fast: false
-    runs-on: ${{ matrix.os }}
+      matrix:
+        config:
+        - {
+         name: "Linux-Qt5"
+            , os: ubuntu-20.04
+            , QT_VERSION: 5.15.2 , QT_INST_DIR: /opt
+            , QT_STRING: "Qt5"
+            , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=5"
+          }
+        - {
+            name: "Linux-Qt6"
+            , os: ubuntu-20.04
+            , QT_VERSION: 6.2.4, QT_INST_DIR: /opt
+            , QT_STRING: "Qt6"
+            , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=6"
+            , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.2.4/gcc_64/libexec"
 
+          }
+        - {
+            name: "Mac-Qt5"
+            , os: macos-latest
+            , QT_VERSION: 5.15.2 , QT_INST_DIR: /Users/runner
+            , QT_STRING: "Qt5"
+            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=5"
+          }
+        - {
+            name: "Mac-Qt6"
+            , os: macos-latest
+            , QT_VERSION: 6.2.4 , QT_INST_DIR: /Users/runner
+            , QT_STRING: "Qt6"
+            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6"
+          }
     steps:
     - name: Set artifact name
-      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
     - name: Check out code
-      uses: actions/checkout@v2.4.0 
+      uses: actions/checkout@v3
       with:
         submodules: true
+        fetch-depth: 0
+    - run: git fetch --tags --force
 
     - name: Cache Qt
-      if: matrix.os == 'ubuntu-16.04' # We might want to do this for both mac and linux
       id: cache-qt
-      uses: actions/cache@v2.1.7
+      uses: actions/cache@v2
       with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}
+        path: ${{matrix.config.QT_INST_DIR}}/Qt
+        key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ matrix.config.QT_VERSION }}
 
-    - name: Install Qt on Linux  # we can also use this for macs
-      if: matrix.os == 'ubuntu-16.04'
-      uses: jurplel/install-qt-action@v2
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.14.0
       with:
-        version: ${{ matrix.qt-version }}
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       aqtversion: ==2.0.0
+       py7zrversion: ==0.16.2
+       dir: ${{matrix.config.QT_INST_DIR}}
+       arch: ${{ matrix.config.QT_ARCH }}
+       version: ${{ matrix.config.QT_VERSION }}
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: Build Pr (Linux)
-      if: matrix.os == 'ubuntu-16.04' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/main') && !contains(github.ref, 'refs/heads/release-')
+    - name: Install Dependencies
+      if: (runner.os == 'Windows') || (runner.os == 'Linux')
+      shell: bash
       run: |
-        echo "Building!"
-        sudo apt install libxcb-keysyms1-dev desktop-file-utils libxcb-icccm4 libxcb-image0 libxcb-util1 \
-                         libxcb-render-util0 libxcb-xinerama0 libxcb-composite0 libxcb-cursor0 libxcb-damage0 \
-                         libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-ewmh2 libxcb-glx0 libxcb-present0 \
-                         libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 libxcb-screensaver0 \
-                         libxcb-shape0 libxcb-shm0 libxcb-sync1 
-        qmake PREFIX=/usr -config release
-        make -j2
+        if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev > /dev/null
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install ninja --ignore-checksums
+        fi
 
-        # create app image
-        make INSTALL_ROOT=appdir -j2 install ; find appdir/
-        wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-        chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+    - name: Build
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=Release ${{matrix.config.extraCMakeConfig}}
+        cmake --build .
+        
+    - name: AppImage (Linux)
+      if: runner.os == 'Linux' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/main') && !contains(github.ref, 'refs/heads/release-')
+      run: |
+        wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+        wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+        chmod a+x linuxdeploy*.AppImage
         export VERSION=${{ needs.store-sha8.outputs.sha8 }}
-        ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage -verbose=2
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:libs
+        ${{matrix.config.linuxDeployQtPath}}
+        ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
+          -e ashirt \
+          -d linux/ashirt.desktop \
+          -i linux/icons/128x128/apps/ashirt.png \
+          --plugin=qt
         mkdir -p dist
         # file should be named ashirt-${{ needs.store-sha8.outputs.sha8 }}-x86_64.AppImage
         mv ashirt*.AppImage dist/
 
-    - name: Build PR (mac)
+    - name: DeployPR (mac)
       if: |
-        matrix.os == 'macos-latest' &&
+        matrix.config.os == 'macos-latest' &&
         contains(github.ref, 'tags/v') != true &&
         contains(github.ref, 'refs/heads/main') != true &&
         contains(github.ref, 'refs/heads/release') != true
       run: |
-        brew install qt@5
-        export PATH="/usr/local/opt/qt@5/bin:$PATH"
-        brew link -f qt@5
-        qmake -config release
-        make
         macdeployqt ashirt.app -dmg
         mkdir -p dist
         cp ashirt.dmg dist/ashirt.dmg
@@ -97,23 +135,18 @@ jobs:
 
     - name: Import Code-Signing Certificates
       if: |
-        matrix.os == 'macos-latest' &&
+        matrix.config.os == 'macos-latest' &&
         (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
       uses: Apple-Actions/import-codesign-certs@v1.0.4
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
         p12-password: ${{ secrets.MACOS_PASS }}
 
-    - name: Build and Sign Release (mac)
+    - name: Sign Release (mac)
       if: |
-        matrix.os == 'macos-latest' &&
+        matrix.config.os == 'macos-latest' &&
         (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
       run: |
-        brew install qt@5
-        export PATH="/usr/local/opt/qt@5/bin:$PATH"
-        brew link -f qt@5
-        qmake -config release
-        make
         macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
         mkdir -p dist
         cp ashirt.dmg dist/ashirt.dmg
@@ -122,7 +155,7 @@ jobs:
 
     - name: Install gon via HomeBrew and Notarize (mac)
       if: |
-        matrix.os == 'macos-latest' &&
+        matrix.config.os == 'macos-latest' &&
         (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
       env: 
         GON_CONF: ${{ secrets.GON_CONF }}
