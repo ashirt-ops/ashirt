@@ -7,7 +7,7 @@
 #include <QObject>
 
 #include "helpers/screenshot.h"
-#include "tools/UGlobalHotkey/uglobalhotkeys.h"
+#include "helpers/hotkeys/uglobalhotkeys.h"
 
 /**
  * @brief The HotkeyManager class registers and unregisters hotkeys against the operating system.

@@ -23,9 +23,9 @@
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
 #include "helpers/constants.h"
+#include "helpers/hotkeys/uglobalhotkeys.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
-#include "tools/UGlobalHotkey/uglobalhotkeys.h"
 #include "porting/system_manifest.h"
 
 // Tray icons are handled differently between different OS and desktop
