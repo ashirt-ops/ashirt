@@ -6,9 +6,7 @@
 #include <QStringList>
 #include <QKeyEvent>
 
-#include "uglobal.h"
-
-class UGLOBALHOTKEY_EXPORT UKeySequence : public QObject
+class UKeySequence : public QObject
 {
     Q_OBJECT
 

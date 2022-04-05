@@ -44,7 +44,6 @@ jobs:
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=6"
             , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.2.4/gcc_64/libexec"
-
           }
         - {
             name: "Mac-Qt5"
@@ -60,9 +59,24 @@ jobs:
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6"
           }
+        - {
+            name: "Windows-Qt5", WIN_ARCH: "x64"
+            , os: windows-2019
+            , QT_VERSION: 5.15.2, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/5.15.2/msvc2019_64", QT_ARCH: win64_msvc2019_64
+            , QT_STRING: "Qt5"
+            , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=5"
+          }
+        - {
+            name: "Windows-Qt6", WIN_ARCH: "x64"
+            , os: windows-2019
+            , QT_VERSION: 6.2.4, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.2.4/msvc2019_64", QT_ARCH: win64_msvc2019_64
+            , QT_STRING: "Qt6"
+            , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=6"
+          }
     steps:
     - name: Set artifact name
-      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      shell: bash
+      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
     - name: Check out code
       uses: actions/checkout@v3
       with:
@@ -76,6 +90,12 @@ jobs:
       with:
         path: ${{matrix.config.QT_INST_DIR}}/Qt
         key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ matrix.config.QT_VERSION }}
+
+    - name: Env Script (Windows)
+      uses: ilammy/msvc-dev-cmd@v1
+      if: runner.os == 'Windows'
+      with:
+        arch: ${{matrix.config.WIN_ARCH}}
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
@@ -98,18 +118,18 @@ jobs:
         fi
 
     - name: Build
+      shell: bash
       run: |
         cmake -DCMAKE_BUILD_TYPE=Release ${{matrix.config.extraCMakeConfig}}
         cmake --build .
-        
+
     - name: AppImage (Linux)
       if: runner.os == 'Linux' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/main') && !contains(github.ref, 'refs/heads/release-')
       run: |
         wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
         wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
         chmod a+x linuxdeploy*.AppImage
-        export VERSION=${{ needs.store-sha8.outputs.sha8 }}
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:libs
+        export VERSION=${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.config.QT_STRING }}
         ${{matrix.config.linuxDeployQtPath}}
         ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
           -e ashirt \
@@ -119,6 +139,14 @@ jobs:
         mkdir -p dist
         # file should be named ashirt-${{ needs.store-sha8.outputs.sha8 }}-x86_64.AppImage
         mv ashirt*.AppImage dist/
+
+    - name: DeployPR (win)
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        cmake --build . --target package
+        mkdir -p dist
+        mv ashirt-*.* dist/
 
     - name: DeployPR (mac)
       if: |
@@ -197,7 +225,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [darwin, linux]
+        platform: [macOS, Linux, Windows]
     steps:
       - name: Set Version
         run: echo "version=$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $GITHUB_ENV
