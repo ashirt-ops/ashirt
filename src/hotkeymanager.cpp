@@ -8,6 +8,7 @@
 
 #include "appconfig.h"
 #include "appsettings.h"
+#include "helpers/hotkeys/uglobalhotkeys.h"
 
 HotkeyManager::HotkeyManager() {
   hotkeyManager = new UGlobalHotkeys();

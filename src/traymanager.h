@@ -16,7 +16,7 @@
 #include "forms/settings/settings.h"
 #include "helpers/screenshot.h"
 #include "hotkeymanager.h"
-#include "tools/UGlobalHotkey/uglobalhotkeys.h"
+#include "helpers/hotkeys/uglobalhotkeys.h"
 #include "forms/add_operation/createoperation.h"
 
 #ifndef QT_NO_SYSTEMTRAYICON

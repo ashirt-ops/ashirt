@@ -1,4 +1,4 @@
-QT       += core gui network sql widgets
+QT       += core gui network sql widgets gui-private
 
 CONFIG += c++11
 TEMPLATE = app
@@ -66,6 +66,8 @@ SOURCES += \
     src/forms/getinfo/getinfo.cpp \
     src/forms/porting/porting_dialog.cpp \
     src/helpers/clipboard/clipboardhelper.cpp \
+    src/helpers/hotkeys/uglobalhotkeys.cpp \
+    src/helpers/hotkeys/ukeysequence.cpp \
     src/models/codeblock.cpp \
     src/helpers/multipartparser.cpp \
     src/hotkeymanager.cpp \
@@ -111,6 +113,10 @@ HEADERS += \
     src/forms/porting/porting_dialog.h \
     src/helpers/clipboard/clipboardhelper.h \
     src/helpers/constants.h \
+    src/helpers/hotkeys/hotkeymap.h \
+    src/helpers/hotkeys/uglobal.h \
+    src/helpers/hotkeys/uglobalhotkeys.h \
+    src/helpers/hotkeys/ukeysequence.h \
     src/helpers/request_builder.h \
     src/helpers/system_helpers.h \
     src/helpers/ui_helpers.h \
@@ -137,7 +143,17 @@ HEADERS += \
     src/forms/evidence/evidencemanager.h \
     src/forms/settings/settings.h
 
-include(tools/UGlobalHotkey/uglobalhotkey.pri)
+linux: LIBS += -lxcb -lxcb-keysyms
+mac: LIBS += -framework Carbon
+
+windows {
+  *-g++* {
+    LIBS += -luser32
+  }
+  *-msvc* {
+    LIBS += user32.lib
+  }
+}
 
 macx {
   ICON = icons/ashirt.icns
