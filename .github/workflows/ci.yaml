@@ -68,14 +68,14 @@ jobs:
             , os: macos-latest
             , QT_VERSION: 5.15.2 , QT_INST_DIR: /Users/runner
             , QT_STRING: "Qt5"
-            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=5"
+            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=5 -DNOTARIZE_AS=\"John Kennedy\""
           }
         - {
             name: "Mac-Qt6"
             , os: macos-latest
             , QT_VERSION: 6.2.4 , QT_INST_DIR: /Users/runner
             , QT_STRING: "Qt6"
-            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6"
+            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6 -DNOTARIZE_AS=\"John Kennedy\""
           }
         - {
             name: "Windows-Qt5", WIN_ARCH: "x64"
@@ -161,11 +161,11 @@ jobs:
             ${{matrix.config.linuxDeployQtPath}}
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e ashirt \
-                -d linux/ashirt.desktop \
-                -i linux/icons/128x128/apps/ashirt.png \
+                -d deploy/ashirt.desktop \
+                -i deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
         elif [ "$RUNNER_OS" == "macOS" ]; then
-            macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
+            macdeployqt ashirt.app -dmg
             mv ashirt.dmg ${{env.name}}.dmg
             if [ "${{ env.signRelease }}" == "true" ]; then
                 brew tap mitchellh/gon

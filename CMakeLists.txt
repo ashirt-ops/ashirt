@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
+option(NOTARIZE_AS "Attempt get mac bundle notarization as Provided user" "")
 if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
     find_package(Git)
     if(GIT_FOUND)
@@ -66,6 +66,8 @@ find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
 )
 include_directories(${Qt${QT_DEFAULT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}/qpa)
 include_directories(${CMAKE_SOURCE_DIR}/src)
+
+add_subdirectory(deploy)
 
 set(ASHIRT_SOURCES
     src/appconfig.h
@@ -132,13 +134,24 @@ set(ASHIRT_SOURCES
     res_icons.qrc
     res_migrations.qrc
 )
+## Locate the deploy app for later use
+get_target_property(qmake_executable Qt${QT_DEFAULT_MAJOR_VERSION}::qmake IMPORTED_LOCATION)
+get_filename_component(_qt_bin_dir "${qmake_executable}" DIRECTORY)
+if(WIN32 OR APPLE)
+    if(WIN32)
+        set(deployqtapp windeployqt)
+    elseif(APPLE)
+        set(deployqtapp macdeployqt)
+    endif()
+    find_program(PLATFORMDEPLOYQT ${deployqtapp} HINTS "${_qt_bin_dir}")
+endif()
 
 if(APPLE)
-    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/icons/ashirt.icns)
+    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/deploy/ashirt.icns)
     set_source_files_properties(${ASHIRT_PLATFORM_EX_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 elseif(WIN32)
     set(CMAKE_PREFIX_PATH $ENV{QTDIR})
-    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/windows/ashirt.rc)
+    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/deploy/ashirt.rc)
 endif()
 
 #MACOSX_BUNDLE Make it a bundle on Mac OS
@@ -150,7 +163,7 @@ set_target_properties(ashirt PROPERTIES
     MACOSX_BUNDLE_ICON_FILE ashirt.icns
     MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${CMAKE_PROJECT_VERSION}"
-    )
+)
 
 target_link_libraries ( ashirt
     PRIVATE
@@ -164,70 +177,33 @@ target_link_libraries ( ashirt
 if(APPLE)
     find_library(CARBON_LIBRARY Carbon)
     target_link_libraries(ashirt PRIVATE ${CARBON_LIBRARY})
+    if(NOTARIZE_AS STREQUAL "")
+        add_custom_command(
+            TARGET ashirt POST_BUILD
+            COMMAND ${PLATFORMDEPLOYQT} ${CMAKE_BINARY_DIR}/ashirt.app
+        )
+    else()
+        add_custom_command(
+            TARGET ashirt POST_BUILD
+            COMMAND ${PLATFORMDEPLOYQT} ${CMAKE_BINARY_DIR}/ashirt.app -sign-for-notarization=${NOTARIZE_AS}
+        )
+    endif()
+    install(TARGETS ashirt BUNDLE DESTINATION .)
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(ashirt PRIVATE xcb xcb-keysyms pthread)
+    install(TARGETS ashirt BUNDLE DESTINATION bin)
 elseif(WIN32)
     target_link_libraries(ashirt PRIVATE user32)
-endif()
-
-if(UNIX)
-install(TARGETS ashirt
-          BUNDLE DESTINATION .
-          RUNTIME DESTINATION bin
-)
-elseif(WIN32)
     install(TARGETS ashirt RUNTIME DESTINATION .)
-endif()
-
-if(UNIX AND NOT APPLE)
-    install(FILES ${CMAKE_SOURCE_DIR}/linux/icons/* DESTINATION share/icons/hicolor)
-    install(FILES ${CMAKE_SOURCE_DIR}/linux/ashirt.desktop DESTINATION share/applictions)
-endif()
-
-##CPACK
-set(CPACK_STRIP_FILES TRUE)
-get_target_property(_qmake_executable Qt${QT_DEFAULT_MAJOR_VERSION}::qmake IMPORTED_LOCATION)
-get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_NAME "ashirt")
-if(NOT CPACK_PACKAGE_VERSION)
-    set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
-endif()
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Qt${QT_DEFAULT_MAJOR_VERSION}-Windows")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ashirt")
-    set(CPACK_NSIS_DISPLAY_NAME ${CMAKE_PACKAGE_NAME})
-    set(CPACK_NSIS_COMPRESSOR lzma)
-    set(CPACK_NSIS_MUI_ICON "${PROJECT_SOURCE_DIR}/windows/ashirt.ico")
-    set(CPACK_NSIS_INSTALLED_ICON_NAME ashirt.exe)
-    set(CPACK_NSIS_MENU_LINKS "ashirt.exe" "ashirt")
-    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
-        "RMDir /r '$INSTDIR'"
-    )
-    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION .)
-    set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-    include(InstallRequiredSystemLibraries)
-    find_program(WINDEPLOYQT windeployqt HINTS "${_qt_bin_dir}")
     if(${QT_DEFAULT_MAJOR_VERSION} MATCHES "5")
-      add_custom_command(
-          TARGET ashirt POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/qtDeploy
-          COMMAND ${WINDEPLOYQT} --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins --no-compiler-runtime --no-system-d3d-compiler --no-angle --no-webkit2 --no-quick-import --no-translations --dir ${CMAKE_BINARY_DIR}/qtDeploy $<TARGET_FILE:ashirt>
-      )
+        add_custom_command(
+            TARGET ashirt POST_BUILD
+            COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-angle --no-webkit2 --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
+        )
     else()
-      add_custom_command(
-          TARGET ashirt POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/qtDeploy
-          COMMAND ${WINDEPLOYQT} --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --dir ${CMAKE_BINARY_DIR}/qtDeploy $<TARGET_FILE:ashirt>
-      )
+        add_custom_command(
+            TARGET ashirt POST_BUILD
+            COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
+        )
     endif()
-
-    install(
-        DIRECTORY ${CMAKE_BINARY_DIR}/qtDeploy/
-        DESTINATION .
-        FILES_MATCHING PATTERN "*.*"
-    )
-    set(CPACK_GENERATOR "NSIS")
 endif()
-
-INCLUDE (CPack)
