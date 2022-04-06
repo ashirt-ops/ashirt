@@ -172,7 +172,7 @@ void PortingDialog::onSubmitPressed() {
   connect(executedManifest, &porting::SystemManifest::onStatusUpdate, portStatusLabel, &QLabel::setText);
   connect(this, &PortingDialog::onWorkComplete, this, &PortingDialog::onPortComplete);
 
-  QtConcurrent::run(portAction);
+  std::ignore = QtConcurrent::run(portAction);
 }
 
 void PortingDialog::onPortComplete(bool success) {
