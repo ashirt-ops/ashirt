@@ -12,7 +12,6 @@
 #endif
 
 #include "ukeysequence.h"
-#include "uglobal.h"
 
 #if defined(Q_OS_LINUX)
 struct UHotkeyData {
@@ -25,7 +24,7 @@ struct UHotkeyData {
 };
 #endif
 
-class UGLOBALHOTKEY_EXPORT UGlobalHotkeys : public QWidget
+class UGlobalHotkeys : public QWidget
 #if defined(Q_OS_LINUX)
     , public QAbstractNativeEventFilter
 #endif

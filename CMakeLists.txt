@@ -66,30 +66,7 @@ find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
     Sql
     Core
 )
-
-##Possible future private static?
-add_library(UGlobalHotkey
-        tools/UGlobalHotkey/hotkeymap.h
-        tools/UGlobalHotkey/uglobal.h
-        tools/UGlobalHotkey/uglobalhotkeys.cpp tools/UGlobalHotkey/uglobalhotkeys.h
-        tools/UGlobalHotkey/ukeysequence.cpp tools/UGlobalHotkey/ukeysequence.h
-)
-target_include_directories(UGlobalHotkey PRIVATE ${Qt${QT_DEFAULT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}/qpa)
-target_link_libraries(UGlobalHotkey
-    PUBLIC
-        Qt::Core Qt::Gui Qt::Widgets
-    PRIVATE
-        Qt::GuiPrivate
-)
-if(APPLE)
-    find_library(CARBON_LIBRARY Carbon)
-    target_link_libraries(UGlobalHotkey PRIVATE ${CARBON_LIBRARY})
-elseif(UNIX AND NOT APPLE)
-    target_link_libraries(UGlobalHotkey PRIVATE xcb xcb-keysyms)
-elseif(WIN32)
-    target_link_libraries(UGlobalHotkey PRIVATE user32)
-endif()
-
+include_directories(${Qt${QT_DEFAULT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}/qpa)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 set(ASHIRT_SOURCES
@@ -142,6 +119,9 @@ set(ASHIRT_SOURCES
     src/helpers/stopreply.cpp src/helpers/stopreply.h
     src/helpers/system_helpers.h
     src/helpers/ui_helpers.h
+    src/helpers/hotkeys/hotkeymap.h
+    src/helpers/hotkeys/uglobalhotkeys.cpp src/helpers/hotkeys/uglobalhotkeys.h
+    src/helpers/hotkeys/ukeysequence.cpp src/helpers/hotkeys/ukeysequence.h
     src/hotkeymanager.cpp src/hotkeymanager.h
     src/main.cpp
     src/models/codeblock.cpp src/models/codeblock.h
@@ -158,6 +138,9 @@ set(ASHIRT_SOURCES
 if(APPLE)
     set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/icons/ashirt.icns)
     set_source_files_properties(${ASHIRT_PLATFORM_EX_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+elseif(WIN32)
+    set(CMAKE_PREFIX_PATH $ENV{QTDIR})
+    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/windows/ashirt.rc)
 endif()
 
 #MACOSX_BUNDLE Make it a bundle on Mac OS
@@ -166,7 +149,7 @@ add_executable(ashirt MACOSX_BUNDLE WIN32 ${ASHIRT_SOURCES} ${ASHIRT_PLATFORM_EX
 set_target_properties(ashirt PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.theparanoids.ashirt"
     MACOSX_BUNDLE_BUNDLE_NAME "ashirt"
-    MACOSX_BUNDLE_ICON_FILE icons/ashirt.icns
+    MACOSX_BUNDLE_ICON_FILE ashirt.icns
     MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${CMAKE_PROJECT_VERSION}"
     )
@@ -177,18 +160,75 @@ target_link_libraries ( ashirt
         Qt::Sql
         Qt::Gui
         Qt::Network
-        UGlobalHotkey
+        Qt::GuiPrivate
 )
-if(UNIX AND NOT APPLE)
-    target_link_libraries ( ashirt PRIVATE pthread)
+
+if(APPLE)
+    find_library(CARBON_LIBRARY Carbon)
+    target_link_libraries(ashirt PRIVATE ${CARBON_LIBRARY})
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(ashirt PRIVATE xcb xcb-keysyms pthread)
+elseif(WIN32)
+    target_link_libraries(ashirt PRIVATE user32)
 endif()
 
+if(UNIX)
 install(TARGETS ashirt
           BUNDLE DESTINATION .
           RUNTIME DESTINATION bin
 )
+elseif(WIN32)
+    install(TARGETS ashirt RUNTIME DESTINATION .)
+endif()
 
 if(UNIX AND NOT APPLE)
     install(FILES ${CMAKE_SOURCE_DIR}/linux/icons/* DESTINATION share/icons/hicolor)
     install(FILES ${CMAKE_SOURCE_DIR}/linux/ashirt.desktop DESTINATION share/applictions)
 endif()
+
+##CPACK
+set(CPACK_STRIP_FILES TRUE)
+get_target_property(_qmake_executable Qt${QT_DEFAULT_MAJOR_VERSION}::qmake IMPORTED_LOCATION)
+get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_NAME "ashirt")
+set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Qt${QT_DEFAULT_MAJOR_VERSION}-Windows")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "ashirt")
+    set(CPACK_NSIS_DISPLAY_NAME ${CMAKE_PACKAGE_NAME})
+    set(CPACK_NSIS_COMPRESSOR lzma)
+    set(CPACK_NSIS_MUI_ICON "${PROJECT_SOURCE_DIR}/windows/ashirt.ico")
+    set(CPACK_NSIS_INSTALLED_ICON_NAME ashirt.exe)
+    set(CPACK_NSIS_MENU_LINKS "ashirt.exe" "ashirt")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
+        "RMDir /r '$INSTDIR'"
+    )
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION .)
+    set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+    include(InstallRequiredSystemLibraries)
+    find_program(WINDEPLOYQT windeployqt HINTS "${_qt_bin_dir}")
+    if(${QT_DEFAULT_MAJOR_VERSION} MATCHES "5")
+      add_custom_command(
+          TARGET ashirt POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/qtDeploy
+          COMMAND ${WINDEPLOYQT} --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins --no-compiler-runtime --no-system-d3d-compiler --no-angle --no-webkit2 --no-quick-import --no-translations --dir ${CMAKE_BINARY_DIR}/qtDeploy $<TARGET_FILE:ashirt>
+      )
+    else()
+      add_custom_command(
+          TARGET ashirt POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/qtDeploy
+          COMMAND ${WINDEPLOYQT} --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --dir ${CMAKE_BINARY_DIR}/qtDeploy $<TARGET_FILE:ashirt>
+      )
+    endif()
+
+    install(
+        DIRECTORY ${CMAKE_BINARY_DIR}/qtDeploy/
+        DESTINATION .
+        FILES_MATCHING PATTERN "*.*"
+    )
+    set(CPACK_GENERATOR "ZIP;NSIS")
+endif()
+
+INCLUDE (CPack)
