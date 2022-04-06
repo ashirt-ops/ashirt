@@ -24,9 +24,13 @@ void TagWidget::setReadOnly(bool readonly) {
 }
 
 void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
-  const int x = evt->x();
-  const int y = evt->y();
-
+#if(QT_VERSION_MAJOR > 5)
+  const int x = evt->position().x();
+  const int y = evt->position().y();
+#else
+    const int x = evt->x();
+    const int y = evt->y();
+#endif
   if (removeArea.contains(x, y)) {
     emit removePressed();
   }
