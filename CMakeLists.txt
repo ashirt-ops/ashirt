@@ -227,7 +227,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
         DESTINATION .
         FILES_MATCHING PATTERN "*.*"
     )
-    set(CPACK_GENERATOR "ZIP;NSIS")
+    set(CPACK_GENERATOR "NSIS")
 endif()
 
 INCLUDE (CPack)
