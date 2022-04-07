@@ -12,27 +12,45 @@ jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
   # interpolation, only github expression interpolation
-  store-sha8:
-    name: Store The Short Hash
+  run-info:
+    name: Gather Run Info
     runs-on: ubuntu-latest
     outputs:
-      sha8: ${{ steps.calc-short.outputs.sha8 }}
+      sha8: ${{ steps.calc-info.outputs.sha8 }}
+      isRelease: ${{ steps.calc-info.outputs.isRelease }}
+      signRelease: ${{ steps.calc-info.outputs.signRelease }}
     steps:
-      - name: Calculate Short Hash
-        id: calc-short
-        run: echo "::set-output name=sha8::${GITHUB_SHA::8}"
+      - name: CheckRun Info
+        env:
+          CERT: ${{secrets.MACOS_CERT}}
+        id: calc-info
+        run: |
+          SIGN="false"
+          RELEASE="false"
+          if [[ "$GITHUB_REF" == *"tags/v" || "$GITHUB_REF" == *"refs/heads/release" ]]; then
+              RELEASE="true"
+              NAME="$GITHUB_REF_NAME"
+          fi
+          if [[ "$CERT" != "" ]]; then
+              SIGN="true"
+          fi
+          if [[ "$NAME" == "" ]]; then
+              NAME="continuous"
+          fi
+          echo "::set-output name=signRelease::$SIGN"
+          echo "::set-output name=sha8::$NAME"
 
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    needs: [store-sha8]
+    needs: run-info
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
          name: "Linux-Qt5"
-            , os: ubuntu-20.04
+            , os: ubuntu-18.04
             , QT_VERSION: 5.15.2 , QT_INST_DIR: /opt
             , QT_STRING: "Qt5"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=5"
@@ -65,6 +83,7 @@ jobs:
             , QT_VERSION: 5.15.2, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/5.15.2/msvc2019_64", QT_ARCH: win64_msvc2019_64
             , QT_STRING: "Qt5"
             , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=5"
+            , buildTarget: "--target package"
           }
         - {
             name: "Windows-Qt6", WIN_ARCH: "x64"
@@ -72,11 +91,16 @@ jobs:
             , QT_VERSION: 6.2.4, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.2.4/msvc2019_64", QT_ARCH: win64_msvc2019_64
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=6"
+            , buildTarget: "--target package"
           }
     steps:
-    - name: Set artifact name
+    - name: Setup env
       shell: bash
-      run: echo "name=ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
+      run: |
+        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
+        echo "githash=${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
+        echo "signRelease=${{ needs.run-info.outputs.signRelease }}" >> $GITHUB_ENV
+
     - name: Check out code
       uses: actions/checkout@v3
       with:
@@ -97,6 +121,13 @@ jobs:
       with:
         arch: ${{matrix.config.WIN_ARCH}}
 
+    - name: Import Code-Signing Certificates
+      if: runner.os == 'macOS' && env.signRelease == 'true'
+      uses: Apple-Actions/import-codesign-certs@v1.0.4
+      with:
+        p12-file-base64: ${{ secrets.MACOS_CERT }}
+        p12-password: ${{ secrets.MACOS_PASS }}
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
       with:
@@ -108,7 +139,6 @@ jobs:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Install Dependencies
-      if: (runner.os == 'Windows') || (runner.os == 'Linux')
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
@@ -120,128 +150,63 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Release ${{matrix.config.extraCMakeConfig}}
-        cmake --build .
-
-    - name: AppImage (Linux)
-      if: runner.os == 'Linux' && !contains(github.ref, 'tags/v') && !contains(github.ref, 'refs/heads/main') && !contains(github.ref, 'refs/heads/release-')
-      run: |
-        wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
-        wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
-        chmod a+x linuxdeploy*.AppImage
-        export VERSION=${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.config.QT_STRING }}
-        ${{matrix.config.linuxDeployQtPath}}
-        ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
-          -e ashirt \
-          -d linux/ashirt.desktop \
-          -i linux/icons/128x128/apps/ashirt.png \
-          --plugin=qt
+        cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
+        cmake --build . ${{ matrix.config.buildTarget }}
         mkdir -p dist
-        # file should be named ashirt-${{ needs.store-sha8.outputs.sha8 }}-x86_64.AppImage
-        mv ashirt*.AppImage dist/
-
-    - name: DeployPR (win)
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        cmake --build . --target package
-        mkdir -p dist
+        if [ "$RUNNER_OS" == "Linux" ]; then
+            wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+            wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+            chmod a+x linuxdeploy*.AppImage
+            export VERSION=${{ env.githash }}-${{ matrix.config.QT_STRING }}
+            ${{matrix.config.linuxDeployQtPath}}
+            ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
+                -e ashirt \
+                -d linux/ashirt.desktop \
+                -i linux/icons/128x128/apps/ashirt.png \
+                --plugin=qt
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+            macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
+            mv ashirt.dmg ${{env.name}}.dmg
+            if [ "${{ env.signRelease }}" == "true" ]; then
+                brew tap mitchellh/gon
+                brew install mitchellh/gon/gon jq
+                echo "${{ secrets.GON_CONF }}" | base64 -D -i - > notarize.json
+                env ID="${{ env.name }}.dmg" cat gon.json |jq '.notarize[0].path = env.ID'
+                gon notarize.json
+            fi
+        fi
         mv ashirt-*.* dist/
-
-    - name: DeployPR (mac)
-      if: |
-        matrix.config.os == 'macos-latest' &&
-        contains(github.ref, 'tags/v') != true &&
-        contains(github.ref, 'refs/heads/main') != true &&
-        contains(github.ref, 'refs/heads/release') != true
-      run: |
-        macdeployqt ashirt.app -dmg
-        mkdir -p dist
-        cp ashirt.dmg dist/ashirt.dmg
-        cp LICENSE dist/LICENSE
-        cp README.md dist/README.md
-
-    - name: Import Code-Signing Certificates
-      if: |
-        matrix.config.os == 'macos-latest' &&
-        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
-      uses: Apple-Actions/import-codesign-certs@v1.0.4
-      with:
-        p12-file-base64: ${{ secrets.MACOS_CERT }}
-        p12-password: ${{ secrets.MACOS_PASS }}
-
-    - name: Sign Release (mac)
-      if: |
-        matrix.config.os == 'macos-latest' &&
-        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
-      run: |
-        macdeployqt ashirt.app -dmg -always-overwrite -sign-for-notarization="John Kennedy"
-        mkdir -p dist
-        cp ashirt.dmg dist/ashirt.dmg
-        cp LICENSE dist/LICENSE
-        cp README.md dist/README.md
-
-    - name: Install gon via HomeBrew and Notarize (mac)
-      if: |
-        matrix.config.os == 'macos-latest' &&
-        (contains(github.ref, 'tags/v') || github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release'))
-      env: 
-        GON_CONF: ${{ secrets.GON_CONF }}
-      run: |
-        brew tap mitchellh/gon
-        brew install mitchellh/gon/gon
-        echo "$GON_CONF" | base64 -D -i - > notarize.json
-        gon notarize.json
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.name }}
-        path: dist
+        name: ashirt-${{env.githash}}
+        path: dist/ashirt-*.*
 
   release:
-    name: Create GitHub Release
-    if: contains(github.ref, 'tags/v')
-    needs: [store-sha8, build]
+    name: Release
+    needs: build
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create-release.outputs.upload_url }}
-
     steps:
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+    - name: Download Files
+      uses: actions/download-artifact@v3
 
-  publish:
-    if: contains(github.ref, 'tags/v')
-    needs: [store-sha8, build, release]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [macOS, Linux, Windows]
-    steps:
-      - name: Set Version
-        run: echo "version=$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $GITHUB_ENV
-      - name: Download Previous Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
-          path: ashirt-${{ env.version }}-${{ matrix.platform }}
-      - name: Produce Zip
-        run: zip -r ashirt-${{ env.version }}-${{ matrix.platform }}.zip ashirt-${{ env.version }}-${{ matrix.platform }}
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
-          asset_name: ashirt-${{ env.version }}-${{ matrix.platform }}.zip
-          asset_content_type: application/zip
+    - name: Deploy Continuous
+      if: github.ref == 'refs/heads/master'
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+       repo_token: "${{ secrets.GITHUB_TOKEN }}"
+       automatic_release_tag: "continuous"
+       prerelease: false
+       title: "Continuous Build"
+       files: dist/ashirt-*.*
+
+    - name: Deploy Tag
+      if: needs.run-info.outputs.isRelease == 'true'
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+       repo_token: "${{ secrets.GITHUB_TOKEN }}"
+       automatic_release_tag: ${{ github.ref }}
+       prerelease: false
+       title: ${{ github.ref }}
+       files: dist/ashirt-*.*
