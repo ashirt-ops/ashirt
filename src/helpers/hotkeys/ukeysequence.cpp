@@ -15,32 +15,31 @@ UKeySequence::UKeySequence(const QString &str, QObject *parent)
 
 void UKeySequence::fromString(const QString &str)
 {
-    QStringList keys = str.split('+');
-    for (int i = 0; i < keys.size(); i++) {
-        addKey(keys[i]);
-    }
+    const QStringList keys = str.split('+');
+    for (const QString & key : keys)
+        addKey(key);
 }
 
 QString UKeySequence::toString()
 {
-    QVector<Qt::Key> simpleKeys = getSimpleKeys();
-    QVector<Qt::Key> modifiers = getModifiers();
+    const QVector<Qt::Key> simpleKeys = getSimpleKeys();
+    const QVector<Qt::Key> modifiers = getModifiers();
     QStringList result;
-    for (int i = 0; i < modifiers.size(); i++) {
-        result.push_back(keyToStr(modifiers[i]));
-    }
-    for (int i = 0; i < simpleKeys.size(); i++) {
-        result.push_back(keyToStr(simpleKeys[i]));
-    }
+    for (auto mod : modifiers)
+        result.push_back(keyToStr(mod));
+
+    for (auto key : simpleKeys)
+        result.push_back(keyToStr(key));
+
     return result.join('+');
 }
 
 QVector<Qt::Key> UKeySequence::getSimpleKeys() const
 {
     QVector<Qt::Key> result;
-    for (int i = 0; i < mKeys.size(); i++) {
-        if (!isModifier(mKeys[i])) {
-            result.push_back(mKeys[i]);
+    for (auto key : qAsConst(mKeys)) {
+        if (!isModifier(key)) {
+            result.push_back(key);
         }
     }
     return result;
@@ -49,9 +48,9 @@ QVector<Qt::Key> UKeySequence::getSimpleKeys() const
 QVector<Qt::Key> UKeySequence::getModifiers() const
 {
     QVector<Qt::Key> result;
-    for (int i = 0; i < mKeys.size(); i++) {
-        if (isModifier(mKeys[i])) {
-            result.push_back(mKeys[i]);
+    for (auto key : qAsConst(mKeys)) {
+        if (isModifier(key)) {
+            result.push_back(key);
         }
     }
     return result;
@@ -78,26 +77,25 @@ void UKeySequence::addModifiers(Qt::KeyboardModifiers mod)
 
 void UKeySequence::addKey(const QString &key)
 {
-    if (key.contains("+") || key.contains(",")) {
+    if (key.contains(QStringLiteral("+")) || key.contains(QStringLiteral(","))) {
         qWarning() << "Wrong key";
         return;
     }
 
     QString mod = key.toLower();
-    // qDebug() << "mod: " << mod;
-    if (mod == "alt") {
+    if (mod == QStringLiteral("alt")) {
         addKey(Qt::Key_Alt);
         return;
     }
-    if (mod == "shift" || mod == "shft") {
+    if (mod == QStringLiteral("shift") || mod == QStringLiteral("shft")) {
         addKey(Qt::Key_Shift);
         return;
     }
-    if (mod == "control" || mod == "ctrl") {
+    if (mod == QStringLiteral("control") || mod == QStringLiteral("ctrl")) {
         addKey(Qt::Key_Control);
         return;
     }
-    if (mod == "win" || mod == "meta") {
+    if (mod == QStringLiteral("win") || mod == QStringLiteral("meta")) {
         addKey(Qt::Key_Meta);
         return;
     }
@@ -116,15 +114,15 @@ void UKeySequence::addKey(const QString &key)
 
 void UKeySequence::addKey(Qt::Key key)
 {
-    if (key <= 0) {
+    if (key <= 0)
         return;
-    }
-    for (int i = 0; i < mKeys.size(); i++) {
-        if (mKeys[i] == key) {
+
+    for (auto testKey : qAsConst(mKeys)) {
+        if (testKey == key) {
             return;
         }
     }
-    // qDebug() << "Key added: " << key;
+
     mKeys.push_back(key);
 }
 

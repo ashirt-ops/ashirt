@@ -66,9 +66,9 @@ find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
     Sql
     Core
 )
-include_directories(${Qt${QT_DEFAULT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}/qpa)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+add_subdirectory(src/helpers/hotkeys)
 set(ASHIRT_SOURCES
     src/appconfig.h
     src/appsettings.h
@@ -119,9 +119,6 @@ set(ASHIRT_SOURCES
     src/helpers/stopreply.cpp src/helpers/stopreply.h
     src/helpers/system_helpers.h
     src/helpers/ui_helpers.h
-    src/helpers/hotkeys/hotkeymap.h
-    src/helpers/hotkeys/uglobalhotkeys.cpp src/helpers/hotkeys/uglobalhotkeys.h
-    src/helpers/hotkeys/ukeysequence.cpp src/helpers/hotkeys/ukeysequence.h
     src/hotkeymanager.cpp src/hotkeymanager.h
     src/main.cpp
     src/models/codeblock.cpp src/models/codeblock.h
@@ -160,16 +157,11 @@ target_link_libraries ( ashirt
         Qt::Sql
         Qt::Gui
         Qt::Network
-        Qt::GuiPrivate
+        ASHIRT::HOTKEY_HELPERS
 )
 
-if(APPLE)
-    find_library(CARBON_LIBRARY Carbon)
-    target_link_libraries(ashirt PRIVATE ${CARBON_LIBRARY})
-elseif(UNIX AND NOT APPLE)
-    target_link_libraries(ashirt PRIVATE xcb xcb-keysyms pthread)
-elseif(WIN32)
-    target_link_libraries(ashirt PRIVATE user32)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(ashirt PRIVATE pthread)
 endif()
 
 if(UNIX)
