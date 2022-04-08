@@ -25,7 +25,7 @@ struct UHotkeyData {
 #endif
 
 class UGlobalHotkeys : public QWidget
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
     , public QAbstractNativeEventFilter
 #endif
 {
@@ -38,27 +38,29 @@ public:
     void unregisterHotkey(size_t id = 1);
     void unregisterAllHotkeys();
     ~UGlobalHotkeys();
+#if defined (Q_OS_MAC)
+    void onHotkeyPressed(size_t id);
+#endif
+
+#if (defined (Q_OS_WIN) || defined (Q_OS_LINUX)) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+    typedef qintptr RESULT_TYPE;
+#elif defined (Q_OS_WIN) || defined (Q_OS_LINUX)
+    typedef long RESULT_TYPE;
+#endif
 
 protected:
-#if defined(Q_OS_WIN)
-    bool winEvent(MSG *message, long *result);
-    bool nativeEvent(const QByteArray &eventType, void *message, long *result);
-#elif defined(Q_OS_LINUX)
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-#else
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
+#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
+    bool nativeEventFilter(const QByteArray &eventType, void *message, RESULT_TYPE *result);
 #endif
+
+#if defined (Q_OS_WIN)
+    bool winEvent(MSG *message, RESULT_TYPE *result);
+#elif defined(Q_OS_LINUX)
     bool linuxEvent(xcb_generic_event_t *message);
     void regLinuxHotkey(const UKeySequence &keySeq, size_t id);
     void unregLinuxHotkey(size_t id);
 #endif
 
-public:
-#if defined (Q_OS_MAC)
-    void onHotkeyPressed(size_t id);
-#endif
 signals:
     void activated(size_t id);
 

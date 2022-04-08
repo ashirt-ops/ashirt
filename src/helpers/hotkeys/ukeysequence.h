@@ -11,8 +11,8 @@ class UKeySequence : public QObject
     Q_OBJECT
 
 public:
-    explicit UKeySequence(QObject *parent = 0);
-    explicit UKeySequence(const QString &str, QObject *parent = 0);
+    explicit UKeySequence(QObject *parent = nullptr);
+    explicit UKeySequence(const QString &str, QObject *parent = nullptr);
 
     void fromString(const QString &str);
     QString toString();
@@ -51,16 +51,16 @@ private:
     inline static QString keyToStr(int key)
     {
         if (key == Qt::Key_Shift) {
-            return "Shift";
+            return QStringLiteral("Shift");
         }
         if (key == Qt::Key_Control) {
-            return "Ctrl";
+            return QStringLiteral("Ctrl");
         }
         if (key == Qt::Key_Alt) {
-            return "Alt";
+            return QStringLiteral("Alt");
         }
         if (key == Qt::Key_Meta) {
-            return "Meta";
+            return QStringLiteral("Meta");
         }
 
         QKeySequence seq(key);
