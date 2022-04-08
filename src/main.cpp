@@ -26,7 +26,9 @@ int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(res_icons);
   Q_INIT_RESOURCE(res_migrations);
 
+#if (QT_VERSION_MAJOR < 6)
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
   QCoreApplication::setApplicationName("ashirt");
 
 #ifdef Q_OS_WIN

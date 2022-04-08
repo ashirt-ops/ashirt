@@ -439,7 +439,7 @@ QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString
   if (!result.success) {
     throw result.err;
   }
-  return result.query;
+  return std::move(result.query);
 }
 
 QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
@@ -448,14 +448,14 @@ QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, cons
 
   bool prepared = query.prepare(stmt);
   if (!prepared) {
-    return QueryResult(query);
+    return QueryResult(std::move(query));
   }
   for (const auto &arg : args) {
     query.addBindValue(arg);
   }
 
   query.exec();
-  return QueryResult(query);
+  return QueryResult(std::move(query));
 }
 
 // doInsert is a version of executeQuery that returns the last inserted id, rather than the

@@ -15,8 +15,8 @@ class QueryResult {
  public:
   QueryResult(){}
   QueryResult(QSqlQuery query) {
-    this->query = query;
     this->err = query.lastError();
+    this->query = std::move(query);
     this->success = err.type() == QSqlError::NoError;
   }
 
