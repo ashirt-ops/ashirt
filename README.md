@@ -225,4 +225,5 @@ This project is licensed under the terms of the [MIT](LICENSE) open source licen
 
 ## Maintainers
 
-- Joe Rozner joe.rozer@verizonmedia.com
+- Joe Rozner
+- John Kennedy
