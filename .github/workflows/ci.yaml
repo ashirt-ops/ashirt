@@ -32,14 +32,14 @@ jobs:
         config:
         - {
          name: "Linux-Qt5"
-            , os: ubuntu-20.04
+            , os: ubuntu-.18.04
             , QT_VERSION: 5.15.2 , QT_INST_DIR: /opt
             , QT_STRING: "Qt5"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=5"
           }
         - {
             name: "Linux-Qt6"
-            , os: ubuntu-20.04
+            , os: ubuntu-18.04
             , QT_VERSION: 6.2.4, QT_INST_DIR: /opt
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=6"
