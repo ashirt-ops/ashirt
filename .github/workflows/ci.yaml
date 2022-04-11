@@ -230,7 +230,7 @@ jobs:
       - name: Set Version
         run: echo "version=$(echo ${{ github.ref }} | cut -d'/' -f3 | cut -c2-)" >> $GITHUB_ENV
       - name: Download Previous Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ashirt-${{ needs.store-sha8.outputs.sha8 }}-${{ matrix.platform }}
           path: ashirt-${{ env.version }}-${{ matrix.platform }}
