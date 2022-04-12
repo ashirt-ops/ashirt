@@ -14,8 +14,8 @@
 #include <QCheckBox>
 #include <QDialogButtonBox>
 
-#include "src/db/databaseconnection.h"
-#include "src/dtos/operation.h"
+#include "db/databaseconnection.h"
+#include "dtos/operation.h"
 
 class EvidenceFilterForm : public QDialog {
   Q_OBJECT
