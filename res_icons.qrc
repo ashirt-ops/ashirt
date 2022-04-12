@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>icons/shirt-dark.svg</file>
-        <file>icons/shirt-light.svg</file>
-        <file>icons/shirt-red.svg</file>
-        <file>icons/windowIcon.png</file>
-    </qresource>
-</RCC>
