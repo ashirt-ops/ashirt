@@ -58,10 +58,10 @@ jobs:
         - {
             name: "Linux-Qt6"
             , os: ubuntu-20.04
-            , QT_VERSION: 6.2.4, QT_INST_DIR: /opt
+            , QT_VERSION: 6.3.0, QT_INST_DIR: /opt
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=6"
-            , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.2.4/gcc_64/libexec"
+            , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.3.0/gcc_64/libexec"
           }
         - {
             name: "Mac-Qt5"
@@ -74,7 +74,7 @@ jobs:
         - {
             name: "Mac-Qt6"
             , os: macos-latest
-            , QT_VERSION: 6.2.4 , QT_INST_DIR: /Users/runner
+            , QT_VERSION: 6.3.0, QT_INST_DIR: /Users/runner
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6 -DNOTARIZE_AS=\"John Kennedy\""
             , buildTarget: "--target package"
@@ -90,7 +90,7 @@ jobs:
         - {
             name: "Windows-Qt6", WIN_ARCH: "x64"
             , os: windows-2019
-            , QT_VERSION: 6.2.4, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.2.4/msvc2019_64", QT_ARCH: win64_msvc2019_64
+            , QT_VERSION: 6.3.0, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.3.0/msvc2019_64", QT_ARCH: win64_msvc2019_64
             , QT_STRING: "Qt6"
             , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=6"
             , buildTarget: "--target package"
