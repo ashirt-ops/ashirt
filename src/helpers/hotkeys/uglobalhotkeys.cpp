@@ -72,7 +72,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
         }
     }
 
-    if (!RegisterHotKey((HWND)winId(), id, winMod, key)) {
+    if (!RegisterHotKey((HWND)winId(), id, winMod + MOD_NOREPEAT, key)) {
         return false;
     } else {
         Registered.insert(id);
