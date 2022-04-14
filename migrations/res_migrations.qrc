@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/migrations">
+        <file>20200521190124-initial.sql</file>
+        <file>20200521210407-add-screenshots-table.sql</file>
+        <file>20200521210435-add-tags-table.sql</file>
+        <file>20200625191727-support-codeblocks-p1.sql</file>
+        <file>20200625192018-support-codeblocks-p2.sql</file>
+        <file>20200625192444-support-codeblocks-p3.sql</file>
+        <file>20200625203249-support-codeblocks-p4.sql</file>
+    </qresource>
+</RCC>

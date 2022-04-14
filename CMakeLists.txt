@@ -131,8 +131,8 @@ set(ASHIRT_SOURCES
     src/porting/system_manifest.cpp src/porting/system_manifest.h
     src/porting/system_porting_options.h
     src/traymanager.cpp src/traymanager.h
-    res_icons.qrc
-    res_migrations.qrc
+    ${CMAKE_SOURCE_DIR}/icons/res_icons.qrc
+    ${CMAKE_SOURCE_DIR}/migrations/res_migrations.qrc
 )
 ## Locate the deploy app for later use
 get_target_property(qmake_executable Qt${QT_DEFAULT_MAJOR_VERSION}::qmake IMPORTED_LOCATION)
