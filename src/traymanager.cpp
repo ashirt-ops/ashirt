@@ -34,11 +34,7 @@
 // of this. Desktop environments and themes in Linux don't appear to be
 // consistent so we will default to a light icon given that the default bars
 // appear to be dark until we know more. Who knows about windows?
-#ifdef Q_OS_MACOS
 #define ICON ":/icons/shirt-dark.svg"
-#else
-#define ICON ":/icons/shirt-light.svg"
-#endif
 
 TrayManager::TrayManager(DatabaseConnection* db) {
   this->db = db;
@@ -144,9 +140,7 @@ void TrayManager::buildUi() {
 
   QIcon icon = QIcon(ICON);
   // TODO: figure out if any other environments support masking
-#ifdef Q_OS_MACOS
   icon.setIsMask(true);
-#endif
 
   trayIcon = new QSystemTrayIcon(this);
   trayIcon->setContextMenu(trayIconMenu);
