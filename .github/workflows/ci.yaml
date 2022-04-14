@@ -81,7 +81,7 @@ jobs:
     - name: Setup env
       shell: bash
       run: |
-        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
+        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}${{matrix.config.QT_STRING}}" >> $GITHUB_ENV
         echo "githash=${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
         echo "signRelease=${{ needs.run-info.outputs.signRelease }}" >> $GITHUB_ENV
 
