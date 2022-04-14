@@ -151,7 +151,8 @@ if(APPLE)
     set_source_files_properties(${ASHIRT_PLATFORM_EX_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 elseif(WIN32)
     set(CMAKE_PREFIX_PATH $ENV{QTDIR})
-    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_SOURCE_DIR}/deploy/ashirt.rc)
+    configure_file(${CMAKE_SOURCE_DIR}/deploy/ashirt.rc.in ${CMAKE_CURRENT_BINARY_DIR}/deploy/ashirt.rc @ONLY)
+    set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_CURRENT_BINARY_DIR}/deploy/ashirt.rc)
 endif()
 
 #MACOSX_BUNDLE Make it a bundle on Mac OS
