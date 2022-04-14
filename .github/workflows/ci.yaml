@@ -52,54 +52,36 @@ jobs:
          name: "Linux-Qt5"
             , os: ubuntu-18.04
             , QT_VERSION: 5.15.2 , QT_INST_DIR: /opt
-            , QT_STRING: "Qt5"
+            , QT_STRING: "-Qt5"
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=5"
           }
         - {
             name: "Linux-Qt6"
             , os: ubuntu-20.04
             , QT_VERSION: 6.3.0, QT_INST_DIR: /opt
-            , QT_STRING: "Qt6"
-            , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=6"
+            , QT_STRING: "-Qt6"
+            , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr"
             , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.3.0/gcc_64/libexec"
-          }
-        - {
-            name: "Mac-Qt5"
-            , os: macos-latest
-            , QT_VERSION: 5.15.2 , QT_INST_DIR: /Users/runner
-            , QT_STRING: "Qt5"
-            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=5 -DNOTARIZE_AS=\"John Kennedy\""
-            , buildTarget: "--target package"
           }
         - {
             name: "Mac-Qt6"
             , os: macos-latest
             , QT_VERSION: 6.3.0, QT_INST_DIR: /Users/runner
-            , QT_STRING: "Qt6"
-            , extraCMakeConfig: "-DQT_DEFAULT_MAJOR_VERSION=6 -DNOTARIZE_AS=\"John Kennedy\""
-            , buildTarget: "--target package"
-          }
-        - {
-            name: "Windows-Qt5", WIN_ARCH: "x64"
-            , os: windows-2019
-            , QT_VERSION: 5.15.2, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/5.15.2/msvc2019_64", QT_ARCH: win64_msvc2019_64
-            , QT_STRING: "Qt5"
-            , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=5"
+            , extraCMakeConfig: "-DNOTARIZE_AS=\"John Kennedy\""
             , buildTarget: "--target package"
           }
         - {
             name: "Windows-Qt6", WIN_ARCH: "x64"
             , os: windows-2019
             , QT_VERSION: 6.3.0, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.3.0/msvc2019_64", QT_ARCH: win64_msvc2019_64
-            , QT_STRING: "Qt6"
-            , extraCMakeConfig: "-G Ninja -DQT_DEFAULT_MAJOR_VERSION=6"
+            , extraCMakeConfig: "-G Ninja"
             , buildTarget: "--target package"
           }
     steps:
     - name: Setup env
       shell: bash
       run: |
-        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}-${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
+        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}${{matrix.config.QT_STRING}}-$RUNNER_OS" >> $GITHUB_ENV
         echo "githash=${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
         echo "signRelease=${{ needs.run-info.outputs.signRelease }}" >> $GITHUB_ENV
 
@@ -159,7 +141,7 @@ jobs:
             wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
             wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
             chmod a+x linuxdeploy*.AppImage
-            export VERSION=${{ env.githash }}-${{ matrix.config.QT_STRING }}
+            export VERSION=${{ env.githash }}${{ matrix.config.QT_STRING }}
             ${{matrix.config.linuxDeployQtPath}}
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e ashirt \
