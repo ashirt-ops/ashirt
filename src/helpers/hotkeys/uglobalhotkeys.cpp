@@ -20,6 +20,8 @@ UGlobalHotkeys::UGlobalHotkeys(QWidget *parent)
     X11Connection = (xcb_connection_t *)v;
     X11Wid = xcb_setup_roots_iterator(xcb_get_setup(X11Connection)).data->root;
     X11KeySymbs = xcb_key_symbols_alloc(X11Connection);
+#elif defined(Q_OS_WIN)
+    qApp->installNativeEventFilter(this);
 #endif
 }
 
@@ -56,7 +58,6 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
 #if defined(Q_OS_WIN)
     size_t winMod = 0;
     size_t key = VK_F2;
-
     for (size_t i = 0; i != keySeq.size(); i++) {
         if (keySeq[i] == Qt::Key_Control) {
             winMod |= MOD_CONTROL;
@@ -71,15 +72,14 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
         }
     }
 
-    if (!RegisterHotKey((HWND)winId(), id, winMod, key)) {
+    if (!RegisterHotKey((HWND)winId(), id, winMod + MOD_NOREPEAT, key)) {
         return false;
     } else {
         Registered.insert(id);
     }
 #elif defined(Q_OS_LINUX)
     regLinuxHotkey(keySeq, id);
-#endif
-#if defined(Q_OS_MAC)
+#elif defined(Q_OS_MAC)
     unregisterHotkey(id);
 
     EventHotKeyRef gMyHotKeyRef;
@@ -116,8 +116,7 @@ void UGlobalHotkeys::unregisterHotkey(size_t id)
 #endif
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     Registered.remove(id);
-#endif
-#if defined(Q_OS_MAC)
+#elif defined(Q_OS_MAC)
     if (HotkeyRefs.find(id) != HotkeyRefs.end()) {
         UnregisterEventHotKey(HotkeyRefs[id]);
     }
@@ -127,15 +126,18 @@ void UGlobalHotkeys::unregisterHotkey(size_t id)
 void UGlobalHotkeys::unregisterAllHotkeys()
 {
 #ifdef Q_OS_WIN
-    foreach (const size_t id, Registered) {
-        this->unregisterHotkey(id);
+    const auto keys = Registered;
+    for (const size_t key : keys) {
+        unregisterHotkey(key);
     }
 #elif defined(Q_OS_LINUX)
-    foreach (const size_t id, Registered.keys()) {
-        this->unregisterHotkey(id);
+    const auto keys = Registered.keys();
+    for (const size_t key : keys) {
+        unregisterHotkey(key);
     }
 #elif defined(Q_OS_MAC)
-    for (auto ref : HotkeyRefs) {
+    const auto refs = HotkeyRefs;
+    for (auto ref : refs) {
         UnregisterEventHotKey(ref);
     }
 #endif
@@ -144,8 +146,8 @@ void UGlobalHotkeys::unregisterAllHotkeys()
 UGlobalHotkeys::~UGlobalHotkeys()
 {
 #if defined(Q_OS_WIN)
-    for (QSet<size_t>::iterator i = Registered.begin(); i != Registered.end(); ++i) {
-        UnregisterHotKey((HWND)winId(), *i);
+    for (auto hotKey : qAsConst(Registered)) {
+        UnregisterHotKey((HWND)winId(), hotKey);
     }
 #elif defined(Q_OS_LINUX)
     xcb_key_symbols_free(X11KeySymbs);
@@ -160,7 +162,7 @@ void UGlobalHotkeys::onHotkeyPressed(size_t id)
 #endif
 
 #if defined(Q_OS_WIN)
-bool UGlobalHotkeys::winEvent(MSG *message, long *result)
+bool UGlobalHotkeys::winEvent(MSG *message, RESULT_TYPE *result)
 {
     Q_UNUSED(result);
     if (message->message == WM_HOTKEY) {
@@ -170,27 +172,22 @@ bool UGlobalHotkeys::winEvent(MSG *message, long *result)
     }
     return false;
 }
-
-bool UGlobalHotkeys::nativeEvent(const QByteArray &eventType,
-                                 void *message, long *result)
-{
-    Q_UNUSED(eventType);
-    return winEvent((MSG *)message, result);
-}
-
-#elif defined(Q_OS_LINUX)
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-bool UGlobalHotkeys::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool UGlobalHotkeys::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
 #endif
+
+#if defined (Q_OS_WIN) || defined( Q_OS_LINUX)
+bool UGlobalHotkeys::nativeEventFilter(const QByteArray &eventType, void *message, RESULT_TYPE *result)
 {
     Q_UNUSED(eventType);
+#if defined(Q_OS_LINUX)
     Q_UNUSED(result);
     return linuxEvent(static_cast<xcb_generic_event_t *>(message));
+#elif defined(Q_OS_WIN)
+    return winEvent((MSG *)message, result);
+#endif
 }
+#endif
 
+#if defined(Q_OS_LINUX)
 bool UGlobalHotkeys::linuxEvent(xcb_generic_event_t *message)
 {
     if ((message->response_type & ~0x80) == XCB_KEY_PRESS) {
@@ -210,14 +207,13 @@ void UGlobalHotkeys::regLinuxHotkey(const UKeySequence &keySeq, size_t id)
 {
     UHotkeyData data;
     UKeyData keyData = QtKeyToLinux(keySeq);
-    
+
     xcb_keycode_t *keyC = xcb_key_symbols_get_keycode(X11KeySymbs, keyData.key);
 
     if (keyC == XCB_NO_SYMBOL) { // 0x0
         qWarning() << "Cannot find symbol";
         return;
     }
-
     data.keyCode = *keyC;
     data.mods = keyData.mods;
 
