@@ -67,7 +67,7 @@ jobs:
             name: "Mac-Qt6"
             , os: macos-latest
             , QT_VERSION: 6.3.0, QT_INST_DIR: /Users/runner
-            , extraCMakeConfig: "-DNOTARIZE_AS=\"John Kennedy\""
+            , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\" -DNOTARIZE_AS=\"John Kennedy\""
             , buildTarget: "--target package"
           }
         - {
