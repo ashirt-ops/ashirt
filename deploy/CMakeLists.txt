@@ -39,6 +39,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     )
     set(CPACK_GENERATOR "NSIS")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    # Write our cert identifier to a file generate_ds_store.applescript can read
+    file(WRITE ${PROJECT_SOURCE_DIR}/deploy/NOTARIZE_AS ${NOTARIZE_AS})
     set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/deploy/dmg_icon.icns")
     set(CPACK_DMG_BACKGROUND_IMAGE "${PROJECT_SOURCE_DIR}/deploy/dmg_background.png")
     set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${PROJECT_SOURCE_DIR}/deploy/generate_ds_store.applescript")
