@@ -144,7 +144,7 @@ jobs:
             export VERSION=${{ env.githash }}${{ matrix.config.QT_STRING }}
             ${{matrix.config.linuxDeployQtPath}}
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
-                -e ashirt \
+                -e src/ashirt \
                 -d deploy/ashirt.desktop \
                 -i deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt

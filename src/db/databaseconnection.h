@@ -15,7 +15,7 @@
 #include "forms/evidence_filter/evidencefilter.h"
 #include "models/evidence.h"
 #include "helpers/constants.h"
-#include "db/query_result.h"
+#include "query_result.h"
 
 using FieldEncoderFunc = std::function<QVariantList(unsigned int)>;
 using RowDecoderFunc = std::function<void(const QSqlQuery&)>;
