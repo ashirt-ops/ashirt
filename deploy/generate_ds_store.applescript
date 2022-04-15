@@ -32,7 +32,7 @@ on run argv
     close
 
     -- next setup the position of the app and Applications symlink
-    -- plus hide all the window decoration
+    -- hide all the window decoration, and finally re-sign the binary
     open
       tell container window
         set sidebar width to 0
@@ -42,6 +42,7 @@ on run argv
         set position of item "ashirt.app" to { 0, 225 }
         set position of item "README.MD" to { 250, 0 }
         set position of item "Applications" to { 500, 225 }
+        do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/MacOS/ashirt"
       end tell
       delay 5
     close

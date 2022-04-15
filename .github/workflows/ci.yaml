@@ -151,8 +151,8 @@ jobs:
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signRelease }}" == "true" ]]; then
             brew tap mitchellh/gon
             brew install mitchellh/gon/gon jq
-            echo "${{ secrets.GON_CONF }}" | base64 -D -i - > notarize.json
-            env ID="${{ env.name }}.dmg" cat gon.json |jq '.notarize[0].path = env.ID'
+            export ID=${{ env.name }}.dmg
+            echo "${{ secrets.GON_CONF }}" | base64 -D -i - | jq '.notarize[0].path = env.ID' > notarize.json
             gon notarize.json
         fi
         mv ashirt-*.* dist/
