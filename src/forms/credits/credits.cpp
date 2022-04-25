@@ -116,14 +116,14 @@ void Credits::updateRelease() {
     updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl()));
   }
   else {
-    updateLabel->setText("");
+    updateLabel->clear();
   }
 }
 
 void Credits::buildUi() {
   gridLayout = new QGridLayout(this);
 
-  updateLabel = new QLabel("");
+  updateLabel = new QLabel();
   updateLabel->setOpenExternalLinks(true);
   updateLabel->setTextFormat(Qt::RichText);
   updateLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);

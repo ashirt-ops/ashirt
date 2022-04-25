@@ -43,8 +43,8 @@ class Operation {
 
   static QByteArray createOperationJson(Operation o) {
     QJsonObject obj;
-    obj.insert("slug", o.slug);
-    obj.insert("name", o.name);
+    obj.insert(QStringLiteral("slug"), o.slug);
+    obj.insert(QStringLiteral("name"), o.name);
     return QJsonDocument(obj).toJson();
   }
 

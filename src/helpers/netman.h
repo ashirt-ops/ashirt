@@ -55,8 +55,8 @@ class NetMan : public QObject {
   /// provided (use addASHIRTAuth to do this)
   /// Allows for an optional altHost parameter, in order to check for ashirt servers.
   /// Normal usage should provide no value for this parameter.
-  RequestBuilder* ashirtGet(QString endpoint, const QString & altHost="") {
-    QString base = (altHost == "") ? AppConfig::getInstance().apiURL : altHost;
+  RequestBuilder* ashirtGet(QString endpoint, const QString & altHost= QString()) {
+    QString base = (altHost.isEmpty()) ? AppConfig::getInstance().apiURL : altHost;
     return RequestBuilder::newGet()
         ->setHost(base)
         ->setEndpoint(endpoint);
@@ -83,10 +83,10 @@ class NetMan : public QObject {
   /// addASHIRTAuth takes the provided RequestBuilder and adds on Authorization and Date headers
   /// in order to properly authenticate with ASHIRT servers. Note that this should not be used for
   /// non-ashirt requests
-  void addASHIRTAuth(RequestBuilder* reqBuilder, const QString& altApiKey = "",
-                     const QString& altSecretKey = "") {
-    auto now = QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy hh:mm:ss 'GMT'");
-    reqBuilder->addRawHeader("Date", now);
+  void addASHIRTAuth(RequestBuilder* reqBuilder, const QString& altApiKey = QString(),
+                     const QString& altSecretKey = QString()) {
+    auto now = QDateTime::currentDateTimeUtc().toString(QStringLiteral("ddd, dd MMM yyyy hh:mm:ss 'GMT'"));
+    reqBuilder->addRawHeader(QStringLiteral("Date"), now);
 
     // load default key if not present
     QString apiKeyCopy = QString(altApiKey);
@@ -97,14 +97,14 @@ class NetMan : public QObject {
     auto code = generateHash(RequestMethodToString(reqBuilder->getMethod()),
                              reqBuilder->getEndpoint(), now, reqBuilder->getBody(), altSecretKey);
 
-    auto authValue = apiKeyCopy + ":" + code;
-    reqBuilder->addRawHeader("Authorization", authValue);
+    auto authValue = QStringLiteral("%1:%2").arg(apiKeyCopy, code);
+    reqBuilder->addRawHeader(QStringLiteral("Authorization"), authValue);
   }
 
 
   /// generateHash provides a cryptographic hash for ASHIRT api server communication
   QString generateHash(QString method, QString path, QString date, QByteArray body = NO_BODY,
-                       const QString &secretKey = "") {
+                       const QString &secretKey = QString()) {
     auto hashedBody = QCryptographicHash::hash(body, QCryptographicHash::Sha256);
     std::string msg = (method + "\n" + path + "\n" + date + "\n").toStdString();
     msg += hashedBody.toStdString();
@@ -180,7 +180,7 @@ class NetMan : public QObject {
 
     auto body = FileHelpers::stdStringToByteArray(parser.GenBodyContent());
 
-    auto builder = ashirtFormPost("/api/operations/" + evidence.operationSlug + "/evidence", body, parser.boundary().c_str());
+    auto builder = ashirtFormPost(QStringLiteral("/api/operations/%1/evidence").arg(evidence.operationSlug), body, parser.boundary().c_str());
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }
@@ -188,7 +188,7 @@ class NetMan : public QObject {
   /// testConnection provides a mechanism to validate a given host, apikey and secret key, to test
   /// a connection to the ASHIRT API server
   QNetworkReply *testConnection(QString host, QString apiKey, QString secretKey) {
-    auto builder = ashirtGet("/api/checkconnection", host);
+    auto builder = ashirtGet(QStringLiteral("/api/checkconnection"), host);
     addASHIRTAuth(builder, apiKey, secretKey);
     return builder->execute(nam);
   }
@@ -197,7 +197,7 @@ class NetMan : public QObject {
   /// Note: normally you should opt to use refreshOperationsList and retrieve the results by listening
   /// for the operationListUpdated signal.
   QNetworkReply *getAllOperations() {
-    auto builder = ashirtGet("/api/operations");
+    auto builder = ashirtGet(QStringLiteral("/api/operations"));
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }
@@ -206,8 +206,8 @@ class NetMan : public QObject {
   /// Note that normally you should call checkForNewRelease
   QNetworkReply *getGithubReleases(QString owner, QString repo) {
     return RequestBuilder::newGet()
-        ->setHost("https://api.github.com")
-        ->setEndpoint("/repos/" + owner + "/" + repo + "/releases")
+        ->setHost(QStringLiteral("https://api.github.com"))
+        ->setEndpoint(QStringLiteral("/repos/%1/%2/releases").arg(owner, repo))
         ->execute(nam);
   }
 
@@ -222,21 +222,21 @@ class NetMan : public QObject {
 
   /// getOperationTags retrieves the tags for specified operation from the ASHIRT API server
   QNetworkReply *getOperationTags(QString operationSlug) {
-    auto builder = ashirtGet("/api/operations/" + operationSlug + "/tags");
+    auto builder = ashirtGet(QStringLiteral("/api/operations/%1/tags").arg(operationSlug));
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }
 
   /// createTag attempts to create a new tag for specified operation from the ASHIRT API server.
   QNetworkReply *createTag(dto::Tag tag, QString operationSlug) {
-    auto builder = ashirtJSONPost("/api/operations/" + operationSlug + "/tags", dto::Tag::toJson(tag));
+    auto builder = ashirtJSONPost(QStringLiteral("/api/operations/%1/tags").arg(operationSlug), dto::Tag::toJson(tag));
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }
 
   /// createOperation attempts to create a new operation with the given name and slug
   QNetworkReply *createOperation(QString name, QString slug) {
-    auto builder = ashirtJSONPost("/api/operations", dto::Operation::createOperationJson(name, slug));
+    auto builder = ashirtJSONPost(QStringLiteral("/api/operations"), dto::Operation::createOperationJson(name, slug));
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }

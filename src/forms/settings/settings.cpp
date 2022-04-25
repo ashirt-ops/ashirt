@@ -58,16 +58,16 @@ Settings::~Settings() {
 
 void Settings::buildUi() {
   gridLayout = new QGridLayout(this);
-  _eviRepoLabel = new QLabel("Evidence Repository", this);
-  _accessKeyLabel = new QLabel("Access Key", this);
-  _secretKeyLabel = new QLabel("Secret Key", this);
-  _hostPathLabel = new QLabel("Host Path", this);
-  _captureAreaCmdLabel = new QLabel("Capture Area Command", this);
-  _captureAreaShortcutLabel = new QLabel("Shortcut", this);
-  _captureWindowCmdLabel = new QLabel("Capture Window Command", this);
-  _captureWindowShortcutLabel = new QLabel("Shortcut", this);
-  _recordCodeblockShortcutLabel = new QLabel("Record Codeblock Shortcut", this);
-  connStatusLabel = new QLabel("", this);
+  _eviRepoLabel = new QLabel(tr("Evidence Repository"), this);
+  _accessKeyLabel = new QLabel(tr("Access Key"), this);
+  _secretKeyLabel = new QLabel(tr("Secret Key"), this);
+  _hostPathLabel = new QLabel(tr("Host Path"), this);
+  _captureAreaCmdLabel = new QLabel(tr("Capture Area Command"), this);
+  _captureAreaShortcutLabel = new QLabel(tr("Shortcut"), this);
+  _captureWindowCmdLabel = new QLabel(tr("Capture Window Command"), this);
+  _captureWindowShortcutLabel = new QLabel(tr("Shortcut"), this);
+  _recordCodeblockShortcutLabel = new QLabel(tr("Record Codeblock Shortcut"), this);
+  connStatusLabel = new QLabel(QString(), this);
 
   eviRepoTextBox = new QLineEdit(this);
   accessKeyTextBox = new QLineEdit(this);
@@ -78,9 +78,9 @@ void Settings::buildUi() {
   captureWindowCmdTextBox = new QLineEdit(this);
   captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
   recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  eviRepoBrowseButton = new QPushButton("Browse", this);
-  testConnectionButton = new LoadingButton("Test Connection", this);
-  clearHotkeysButton = new QPushButton("Clear Shortcuts", this);
+  eviRepoBrowseButton = new QPushButton(tr("Browse"), this);
+  testConnectionButton = new LoadingButton(tr("Test Connection"), this);
+  clearHotkeysButton = new QPushButton(tr("Clear Shortcuts"), this);
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Save);
   buttonBox->addButton(QDialogButtonBox::Cancel);
@@ -164,7 +164,7 @@ void Settings::buildUi() {
   this->setLayout(gridLayout);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(760, 300);
-  this->setWindowTitle("Settings");
+  this->setWindowTitle(tr("Settings"));
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
@@ -210,10 +210,10 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
 
   if(alreadyUsed) {
     parentComponent->clear();
-    parentComponent->setStyleSheet("background-color: lightcoral");
+    parentComponent->setStyleSheet(QStringLiteral("background-color: lightcoral"));
   }
   else {
-    parentComponent->setStyleSheet("");
+    parentComponent->setStyleSheet(QString());
   }
 }
 
@@ -236,7 +236,7 @@ void Settings::showEvent(QShowEvent *evt) {
   recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureCodeblockShortcut));
 
   // re-enable form
-  connStatusLabel->setText("");
+  connStatusLabel->clear();
   testConnectionButton->setEnabled(true);
 }
 
@@ -254,7 +254,7 @@ void Settings::onCancelClicked() {
 
 void Settings::onSaveClicked() {
   stopReply(&currentTestReply);
-  connStatusLabel->setText("");
+  connStatusLabel->clear();
 
   AppConfig &inst = AppConfig::getInstance();
 
@@ -278,7 +278,7 @@ void Settings::onSaveClicked() {
     inst.writeConfig();
   }
   catch (std::exception &e) {
-    couldNotSaveSettingsMsg->showMessage("Unable to save settings. Error: " + QString(e.what()));
+    couldNotSaveSettingsMsg->showMessage(tr("Unable to save settings. Error: %1").arg(e.what()));
   }
 
   hotkeyManager->updateHotkeys();
@@ -305,7 +305,7 @@ void Settings::onTestConnectionClicked() {
   if (hostPathTextBox->text().isEmpty()
       || accessKeyTextBox->text().isEmpty()
       || secretKeyTextBox->text().isEmpty()) {
-    connStatusLabel->setText("Please set Access Key, Secret key and Host Path first.");
+    connStatusLabel->setText(tr("Please set Access Key, Secret key and Host Path first."));
     return;
   }
   testConnectionButton->startAnimation();
@@ -327,26 +327,24 @@ void Settings::onTestRequestComplete() {
       case HttpStatus::StatusOK:
         connectionCheckResp = dto::CheckConnection::parseJson(currentTestReply->readAll());
         if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
-          connStatusLabel->setText("Connected");
+          connStatusLabel->setText(tr("Connected"));
         }
         else {
-          connStatusLabel->setText("Unable to connect: Wrong or outdated server");
+          connStatusLabel->setText(tr("Unable to connect: Wrong or outdated server"));
         }
         break;
       case HttpStatus::StatusUnauthorized:
-        connStatusLabel->setText("Could not connect: Unauthorized (check access key and secret)");
+        connStatusLabel->setText(tr("Could not connect: Unauthorized (check access key and secret)"));
         break;
       case HttpStatus::StatusNotFound:
-        connStatusLabel->setText("Could not connect: Not Found (check URL)");
+        connStatusLabel->setText(tr("Could not connect: Not Found (check URL)"));
         break;
       default:
-        QString msg = "Could not connect: Unexpected Error (code: %1)";
-        connStatusLabel->setText(msg.arg(statusCode));
+        connStatusLabel->setText(tr("Could not connect: Unexpected Error (code: %1)").arg(statusCode));
     }
   }
   else {
-    connStatusLabel->setText(
-        "Could not connect: Unexpected Error (check network connection and URL)");
+    connStatusLabel->setText(tr("Could not connect: Unexpected Error (check network connection and URL)"));
   }
 
   testConnectionButton->stopAnimation();

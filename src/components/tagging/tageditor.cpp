@@ -86,7 +86,7 @@ void TagEditor::wireUi() {
 
   connect(tagCompleteTextBox, &QLineEdit::textChanged, [this](const QString &text) {
     if (text.isEmpty()) {
-      tagCompleteTextBox->completer()->setCompletionPrefix("");
+      tagCompleteTextBox->completer()->setCompletionPrefix(QString());
     }
   });
 
@@ -120,8 +120,8 @@ void TagEditor::tagTextEntered(QString text) {
     tagView->contains(data) ? tagView->remove(data) : tagView->addTag(data);
   }
 
-  tagCompleteTextBox->setText("");
-  tagCompleteTextBox->completer()->setCompletionPrefix("");
+  tagCompleteTextBox->clear();
+  tagCompleteTextBox->completer()->setCompletionPrefix(QString());
 }
 
 void TagEditor::updateCompleterModel() {
@@ -134,7 +134,7 @@ void TagEditor::updateCompleterModel() {
 void TagEditor::clear() {
   stopReply(&createTagReply);
   tagCompleteTextBox->clear();
-  errorLabel->setText("");
+  errorLabel->clear();
   tagView->clear();
 }
 
@@ -180,10 +180,10 @@ void TagEditor::tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdat
 
 void TagEditor::createTag(QString tagName) {
   auto newText = tagName.trimmed();
-  if (newText == "") {
+  if (newText.isEmpty()) {
     return;
   }
-  errorLabel->setText("");
+  errorLabel->clear();
   loading->startAnimation();
   tagCompleteTextBox->setEnabled(false);
 

@@ -85,7 +85,7 @@ class PortingDialog : public QDialog {
   void onWorkComplete(bool success);
 
  private:
-  QString portPath = "";
+  QString portPath;
   PortType dialogType;
   bool portDone = false;
 

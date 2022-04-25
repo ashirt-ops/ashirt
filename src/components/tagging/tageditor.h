@@ -55,7 +55,7 @@ class TagEditor : public QWidget {
   void tagsLoaded(bool isValid);
 
  private:
-  QString operationSlug = "";
+  QString operationSlug;
   std::vector<model::Tag> initialTags;
 
   QNetworkReply* getTagsReply = nullptr;

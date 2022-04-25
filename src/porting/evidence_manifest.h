@@ -27,17 +27,17 @@ class EvidenceItem {
  public:
   static QJsonObject serialize(EvidenceItem item) {
     QJsonObject o;
-    o.insert("evidenceID", item.evidenceID);
-    o.insert("path", item.exportPath);
+    o.insert(QStringLiteral("evidenceID"), item.evidenceID);
+    o.insert(QStringLiteral("path"), item.exportPath);
     return o;
   }
   static EvidenceItem deserialize(QJsonObject o) {
-    return EvidenceItem(o.value("evidenceID").toInt(), o.value("path").toString());
+    return EvidenceItem(o.value(QStringLiteral("evidenceID")).toInt(), o.value(QStringLiteral("path")).toString());
   }
 
  public:
   qint64 evidenceID = 0;
-  QString exportPath = "";
+  QString exportPath;
 };
 
 /**

@@ -31,17 +31,17 @@ class AppConfig {
   AppConfig(AppConfig const &) = delete;
   void operator=(AppConfig const &) = delete;
 
-  QString evidenceRepo = "";
-  QString accessKey = "";
-  QString secretKey = "";
-  QString apiURL = "";
-  QString screenshotExec = "";
-  QString screenshotShortcutCombo = "";
-  QString captureWindowExec = "";
-  QString captureWindowShortcut = "";
-  QString captureCodeblockShortcut = "";
+  QString evidenceRepo;
+  QString accessKey;
+  QString secretKey;
+  QString apiURL;
+  QString screenshotExec;
+  QString screenshotShortcutCombo;
+  QString captureWindowExec;
+  QString captureWindowShortcut;
+  QString captureCodeblockShortcut;
 
-  QString errorText = "";
+  QString errorText;
 
  private:
   AppConfig() noexcept {
@@ -110,15 +110,15 @@ class AppConfig {
   /// applyConfig takes a parsed json configuration, and applies it to the current running app instance
   void applyConfig(QJsonObject src) {
     std::vector<std::pair<QString, QString*>> fields = {
-        std::pair<QString, QString*>("evidenceRepo", &evidenceRepo),
-        std::pair<QString, QString*>("accessKey", &accessKey),
-        std::pair<QString, QString*>("secretKey", &secretKey),
-        std::pair<QString, QString*>("apiURL", &apiURL),
-        std::pair<QString, QString*>("screenshotCommand", &screenshotExec),
-        std::pair<QString, QString*>("screenshotShortcut", &screenshotShortcutCombo),
-        std::pair<QString, QString*>("captureWindowExec", &captureWindowExec),
-        std::pair<QString, QString*>("captureWindowShortcut", &captureWindowShortcut),
-        std::pair<QString, QString*>("captureCodeblockShortcut", &captureCodeblockShortcut),
+        std::pair<QString, QString*>(QStringLiteral("evidenceRepo"), &evidenceRepo),
+        std::pair<QString, QString*>(QStringLiteral("accessKey"), &accessKey),
+        std::pair<QString, QString*>(QStringLiteral("secretKey"), &secretKey),
+        std::pair<QString, QString*>(QStringLiteral("apiURL"), &apiURL),
+        std::pair<QString, QString*>(QStringLiteral("screenshotCommand"), &screenshotExec),
+        std::pair<QString, QString*>(QStringLiteral("screenshotShortcut"), &screenshotShortcutCombo),
+        std::pair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
+        std::pair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
+        std::pair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
         };
 
     for (auto fieldPair : fields) {

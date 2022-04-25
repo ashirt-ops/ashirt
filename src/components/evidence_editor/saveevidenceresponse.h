@@ -8,7 +8,6 @@
 struct SaveEvidenceResponse {
   SaveEvidenceResponse(model::Evidence model) {
     this->model = model;
-    this->errorText = "";
   }
   SaveEvidenceResponse(bool success, QString err, model::Evidence model)
       : SaveEvidenceResponse(model) {

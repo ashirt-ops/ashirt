@@ -40,6 +40,7 @@
 #define ICON ":/icons/shirt-light.svg"
 #endif
 
+
 TrayManager::TrayManager(DatabaseConnection* db) {
   this->db = db;
 
@@ -118,7 +119,7 @@ void TrayManager::buildUi() {
   addToMenu(tr("Capture Window"), &captureWindowAction, &trayIconMenu);
   addToMenu(tr("View Accumulated Evidence"), &showEvidenceManagerAction, &trayIconMenu);
   trayIconMenu->addSeparator();
-  addToMenu(tr(""), &currentOperationMenuAction, &trayIconMenu);
+  addToMenu(QString(), &currentOperationMenuAction, &trayIconMenu);
   addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
   trayIconMenu->addSeparator();
   addMenuToMenu(tr("Import/Export"), &importExportSubmenu, &trayIconMenu);
@@ -175,10 +176,10 @@ void TrayManager::wireUi() {
 
   connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
     openServicesPath = path;
-    setTrayMessage(OPEN_PATH, "Export Complete", "Export saved to: " + path + "\nClick to view");
+    setTrayMessage(OPEN_PATH, tr("Export Complete"), tr("Export saved to: %1\nClick to view").arg(path));
   });
   connect(importWindow, &PortingDialog::portCompleted, [this](const QString& path) {
-    setTrayMessage(NO_ACTION, "Import Complete", "Import retrieved from: " + path);
+    setTrayMessage(NO_ACTION, tr("Import Complete"), tr("Import retrieved from: %1").arg(path));
   });
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
@@ -201,7 +202,7 @@ void TrayManager::wireUi() {
   
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, [this] {
-    chooseOpStatusAction->setText("Loading operations...");
+    chooseOpStatusAction->setText(tr("Loading operations..."));
     newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
   });
@@ -250,7 +251,7 @@ qint64 TrayManager::createNewEvidence(const QString& filepath, const QString& ev
 }
 
 void TrayManager::captureWindowActionTriggered() {
-  if(AppSettings::getInstance().operationSlug() == "") {
+  if(AppSettings::getInstance().operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -258,7 +259,7 @@ void TrayManager::captureWindowActionTriggered() {
 }
 
 void TrayManager::captureAreaActionTriggered() {
-  if(AppSettings::getInstance().operationSlug() == "") {
+  if(AppSettings::getInstance().operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -266,7 +267,7 @@ void TrayManager::captureAreaActionTriggered() {
 }
 
 void TrayManager::captureCodeblockActionTriggered() {
-  if(AppSettings::getInstance().operationSlug() == "") {
+  if(AppSettings::getInstance().operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -275,11 +276,11 @@ void TrayManager::captureCodeblockActionTriggered() {
 
 void TrayManager::onCodeblockCapture() {
   QString clipboardContent = ClipboardHelper::readPlaintext();
-  if (clipboardContent != "") {
+  if (!clipboardContent.isEmpty()) {
     Codeblock evidence(clipboardContent);
     Codeblock::saveCodeblock(evidence);
     try {
-      auto evidenceID = createNewEvidence(evidence.filePath(), "codeblock");
+      auto evidenceID = createNewEvidence(evidence.filePath(), QStringLiteral("codeblock"));
       spawnGetInfoWindow(evidenceID);
     }
     catch (QSqlError& e) {
@@ -290,7 +291,7 @@ void TrayManager::onCodeblockCapture() {
 
 void TrayManager::onScreenshotCaptured(const QString& path) {
   try {
-    auto evidenceID = createNewEvidence(path, "image");
+    auto evidenceID = createNewEvidence(path, QStringLiteral("image"));
     spawnGetInfoWindow(evidenceID);
   }
   catch (QSqlError& e) {
@@ -299,18 +300,14 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  setTrayMessage(NO_ACTION, "Unable to Record Evidence",
-                        "No Operation has been selected. Please select an operation first.",
+  setTrayMessage(NO_ACTION, tr("Unable to Record Evidence"),
+                        tr("No Operation has been selected. Please select an operation first."),
                         QSystemTrayIcon::Warning);
 }
 
 void TrayManager::setActiveOperationLabel() {
-  auto opName = AppSettings::getInstance().operationName();
-
-  QString opLabel = tr("Operation: ");
-  opLabel += (opName == "") ? tr("<None>") : opName;
-
-  currentOperationMenuAction->setText(opLabel);
+  const auto& opName = AppSettings::getInstance().operationName();
+  currentOperationMenuAction->setText(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
 }
 
 void TrayManager::onOperationListUpdated(bool success,
@@ -346,7 +343,7 @@ void TrayManager::onOperationListUpdated(bool success,
       chooseOpSubmenu->addAction(newAction);
     }
     if (selectedAction == nullptr) {
-      AppSettings::getInstance().setOperationDetails("", "");
+      AppSettings::getInstance().setOperationDetails(QString(), QString());
     }
   }
   else {
@@ -366,7 +363,7 @@ void TrayManager::onReleaseCheck(bool success, const std::vector<dto::GithubRele
   auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
 
   if (digest.hasUpgrade()) {
-    setTrayMessage(UPGRADE, "A new version is available!", "Click for more info");
+    setTrayMessage(UPGRADE, tr("A new version is available!"), tr("Click for more info"));
   }
 }
 

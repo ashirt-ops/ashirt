@@ -48,7 +48,7 @@ void EvidenceEditor::buildUi() {
   splitter->setOrientation(Qt::Vertical);
   splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  _descriptionLabel = new QLabel("Description", this);
+  _descriptionLabel = new QLabel(tr("Description"), this);
   tagEditor = new TagEditor(this);
   descriptionTextBox = new QTextEdit(this);
 
@@ -121,17 +121,17 @@ void EvidenceEditor::loadData() {
     descriptionTextBox->setText(originalEvidenceData.description);
     operationSlug = originalEvidenceData.operationSlug;
 
-    if (originalEvidenceData.contentType == "image") {
+    if (originalEvidenceData.contentType == QStringLiteral("image")) {
       loadedPreview = new ImageView(this);
       loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
-    else if (originalEvidenceData.contentType == "codeblock") {
+    else if (originalEvidenceData.contentType == QStringLiteral("codeblock")) {
       loadedPreview = new CodeBlockView(this);
       loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
     else {
       loadedPreview =
-          new ErrorView("Unsupported evidence type: " + originalEvidenceData.contentType, this);
+          new ErrorView(tr("Unsupported evidence type: %1").arg(originalEvidenceData.contentType), this);
     }
     loadedPreview->loadFromFile(originalEvidenceData.path);
     loadedPreview->setReadonly(readonly);
@@ -140,7 +140,7 @@ void EvidenceEditor::loadData() {
     tagEditor->loadTags(operationSlug, originalEvidenceData.tags);
   }
   catch (QSqlError &e) {
-    loadedPreview = new ErrorView("Unable to load evidence: " + e.text(), this);
+    loadedPreview = new ErrorView(tr("Unable to load evidence: %1").arg(e.text()), this);
   }
   splitter->insertWidget(0, loadedPreview);
 }
@@ -164,7 +164,7 @@ void EvidenceEditor::updateEvidence(qint64 evidenceID, bool readonly) {
 
 void EvidenceEditor::clearEditor() {
   tagEditor->clear();
-  this->descriptionTextBox->setText("");
+  descriptionTextBox->clear();
   if (loadedPreview != nullptr) {
     loadedPreview->clearPreview();
     delete loadedPreview;

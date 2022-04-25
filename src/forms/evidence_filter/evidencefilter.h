@@ -13,22 +13,28 @@
 enum Tri { Any, Yes, No };
 
 // These represent the standard key for a filter
-const QString FILTER_KEY_ERROR = "err";
-const QString FILTER_KEY_SUBMITTED = "submitted";
-const QString FILTER_KEY_TO = "to";
-const QString FILTER_KEY_FROM = "from";
-const QString FILTER_KEY_ON = "on";
-const QString FILTER_KEY_OPERATION = "op";
-const QString FILTER_KEY_CONTENT_TYPE = "type";
+const QString FILTER_KEY_ERROR = QStringLiteral("err");
+const QString FILTER_KEY_SUBMITTED = QStringLiteral("submitted");
+const QString FILTER_KEY_TO = QStringLiteral("to");
+const QString FILTER_KEY_FROM = QStringLiteral("from");
+const QString FILTER_KEY_ON = QStringLiteral("on");
+const QString FILTER_KEY_OPERATION = QStringLiteral("op");
+const QString FILTER_KEY_CONTENT_TYPE = QStringLiteral("type");
 
 // These represent aliases for standard key for a filter
-const QStringList FILTER_KEYS_ERROR = {FILTER_KEY_ERROR, "error", "failed", "fail"};
+const QStringList FILTER_KEYS_ERROR = {
+    FILTER_KEY_ERROR, QStringLiteral("error")
+    , QStringLiteral("failed"), QStringLiteral("fail")
+};
 const QStringList FILTER_KEYS_SUBMITTED = {FILTER_KEY_SUBMITTED};
-const QStringList FILTER_KEYS_TO = {FILTER_KEY_TO, "before", "til", "until"};
-const QStringList FILTER_KEYS_FROM = {FILTER_KEY_FROM, "after"};
+const QStringList FILTER_KEYS_TO = {
+    FILTER_KEY_TO, QStringLiteral("before")
+    , QStringLiteral("til"), QStringLiteral("until")
+};
+const QStringList FILTER_KEYS_FROM = {FILTER_KEY_FROM, QStringLiteral("after")};
 const QStringList FILTER_KEYS_ON = {FILTER_KEY_ON};
-const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, "operation"};
-const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, "contentType"};
+const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, QStringLiteral("operation")};
+const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, QStringLiteral("contentType")};
 
 class EvidenceFilters {
  public:
@@ -39,8 +45,8 @@ class EvidenceFilters {
   static EvidenceFilters parseFilter(const QString &text);
 
  public:
-  QString operationSlug = "";
-  QString contentType = "";
+  QString operationSlug;
+  QString contentType;
   Tri hasError = Any;
   Tri submitted = Any;
   QDate startDate = QDate();

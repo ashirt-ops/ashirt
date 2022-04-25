@@ -92,7 +92,7 @@ class TrayManager : public QDialog {
   MessageType currentTrayMessage = NO_ACTION;
 
   /// openServicesPath is a variable to store where, on click, to open a path the next time a tray message is displayed
-  QString openServicesPath = "";
+  QString openServicesPath;
 
   // Subwindows
   Settings *settingsWindow = nullptr;

@@ -31,7 +31,7 @@ class FileHelpers {
       auto base = asciiOffset.at(letter < 26 ? 0 : 1);
       replacement << QString(char(base + (letter % 26)));
     }
-    return replacement.join("");
+    return replacement.join(QString());
   }
 
   /**

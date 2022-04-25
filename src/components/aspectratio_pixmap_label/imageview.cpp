@@ -44,7 +44,7 @@ void ImageView::loadFromFile(QString filepath) {
 
   const QImage img = reader.read();
   if (img.isNull()) {
-    previewImage->setText("Unable to load preview: " + reader.errorString());
+    previewImage->setText(tr("Unable to load preview: %1").arg(reader.errorString()));
   }
   else {
     previewImage->setPixmap(QPixmap::fromImage(img));

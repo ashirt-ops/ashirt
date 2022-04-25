@@ -48,7 +48,7 @@ void HotkeyManager::enableHotkeys() {
 void HotkeyManager::updateHotkeys() {
   hotkeyManager->unregisterAllHotkeys();
   auto regKey = [this](QString combo, GlobalHotkeyEvent evt) {
-    if (combo != "") {
+    if (!combo.isEmpty()) {
       registerKey(combo, evt);
     }
   };

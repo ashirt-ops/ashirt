@@ -21,8 +21,8 @@ void CodeBlockView::buildUi() {
   gridLayout = new QGridLayout(this);
   gridLayout->setContentsMargins(0, 0, 0, 0);
 
-  _languageLabel = new QLabel("Language", this);
-  _sourceLabel = new QLabel("Source", this);
+  _languageLabel = new QLabel(tr("Language"), this);
+  _sourceLabel = new QLabel(tr("Source"), this);
   sourceTextBox = new QLineEdit(this);
   languageComboBox = new QComboBox(this);
   codeEditor = new CodeEditor(this);
@@ -76,7 +76,7 @@ void CodeBlockView::saveEvidence() {
   loadedCodeblock.source = sourceTextBox->text();
   loadedCodeblock.subtype = languageComboBox->currentData().toString();
   loadedCodeblock.content = codeEditor->toPlainText();
-  if (loadedCodeblock.filePath() != "") {
+  if (!loadedCodeblock.filePath().isEmpty()) {
     try {
       Codeblock::saveCodeblock(loadedCodeblock);
     }
@@ -87,8 +87,8 @@ void CodeBlockView::saveEvidence() {
 }
 
 void CodeBlockView::clearPreview() {
-  codeEditor->setPlainText("");
-  sourceTextBox->setText("");
+  codeEditor->clear();
+  sourceTextBox->clear();
   languageComboBox->setCurrentIndex(0);  // should be Plain Text
 }
 

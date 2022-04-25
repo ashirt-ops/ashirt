@@ -35,15 +35,15 @@ enum ColumnIndexes {
 static QStringList columnNames() {
   static QStringList names;
   if (names.count() == 0) {
-    names.insert(COL_DATE_CAPTURED, "Date Captured");
-    names.insert(COL_OPERATION, "Operation");
-    names.insert(COL_PATH, "Path");
-    names.insert(COL_CONTENT_TYPE, "Content Type");
-    names.insert(COL_DESCRIPTION, "Description");
-    names.insert(COL_SUBMITTED, "Submitted");
-    names.insert(COL_DATE_SUBMITTED, "Date Submitted");
-    names.insert(COL_FAILED, "Failed");
-    names.insert(COL_ERROR_MSG, "Error");
+    names.insert(COL_DATE_CAPTURED, QStringLiteral("Date Captured"));
+    names.insert(COL_OPERATION, QStringLiteral("Operation"));
+    names.insert(COL_PATH, QStringLiteral("Path"));
+    names.insert(COL_CONTENT_TYPE, QStringLiteral("Content Type"));
+    names.insert(COL_DESCRIPTION, QStringLiteral("Description"));
+    names.insert(COL_SUBMITTED, QStringLiteral("Submitted"));
+    names.insert(COL_DATE_SUBMITTED, QStringLiteral("Date Submitted"));
+    names.insert(COL_FAILED, QStringLiteral("Failed"));
+    names.insert(COL_ERROR_MSG, QStringLiteral("Error"));
   }
   return names;
 }
@@ -97,23 +97,23 @@ void EvidenceManager::buildUi() {
   gridLayout = new QGridLayout(this);
   filterForm = new EvidenceFilterForm(this);
   evidenceTableContextMenu = new QMenu(this);
-  submitEvidenceAction = new QAction("Submit Evidence", evidenceTableContextMenu);
+  submitEvidenceAction = new QAction(tr("Submit Evidence"), evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(submitEvidenceAction);
-  deleteEvidenceAction = new QAction("Delete Evidence", evidenceTableContextMenu);
+  deleteEvidenceAction = new QAction(tr("Delete Evidence"), evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(deleteEvidenceAction);
-  copyPathToClipboardAction = new QAction("Copy Path", evidenceTableContextMenu);
+  copyPathToClipboardAction = new QAction(tr("Copy Path"), evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(copyPathToClipboardAction);
   evidenceTableContextMenu->addSeparator();
-  deleteTableContentsAction = new QAction("Delete All from table", evidenceTableContextMenu);
+  deleteTableContentsAction = new QAction(tr("Delete All from table"), evidenceTableContextMenu);
   evidenceTableContextMenu->addAction(deleteTableContentsAction);
 
   filterTextBox = new QLineEdit(this);
-  editFiltersButton = new QPushButton("Edit Filters", this);
-  applyFilterButton = new QPushButton("Apply", this);
-  resetFilterButton = new QPushButton("Reset", this);
+  editFiltersButton = new QPushButton(tr("Edit Filters"), this);
+  applyFilterButton = new QPushButton(tr("Apply"), this);
+  resetFilterButton = new QPushButton(tr("Reset"), this);
 
-  editButton = new QPushButton("Edit", this);
-  cancelEditButton = new QPushButton("Cancel", this);
+  editButton = new QPushButton(tr("Edit"), this);
+  cancelEditButton = new QPushButton(tr("Cancel"), this);
   cancelEditButton->setVisible(false);
 
   // remove button defaults (i.e. enter-submits-form functionality)
@@ -180,7 +180,7 @@ void EvidenceManager::buildUi() {
 
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(800, 600);
-  this->setWindowTitle("Evidence Manager");
+  this->setWindowTitle(tr("Evidence Manager"));
   this->setLayout(gridLayout);
 }
 
@@ -210,7 +210,7 @@ void EvidenceManager::wireUi() {
 }
 
 void EvidenceManager::editEvidenceButtonClicked() {
-  if(editButton->text() == "Save") {
+  if(editButton->text() == tr("Save")) {
     evidenceEditor->saveEvidence();
     cancelEditEvidenceButtonClicked();
     refreshRow(evidenceTable->currentRow());
@@ -221,7 +221,7 @@ void EvidenceManager::editEvidenceButtonClicked() {
     // remove default form action to prevent accidental reloading of evidence
     applyFilterButton->setDefault(false);
     evidenceEditor->setEnabled(true);
-    editButton->setText("Save");
+    editButton->setText(tr("Save"));
     cancelEditButton->setVisible(true);
   }
 }
@@ -230,7 +230,7 @@ void EvidenceManager::cancelEditEvidenceButtonClicked() {
   evidenceEditor->setEnabled(false);
   cancelEditButton->setVisible(false);
   //refreshRow(evidenceTable->currentRow());
-  editButton->setText("Edit");
+  editButton->setText(tr("Edit"));
   evidenceEditor->revert();
 }
 
@@ -253,8 +253,8 @@ void EvidenceManager::submitEvidenceTriggered() {
     catch (QSqlError& e) {
       evidenceTable->setEnabled(true);
       loadingAnimation->stopAnimation();
-      QMessageBox::warning(this, "Cannot submit evidence",
-                           "Could not retrieve data. Please try again.");
+      QMessageBox::warning(this, tr("Cannot submit evidence"),
+                           tr("Could not retrieve data. Please try again."));
     }
   }
 }
@@ -262,9 +262,9 @@ void EvidenceManager::submitEvidenceTriggered() {
 void EvidenceManager::deleteEvidenceTriggered() {
   std::vector<qint64> ids = selectedRowEvidenceIDs();
   QString thisMuch = ids.size() > 1 ? QString("these %1 pieces of").arg(ids.size()) : "this";
-  auto reply = QMessageBox::question(this, "Discard Evidence",
-                            QString("Are you sure you want to discard ") + thisMuch +
-                                " evidence? This will only delete this evidence on your computer.",
+  auto reply = QMessageBox::question(this, tr("Discard Evidence"),
+                            tr("Are you sure you want to discard %1 "
+                               " evidence? This will only delete this evidence on your computer.").arg(thisMuch),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
@@ -273,8 +273,8 @@ void EvidenceManager::deleteEvidenceTriggered() {
 }
 
 void EvidenceManager::deleteAllTriggered() {
-  auto reply = QMessageBox::question(this, "Delete All Evidence", "Warning: This will delete ALL "
-                                     "evidence currently listed in this table. Do you want to continue?",
+  auto reply = QMessageBox::question(this, tr("Delete All Evidence"), tr("Warning: This will delete ALL "
+                                     "evidence currently listed in this table. Do you want to continue?"),
                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
@@ -324,18 +324,18 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
     auto errLogPath = AppConfig::getInstance().evidenceRepo + "/" +QString("%1.log").arg(today.toMSecsSinceEpoch());
     try {
       FileHelpers::writeFile(errLogPath,
-                             "Paths to files that could not be deleted: \n\n" +
-                                    undeletedFiles.join("\n"));
+                             tr("Paths to files that could not be deleted: \n\n %1")
+                               .arg(undeletedFiles.join(QStringLiteral("\n"))));
     }
     catch(FileError &e) {
       logWritten = false;
     }
-    QString msg = "Some files could not be deleted.";
+    QString msg = tr("Some files could not be deleted.");
 
     if (logWritten) {
-      msg += " A list of the excluded files can be found here: \n" + errLogPath;
+      msg.append(tr(" A list of the excluded files can be found here: \n").arg(errLogPath));
     }
-    QMessageBox::warning(this, "Could not complete evidence deletion", msg);
+    QMessageBox::warning(this, tr("Could not complete evidence deletion"), msg);
   }
 
   for (auto p : paths) {
@@ -470,12 +470,12 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_DESCRIPTION, model.description);
   setColText(COL_OPERATION, model.operationSlug);
   setColText(COL_CONTENT_TYPE, model.contentType);
-  setColText(COL_SUBMITTED, model.uploadDate.isNull() ? "No" : "Yes");
-  setColText(COL_FAILED, model.errorText == "" ? "" : "Yes");
+  setColText(COL_SUBMITTED, model.uploadDate.isNull() ? QStringLiteral("No") : QStringLiteral("Yes"));
+  setColText(COL_FAILED, model.errorText.isEmpty() ? QString() : QStringLiteral("Yes"));
   setColText(COL_PATH, QDir::toNativeSeparators(model.path));
   setColText(COL_ERROR_MSG, model.errorText);
 
-  auto uploadDateText = model.uploadDate.isNull() ? "Never" : model.uploadDate.toLocalTime().toString(dateFormat);
+  auto uploadDateText = model.uploadDate.isNull() ? QStringLiteral("Never") : model.uploadDate.toLocalTime().toString(dateFormat);
   setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 
@@ -497,10 +497,10 @@ bool EvidenceManager::saveData() {
     return true;
   }
 
-  QMessageBox::warning(this, "Cannot Save",
-                       "Unable to save evidence data.\n"
-                       "You can try uploading directly to the website. File Location:\n" +
-                           saveResponse.model.path);
+  QMessageBox::warning(this, tr("Cannot Save"),
+                       tr("Unable to save evidence data.\n"
+                       "You can try uploading directly to the website. File Location:\n%1")
+                        .arg(saveResponse.model.path));
   return false;
 }
 
@@ -518,7 +518,7 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   cancelEditEvidenceButtonClicked();
   if (currentRow == -1) {
     editButton->setEnabled(false);
-    editButton->setToolTip("You must have some evidence selected to edit");
+    editButton->setToolTip(tr("You must have some evidence selected to edit"));
     emit evidenceChanged(-1, true);
     return;
   }
@@ -532,13 +532,13 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   int selectedRowCount = evidenceTable->selectionModel()->selectedRows().count();
   if (selectedRowCount > 1) {
     editButton->setEnabled(false);
-    editButton->setToolTip("Only one evidence item may be edited at once.");
+    editButton->setToolTip(tr("Only one evidence item may be edited at once."));
   }
   else {
     this->editButton->setEnabled(!readonly);
     this->editButton->setToolTip(readonly
-                                     ? "Edit is only available on unsubmitted evidence"
-                                     : "Update this data before submitting");
+                                     ? tr("Edit is only available on unsubmitted evidence")
+                                     : tr("Update this data before submitting"));
   }
 }
 
@@ -548,7 +548,7 @@ void EvidenceManager::onUploadComplete() {
 
   if (!isValid) {
     auto errMessage =
-        "Unable to upload evidence: Network error (" + uploadAssetReply->errorString() + ")";
+        tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
     try {
       db->updateEvidenceError(errMessage, evidenceIDForRequest);
     }
@@ -556,10 +556,9 @@ void EvidenceManager::onUploadComplete() {
       std::cout << "Upload failed. Could not update internal database. Error: "
                 << e.text().toStdString() << std::endl;
     }
-    QMessageBox::warning(this, "Cannot Submit Evidence",
-                         "Upload failed: Network error. Check your connection and try again.\n"
-                         "(Error: " +
-                             uploadAssetReply->errorString() + ")");
+    QMessageBox::warning(this, tr("Cannot Submit Evidence"),
+                         tr("Upload failed: Network error. Check your connection and try again.\n"
+                         "(Error: %1)").arg(uploadAssetReply->errorString()));
   }
   else {
     try {

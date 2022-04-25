@@ -31,8 +31,8 @@ class Tag {
 
   static QByteArray toJson(Tag t) {
     QJsonObject obj;
-    obj.insert("colorName", t.colorName);
-    obj.insert("name", t.name);
+    obj.insert(QStringLiteral("colorName"), t.colorName);
+    obj.insert(QStringLiteral("name"), t.name);
     return QJsonDocument(obj).toJson();
   }
 
