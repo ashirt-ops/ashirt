@@ -28,10 +28,10 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
   const int y = evt->position().y();
 
   if (removeArea.contains(x, y)) {
-    emit removePressed();
+    Q_EMIT removePressed();
   }
   else if (labelArea.contains(x, y)) {
-    emit labelPressed();
+    Q_EMIT labelPressed();
   }
 }
 

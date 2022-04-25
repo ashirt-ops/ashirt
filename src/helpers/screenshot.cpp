@@ -60,7 +60,7 @@ void Screenshot::basicScreenshot(QString cmdProto) {
     if (src.exists()) {
       auto moved = src.rename(QString(finalName));
       auto trueName = moved ? finalName : tempName;
-      emit onScreenshotCaptured(trueName);
+      Q_EMIT onScreenshotCaptured(trueName);
     }
   }
 }

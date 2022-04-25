@@ -27,13 +27,13 @@ void HotkeyManager::unregisterKey(GlobalHotkeyEvent evt) {
 
 void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
   if (hotkeyIndex == ACTION_CAPTURE_AREA) {
-    emit captureAreaHotkeyPressed();
+    Q_EMIT captureAreaHotkeyPressed();
   }
   else if (hotkeyIndex == ACTION_CAPTURE_WINDOW) {
-    emit captureWindowHotkeyPressed();
+    Q_EMIT captureWindowHotkeyPressed();
   }
   else if (hotkeyIndex == ACTION_CAPTURE_CODEBLOCK) {
-    emit codeblockHotkeyPressed();
+    Q_EMIT codeblockHotkeyPressed();
   }
 }
 

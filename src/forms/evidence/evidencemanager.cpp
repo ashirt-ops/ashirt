@@ -519,7 +519,7 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
   if (currentRow == -1) {
     editButton->setEnabled(false);
     editButton->setToolTip(tr("You must have some evidence selected to edit"));
-    emit evidenceChanged(-1, true);
+    Q_EMIT evidenceChanged(-1, true);
     return;
   }
 
@@ -527,7 +527,7 @@ void EvidenceManager::onRowChanged(int currentRow, int _currentColumn, int _prev
 
   auto readonly = evidence.uploadDate.isValid();
   submitEvidenceAction->setEnabled(!readonly);
-  emit evidenceChanged(evidence.id, true);
+  Q_EMIT evidenceChanged(evidence.id, true);
 
   int selectedRowCount = evidenceTable->selectionModel()->selectedRows().count();
   if (selectedRowCount > 1) {
@@ -568,7 +568,7 @@ void EvidenceManager::onUploadComplete() {
       std::cout << "Upload successful. Could not update internal database. Error: "
                 << e.text().toStdString() << std::endl;
     }
-    emit evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
+    Q_EMIT evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }
   refreshRow(evidenceTable->currentRow());
 

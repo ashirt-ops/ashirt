@@ -188,7 +188,7 @@ void PortingDialog::onPortComplete(bool success) {
   progressBar->setRange(0, 1);
   progressBar->setValue(1);
   submitButton->setEnabled(true);
-  emit portCompleted(portPath);
+  Q_EMIT portCompleted(portPath);
 }
 
 QString PortingDialog::getPortPath() {
@@ -211,14 +211,14 @@ void PortingDialog::doExport(porting::SystemManifest* manifest, const QString& e
          }
          catch(const FileError &e) {
            portStatusLabel->setText(tr("Error during export: %1").arg(e.what()));
-           emit onWorkComplete(false);
+           Q_EMIT onWorkComplete(false);
          }
          catch(const QSqlError &e) {
            portStatusLabel->setText(tr("Error during export: %1").arg(e.text()));
-           emit onWorkComplete(false);
+           Q_EMIT onWorkComplete(false);
          }
   });
-  emit onWorkComplete(true);
+  Q_EMIT onWorkComplete(true);
 }
 
 porting::SystemManifest* PortingDialog::doPreImport(const QString& pathToSystemManifest) {
@@ -246,12 +246,12 @@ void PortingDialog::doImport(porting::SystemManifest* manifest) {
         }
         catch(const FileError &e) {
           portStatusLabel->setText(tr("Error during import: %1").arg(e.what()));
-          emit onWorkComplete(false);
+          Q_EMIT onWorkComplete(false);
         }
         catch(const QSqlError &e) {
           portStatusLabel->setText(tr("Error during import: ").arg(e.text()));
-          emit onWorkComplete(false);
+          Q_EMIT onWorkComplete(false);
         }
   });
-  emit onWorkComplete(true);
+  Q_EMIT onWorkComplete(true);
 }

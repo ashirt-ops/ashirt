@@ -39,19 +39,19 @@ void TagCache::requestTags(QString operationSlug) {
       auto newEntry = cache.find(operationSlug);
       if (newEntry != cache.end()) {
         if (newEntry->second.isStale()) { // lookup failed -- notify with old data
-          emit failedLookup(operationSlug, newEntry->second.getTags());
+          Q_EMIT failedLookup(operationSlug, newEntry->second.getTags());
         }
         else {
-          emit tagResponse(operationSlug, newEntry->second.getTags());
+          Q_EMIT tagResponse(operationSlug, newEntry->second.getTags());
         }
       }
       else { // lookup failed, but no data in this scenario
-        emit failedLookup(operationSlug);
+        Q_EMIT failedLookup(operationSlug);
       }
     });
   }
   else { // we already have valid data
-    emit tagResponse(operationSlug, entry->second.getTags());
+    Q_EMIT tagResponse(operationSlug, entry->second.getTags());
   }
 }
 

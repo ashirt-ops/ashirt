@@ -132,10 +132,10 @@ class NetMan : public QObject {
       std::sort(ops.begin(), ops.end(),
                 [](dto::Operation i, dto::Operation j) { return i.name < j.name; });
 
-      emit operationListUpdated(true, ops);
+      Q_EMIT operationListUpdated(true, ops);
     }
     else {
-      emit operationListUpdated(false);
+      Q_EMIT operationListUpdated(false);
     }
     tidyReply(&allOpsReply);
   }
@@ -147,10 +147,10 @@ class NetMan : public QObject {
     auto data = extractResponse(githubReleaseReply, isValid);
     if (isValid) {
       auto releases = dto::GithubRelease::parseDataAsList(data);
-      emit releasesChecked(true, releases);
+      Q_EMIT releasesChecked(true, releases);
     }
     else {
-      emit releasesChecked(false);
+      Q_EMIT releasesChecked(false);
     }
     tidyReply(&githubReleaseReply);
   }

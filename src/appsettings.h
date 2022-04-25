@@ -44,14 +44,14 @@ class AppSettings : public QObject {
  public:
   void sync() {
     settings.sync();  // ignoring the error
-    emit this->onSettingsSynced();
+    Q_EMIT this->onSettingsSynced();
   }
 
   void setOperationDetails(QString operationSlug, QString operationName) {
     settings.setValue(opSlugSetting, operationSlug);
     settings.setValue(opNameSetting, operationName);
 
-    emit onOperationUpdated(operationSlug, operationName);
+    Q_EMIT onOperationUpdated(operationSlug, operationName);
   }
   QString operationSlug() { return settings.value(opSlugSetting).toString(); }
   QString operationName() { return settings.value(opNameSetting).toString(); }

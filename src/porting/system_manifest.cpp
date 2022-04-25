@@ -7,14 +7,14 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
   bool shouldMigrateDb = options.importDb == SystemManifestImportOptions::Merge && !dbPath.isEmpty();
 
   if (shouldMigrateConfig) {
-    emit onStatusUpdate(tr("Importing Settings"));
+    Q_EMIT onStatusUpdate(tr("Importing Settings"));
     migrateConfig();
   }
 
   if (shouldMigrateDb) {
     migrateDb(systemDb);
   }
-  emit onComplete();
+  Q_EMIT onComplete();
 }
 
 void SystemManifest::migrateConfig() {
@@ -36,14 +36,14 @@ void SystemManifest::migrateConfig() {
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
-  emit onStatusUpdate(tr("Reading Exported Evidence"));
+  Q_EMIT onStatusUpdate(tr("Reading Exported Evidence"));
   auto evidenceManifest = EvidenceManifest::deserialize(pathToFile(evidenceManifestPath));
-  onReady(evidenceManifest.entries.size());
+  Q_EMIT onReady(evidenceManifest.entries.size());
   DatabaseConnection::withConnection(
       pathToFile(dbPath), QStringLiteral("importDb"), [this, evidenceManifest, systemDb](DatabaseConnection importDb) {
-        emit onStatusUpdate(tr("Importing evidence"));
+        Q_EMIT onStatusUpdate(tr("Importing evidence"));
         for (size_t entryIndex = 0; entryIndex < evidenceManifest.entries.size(); entryIndex++) {
-          emit onFileProcessed(entryIndex); // this only makes sense on the 2nd+ iteration, but this works since indexes start at 0
+          Q_EMIT onFileProcessed(entryIndex); // this only makes sense on the 2nd+ iteration, but this works since indexes start at 0
           auto item = evidenceManifest.entries.at(entryIndex);
           auto importRecord = importDb.getEvidenceDetails(item.evidenceID);
           if (importRecord.id == 0) {
@@ -58,7 +58,7 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
           auto copyResult = FileHelpers::copyFile(fullFileExportPath, newEvidencePath, true);
 
           if (!copyResult.success) {
-            emit onCopyFileError(fullFileExportPath, newEvidencePath,
+            Q_EMIT onCopyFileError(fullFileExportPath, newEvidencePath,
                                  FileError::mkError(copyResult.file->errorString(), newEvidencePath, copyResult.file->error()));
           }
 
@@ -66,7 +66,7 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb) {
           qint64 evidenceID = systemDb->createFullEvidence(importRecord);
           systemDb->setEvidenceTags(importRecord.tags, evidenceID);
        }
-       emit onFileProcessed(evidenceManifest.entries.size()); // update the full set now that this is complete
+       Q_EMIT onFileProcessed(evidenceManifest.entries.size()); // update the full set now that this is complete
   });
 }
 
@@ -118,18 +118,18 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
   QString basePath = QDir(outputDirPath).path();
 
   if (options.exportConfig) {
-    emit onStatusUpdate(tr("Exporting settings"));
+    Q_EMIT onStatusUpdate(tr("Exporting settings"));
     configPath = QStringLiteral("config.json");
     AppConfig::getInstance().writeConfig(QStringLiteral("%1/%2").arg(basePath, configPath));
   }
 
   if (options.exportDb) {
-    emit onStatusUpdate(tr("Exporting Evidence"));
+    Q_EMIT onStatusUpdate(tr("Exporting Evidence"));
     dbPath = QStringLiteral("db.sqlite");
     evidenceManifestPath = QStringLiteral("evidence.json");
 
     auto allEvidence = DatabaseConnection::createEvidenceExportView(QStringLiteral("%1/%2").arg(basePath, dbPath), EvidenceFilters(), db);
-    emit onReady(allEvidence.size());
+    Q_EMIT onReady(allEvidence.size());
     porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
 
     // write evidence manifest
@@ -140,7 +140,7 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
   QString exportPath = QStringLiteral("%1/system.json").arg(basePath);
   this->pathToManifest = exportPath;
   FileHelpers::writeFile(exportPath, QJsonDocument(serialize(*this)).toJson());
-  emit onComplete();
+  Q_EMIT onComplete();
 }
 
 porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExportPath,
@@ -160,13 +160,13 @@ porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExport
     auto copyResult = FileHelpers::copyFile(evi.path, dstPath);
 
     if (!copyResult.success) {
-      emit onCopyFileError(evi.path, dstPath,
+      Q_EMIT onCopyFileError(evi.path, dstPath,
                            FileError::mkError(copyResult.file->errorString(), dstPath, copyResult.file->error()));
     }
     else {
       evidenceManifest.entries.push_back(item);
     }
-    emit onFileProcessed(evidenceIndex + 1);
+    Q_EMIT onFileProcessed(evidenceIndex + 1);
   }
   return evidenceManifest;
 }

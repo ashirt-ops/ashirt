@@ -159,7 +159,7 @@ void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
       }
     }
     updateCompleterModel();
-    emit tagsLoaded(true);
+    Q_EMIT tagsLoaded(true);
   }
 }
 
@@ -174,7 +174,7 @@ void TagEditor::tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdat
     for (auto tag : initialTags) {
       tagView->addTag(dto::Tag::fromModelTag(tag, TagWidget::randomColor()));
     }
-    emit tagsLoaded(false);
+    Q_EMIT tagsLoaded(false);
   }
 }
 

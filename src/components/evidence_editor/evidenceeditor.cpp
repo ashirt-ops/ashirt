@@ -174,7 +174,7 @@ void EvidenceEditor::clearEditor() {
 
 void EvidenceEditor::onTagsLoaded(bool success) {
   tagEditor->setReadonly(!success || readonly);
-  emit onWidgetReady();
+  Q_EMIT onWidgetReady();
 }
 
 // saveEvidence is a helper method to save (to the database) the currently

@@ -42,23 +42,23 @@ class TaggingLineEditEventFilter : public QObject {
       QKeyEvent *ke = static_cast<QKeyEvent *>(event);
 
       if (matchesKey(ke, QKeySequence(Qt::CTRL | Qt::Key_Space))) {
-        emit completePressed();
+        Q_EMIT completePressed();
         return true;
       }
 
       if (ke->key() == Qt::Key_Up) {
-        emit upPressed();
+        Q_EMIT upPressed();
         return true;
       }
       if (ke->key() == Qt::Key_Down) {
-        emit downPressed();
+        Q_EMIT downPressed();
         return true;
       }
     }
     else if (event->type() == QEvent::MouseButtonRelease) {
       auto mouseEvt = static_cast<QMouseEvent *>(event);
       if (mouseEvt->button() == Qt::LeftButton) {
-        emit leftMouseClickPressed();
+        Q_EMIT leftMouseClickPressed();
         return true;
       }
     }
