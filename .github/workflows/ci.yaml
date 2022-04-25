@@ -67,7 +67,8 @@ jobs:
             name: "Mac-Qt6"
             , os: macos-latest
             , QT_VERSION: 6.3.0, QT_INST_DIR: /Users/runner
-            , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\" -DNOTARIZE_AS=\"John Kennedy\""
+            , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\""
+            , cmakeSigning: "-DNOTARIZE_AS=\"John Kennedy\""
             , buildTarget: "--target package"
           }
         - {
@@ -134,7 +135,11 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
+        if [[ "${{ env.signRelease }}" == "true" ]]; then
+            cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
+        else
+            cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
+        fi
         cmake --build . ${{ matrix.config.buildTarget }}
         mkdir -p dist
         if [ "$RUNNER_OS" == "Linux" ]; then
