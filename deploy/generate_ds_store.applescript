@@ -42,7 +42,10 @@ on run argv
         set position of item "ashirt.app" to { 0, 225 }
         set position of item "README.MD" to { 250, 0 }
         set position of item "Applications" to { 500, 225 }
-        do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/MacOS/ashirt"
+        try
+            do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/MacOS/ashirt"
+            do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/Frameworks/libbrotlicommon.1.dylib"
+        end try
       end tell
       delay 5
     close
