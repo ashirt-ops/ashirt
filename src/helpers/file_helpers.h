@@ -16,7 +16,7 @@ class FileCopyResult {
  public:
   FileCopyResult(){}
   bool success = false;
-  QFile* file;
+  QFile* file = nullptr;
 };
 
 class FileHelpers {
