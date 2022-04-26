@@ -67,12 +67,6 @@ FlowLayout::FlowLayout(int margin, int hSpacing, int vSpacing)
   setContentsMargins(margin, margin, margin, margin);
 }
 
-FlowLayout::~FlowLayout() {
-  QLayoutItem *item;
-  while ((item = takeAt(0)))
-    delete item;
-}
-
 void FlowLayout::addItem(QLayoutItem *item) {
   itemList.append(item);
 }
