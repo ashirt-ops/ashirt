@@ -9,7 +9,7 @@ TagCache::TagCache() {
 }
 
 TagCache::~TagCache() {
-  for (auto entry : tagRequests) {
+  for (auto& entry : tagRequests) {
     stopReply(&(entry.second));
   }
 }

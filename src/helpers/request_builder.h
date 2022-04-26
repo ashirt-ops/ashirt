@@ -149,11 +149,11 @@ class RequestBuilder {
   QNetworkRequest build() {
     QNetworkRequest req;
 
-    for(auto header : rawHeaders) {
+    for(const auto& header : rawHeaders) {
       req.setRawHeader(FileHelpers::qstringToByteArray(header.first), FileHelpers::qstringToByteArray(header.second));
     }
 
-    for(auto header : knownHeaders) {
+    for(const auto& header : knownHeaders) {
       req.setHeader(header.first, header.second);
     }
 

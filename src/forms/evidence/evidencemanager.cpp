@@ -298,7 +298,7 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
   QStringList undeletedFiles;
   bool removedAllDbRecords = true;
   QStringList paths;
-  for(auto response : responses) {
+  for(const auto& response : responses) {
     if (!response.fileDeleteSuccess) {
       undeletedFiles << response.model.path;
     }
@@ -311,7 +311,7 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
 
   if (!removedAllDbRecords) {
     std::cerr << "Could not delete evidence from internal database. Errors: " << std::endl;
-    for (auto resp : responses) {
+    for (const auto& resp : responses) {
       if (!resp.dbDeleteSuccess) {
         std::cerr << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText.toStdString() << std::endl;
       }
@@ -338,7 +338,7 @@ void EvidenceManager::deleteSet(std::vector<qint64> ids) {
     QMessageBox::warning(this, tr("Could not complete evidence deletion"), msg);
   }
 
-  for (auto p : paths) {
+  for (const auto& p : paths) {
     auto path = QDir(p);
     auto dirName = path.dirName();
     path.cdUp();

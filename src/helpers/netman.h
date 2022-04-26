@@ -171,7 +171,7 @@ class NetMan : public QObject {
     // parser.AddParameter("occurred_at", std::to_string(evidence.recordedDate);
 
     QStringList list;
-    for (auto tag : evidence.tags) {
+    for (const auto& tag : evidence.tags) {
       list << QString::number(tag.serverTagId);
     }
     parser.AddParameter("tagIds", ("[" + list.join(",") + "]").toStdString());

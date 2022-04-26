@@ -59,7 +59,7 @@ class AppSettings : public QObject {
   void setLastUsedTags(std::vector<model::Tag> lastTags) {
     QVariantList writeTags;
     
-    for (auto tag : lastTags) {
+    for (const auto &tag : lastTags) {
       writeTags << QVariant::fromValue(tag);
     }
 

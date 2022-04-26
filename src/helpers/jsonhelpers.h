@@ -22,7 +22,7 @@ static std::vector<T> parseJSONList(QByteArray data, T (*dataToItem)(QJsonObject
   QJsonArray arr = doc.array();
   std::vector<T> list;
 
-  for (QJsonValue val : arr) {
+  for (const QJsonValue& val : arr) {
     auto item = dataToItem(val.toObject());
     list.push_back(item);
   }

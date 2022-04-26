@@ -35,7 +35,7 @@ static std::unordered_map<QString, QColor> colorMap{
 
 static std::vector<QString> allColorsNames = []()->std::vector<QString>{
   std::vector<QString> colors;
-  for (auto kv : colorMap) {
+  for (const auto& kv : colorMap) {
     colors.push_back(kv.first);
   }
   return colors;

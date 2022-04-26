@@ -146,7 +146,7 @@ class ReleaseDigest {
     SemVer minorVer = SemVer(currentVersion);
     SemVer patchVer = SemVer(currentVersion);
 
-    for (auto release : borrowedReleases) {
+    for (const auto& release : borrowedReleases) {
       if (SemVer::isUpgrade(currentVersion, SemVer::parse(release.tagName))) {
         upgrades.push_back(release);
       }
@@ -154,7 +154,7 @@ class ReleaseDigest {
 
     auto rtn = ReleaseDigest();
 
-    for (GithubRelease upgrade : upgrades) {
+    for (const GithubRelease& upgrade : upgrades) {
       auto upgradeVersion = SemVer::parse(upgrade.tagName);
       if (SemVer::isMajorUpgrade(currentVersion, upgradeVersion) && SemVer::isUpgrade(majorVer, upgradeVersion)) {
         majorVer = upgradeVersion;

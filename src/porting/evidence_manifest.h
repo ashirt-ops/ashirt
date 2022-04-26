@@ -48,7 +48,7 @@ class EvidenceManifest {
  public:
   static QJsonArray serialize(EvidenceManifest manifest) {
     QJsonArray a;
-    for (EvidenceItem evi : manifest.entries) {
+    for (const EvidenceItem& evi : manifest.entries) {
       a.append(EvidenceItem::serialize(evi));
     }
     return a;
