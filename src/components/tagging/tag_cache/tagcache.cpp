@@ -31,7 +31,7 @@ void TagCache::requestTags(QString operationSlug) {
 
     auto reply = NetMan::getInstance().getOperationTags(operationSlug);
     tagRequests.emplace(operationSlug, reply);
-    connect(reply, &QNetworkReply::finished, [this, reply, operationSlug]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, operationSlug]() {
       onGetTagsComplete(reply, operationSlug);
       tagRequests.erase(operationSlug);
 

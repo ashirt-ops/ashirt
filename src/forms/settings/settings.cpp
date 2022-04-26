@@ -181,13 +181,13 @@ void Settings::wireUi() {
   connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
   connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
 
-  connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+  connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, captureAreaShortcutTextBox);
   });
-  connect(captureWindowShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+  connect(captureWindowShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, captureWindowShortcutTextBox);
   });
-  connect(recordCodeblockShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, [this](const QKeySequence &keySequence){
+  connect(recordCodeblockShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, recordCodeblockShortcutTextBox);
   });
 }

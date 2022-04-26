@@ -164,21 +164,21 @@ void TrayManager::wireUi() {
   auto actTriggered = &QAction::triggered;
   // connect actions
   connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
-  connect(exportAction, actTriggered, [this, toTop](){toTop(exportWindow);});
-  connect(importAction, actTriggered, [this, toTop](){toTop(importWindow);});
-  connect(showSettingsAction, actTriggered, [this, toTop](){toTop(settingsWindow);});
+  connect(exportAction, actTriggered, this, [this, toTop](){toTop(exportWindow);});
+  connect(importAction, actTriggered, this, [this, toTop](){toTop(importWindow);});
+  connect(showSettingsAction, actTriggered, this, [this, toTop](){toTop(settingsWindow);});
   connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
   connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);
-  connect(showEvidenceManagerAction, actTriggered, [this, toTop](){toTop(evidenceManagerWindow);});
-  connect(showCreditsAction, actTriggered, [this, toTop](){toTop(creditsWindow);});
+  connect(showEvidenceManagerAction, actTriggered, this, [this, toTop](){toTop(evidenceManagerWindow);});
+  connect(showCreditsAction, actTriggered, this, [this, toTop](){toTop(creditsWindow);});
   connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
-  connect(newOperationAction, actTriggered, [this, toTop](){toTop(createOperationWindow);});
+  connect(newOperationAction, actTriggered, this, [this, toTop](){toTop(createOperationWindow);});
 
-  connect(exportWindow, &PortingDialog::portCompleted, [this](const QString& path) {
+  connect(exportWindow, &PortingDialog::portCompleted, this, [this](const QString& path) {
     openServicesPath = path;
     setTrayMessage(OPEN_PATH, tr("Export Complete"), tr("Export saved to: %1\nClick to view").arg(path));
   });
-  connect(importWindow, &PortingDialog::portCompleted, [this](const QString& path) {
+  connect(importWindow, &PortingDialog::portCompleted, this, [this](const QString& path) {
     setTrayMessage(NO_ACTION, tr("Import Complete"), tr("Import retrieved from: %1").arg(path));
   });
 
@@ -201,7 +201,7 @@ void TrayManager::wireUi() {
           &TrayManager::setActiveOperationLabel);
   
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
-  connect(trayIcon, &QSystemTrayIcon::activated, [this] {
+  connect(trayIcon, &QSystemTrayIcon::activated, this, [this] {
     chooseOpStatusAction->setText(tr("Loading operations..."));
     newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
@@ -328,7 +328,7 @@ void TrayManager::onOperationListUpdated(bool success,
         selectedAction = newAction;
       }
 
-      connect(newAction, &QAction::triggered, [this, newAction, op] {
+      connect(newAction, &QAction::triggered, this, [this, newAction, op] {
         AppSettings::getInstance().setLastUsedTags(std::vector<model::Tag>{}); // clear last used tags
         AppSettings::getInstance().setOperationDetails(op.slug, op.name);
         if (selectedAction != nullptr) {

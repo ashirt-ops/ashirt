@@ -84,7 +84,7 @@ void TagEditor::wireUi() {
   connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this,
           &TagEditor::completerActivated);
 
-  connect(tagCompleteTextBox, &QLineEdit::textChanged, [this](const QString &text) {
+  connect(tagCompleteTextBox, &QLineEdit::textChanged, this, [this](const QString &text) {
     if (text.isEmpty()) {
       tagCompleteTextBox->completer()->setCompletionPrefix(QString());
     }
