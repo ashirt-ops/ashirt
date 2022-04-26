@@ -1,12 +1,9 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef STOPREPLY_H
-#define STOPREPLY_H
+#pragma once
 
 #include <QNetworkReply>
 
 void stopReply(QNetworkReply **reply);
 void tidyReply(QNetworkReply **reply);
-
-#endif  // STOPREPLY_H

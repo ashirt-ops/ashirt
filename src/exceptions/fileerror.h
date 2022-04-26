@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef FILEERROR_H
-#define FILEERROR_H
+#pragma once
 
 #include <QFileDevice>
 #include <stdexcept>
@@ -75,5 +74,3 @@ class FileError : public std::runtime_error {
  private:
   FileError(std::string msg) : std::runtime_error(msg) {}
 };
-
-#endif  // FILEERROR_H

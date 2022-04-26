@@ -1,5 +1,4 @@
-#ifndef UPDOWNKEYFILTER_H
-#define UPDOWNKEYFILTER_H
+#pragma once
 
 #include <QEvent>
 #include <QKeyEvent>
@@ -65,5 +64,3 @@ class TaggingLineEditEventFilter : public QObject {
     return QObject::eventFilter(object, event);
   }
 };
-
-#endif  // UPDOWNKEYFILTER_H

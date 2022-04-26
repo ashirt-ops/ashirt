@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef APPSETTINGS_H
-#define APPSETTINGS_H
+#pragma once
 
 #include <QSequentialIterable>
 #include <QSettings>
@@ -81,4 +80,3 @@ class AppSettings : public QObject {
     return rtn;
   }
 };
-#endif  // APPSETTINGS_H

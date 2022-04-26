@@ -1,5 +1,4 @@
-#ifndef SYSTEM_OPTIONS_H
-#define SYSTEM_OPTIONS_H
+#pragma once
 
 namespace porting {
 
@@ -52,5 +51,3 @@ class SystemManifestImportOptions {
 };
 
 }
-
-#endif // SYSTEM_OPTIONS_H

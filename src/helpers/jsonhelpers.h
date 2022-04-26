@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef JSONHELPERS_H
-#define JSONHELPERS_H
+#pragma once
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -48,5 +47,3 @@ static T parseJSONItem(QByteArray data, std::function<T(QJsonObject)>dataToItem)
 //    auto obj = itemToData(item);
 //    return QJsonDocument::fromVariant(obj).toJson();
 //}
-
-#endif  // JSONHELPERS_H

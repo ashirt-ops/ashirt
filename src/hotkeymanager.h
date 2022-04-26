@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef HOTKEYMANAGER_H
-#define HOTKEYMANAGER_H
+#pragma once
 
 #include <QObject>
 
@@ -67,5 +66,3 @@ class HotkeyManager : public QObject {
   /// hotkeyManager is a reference to the raw hotkey manager, which a 3rd party manages.
   UGlobalHotkeys* hotkeyManager;
 };
-
-#endif  // HOTKEYMANAGER_H

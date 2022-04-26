@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DTO_OPERATION_H
-#define DTO_OPERATION_H
+#pragma once
 
 #include <QVariant>
 #include <vector>
@@ -61,5 +60,3 @@ class Operation {
   }
 };
 }  // namespace dto
-
-#endif  // DTO_OPERATION_H

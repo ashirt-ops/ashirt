@@ -1,5 +1,4 @@
-#ifndef SYNC_EVIDENCE_MANIFEST_H
-#define SYNC_EVIDENCE_MANIFEST_H
+#pragma once
 
 #include <QString>
 #include <QJsonArray>
@@ -66,5 +65,3 @@ class EvidenceManifest {
 };
 
 }
-
-#endif // SYNC_EVIDENCE_MANIFEST_H

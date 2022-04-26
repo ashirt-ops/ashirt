@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef EVIDENCEMANAGER_H
-#define EVIDENCEMANAGER_H
+#pragma once
 
 #include <QAction>
 #include <QDialog>
@@ -144,5 +143,3 @@ class EvidenceManager : public QDialog {
   QProgressIndicator* loadingAnimation = nullptr;
   QSpacerItem* spacer = nullptr;
 };
-
-#endif  // EVIDENCEMANAGER_H

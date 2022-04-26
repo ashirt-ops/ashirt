@@ -1,5 +1,4 @@
-#ifndef EVIDENCEPREVIEW_H
-#define EVIDENCEPREVIEW_H
+#pragma once
 
 #include <QWidget>
 
@@ -40,5 +39,3 @@ class EvidencePreview : public QWidget {
  private:
   bool readonly = false;
 };
-
-#endif  // EVIDENCEPREVIEW_H

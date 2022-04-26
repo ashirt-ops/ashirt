@@ -1,5 +1,4 @@
-#ifndef TAGWIDGET_H
-#define TAGWIDGET_H
+#pragma once
 
 #include <QImage>
 #include <QLabel>
@@ -88,5 +87,3 @@ class TagWidget : public QLabel {
   }();
 
 };
-
-#endif  // TAGWIDGET_H

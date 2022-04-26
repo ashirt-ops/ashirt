@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef CREDITS_H
-#define CREDITS_H
+#pragma once
 
 #include <QAction>
 #include <QDialog>
@@ -44,5 +43,3 @@ class Credits : public QDialog {
   dto::ReleaseDigest updateDigest;
 
 };
-
-#endif  // CREDITS_H

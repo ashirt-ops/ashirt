@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef MODEL_EVIDENCE_H
-#define MODEL_EVIDENCE_H
+#pragma once
 
 #include <QDateTime>
 #include <QString>
@@ -23,5 +22,3 @@ class Evidence {
   std::vector<Tag> tags;
 };
 }  // namespace model
-
-#endif  // MODEL_EVIDENCE_H

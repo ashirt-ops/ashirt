@@ -1,5 +1,4 @@
-#ifndef TESTCONNECTION_H
-#define TESTCONNECTION_H
+#pragma once
 
 #include <QVariant>
 
@@ -31,5 +30,3 @@ class CheckConnection {
   }
 };
 }
-
-#endif // TESTCONNECTION_H

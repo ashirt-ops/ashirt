@@ -1,5 +1,4 @@
-#ifndef IMPORTDIALOG_H
-#define IMPORTDIALOG_H
+#pragma once
 
 #include <QAction>
 #include <QCheckBox>
@@ -109,5 +108,3 @@ class PortingDialog : public QDialog {
   QCheckBox* portConfigCheckBox = nullptr;
   QCheckBox* portEvidenceCheckBox = nullptr;
 };
-
-#endif // IMPORTDIALOG_H

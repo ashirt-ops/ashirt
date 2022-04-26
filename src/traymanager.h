@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#pragma once
 
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -125,7 +124,4 @@ class TrayManager : public QDialog {
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   std::vector<QAction *> allOperationActions;
 };
-
 #endif  // QT_NO_SYSTEMTRAYICON
-
-#endif

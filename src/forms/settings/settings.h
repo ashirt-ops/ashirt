@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#pragma once
 
 #include <QAction>
 #include <QCloseEvent>
@@ -101,5 +100,3 @@ class Settings : public QDialog {
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
   QSpacerItem* spacer = nullptr;
 };
-
-#endif  // SETTINGS_H

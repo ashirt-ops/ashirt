@@ -1,5 +1,4 @@
-#ifndef HTTP_STATUS_H
-#define HTTP_STATUS_H
+#pragma once
 
 // clang-format off
 // copied/modified from https://golang.org/src/net/http/status.go
@@ -73,5 +72,3 @@ enum HttpStatus {
   StatusNetworkAuthenticationRequired = 511, // RFC 6585, 6
 };
 // clang-format on
-
-#endif  // HTTP_STATUS_H

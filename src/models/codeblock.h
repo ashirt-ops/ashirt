@@ -1,5 +1,4 @@
-#ifndef CODEBLOCK_H
-#define CODEBLOCK_H
+#pragma once
 
 #include <QString>
 
@@ -62,5 +61,3 @@ class Codeblock {
    */
   static void saveCodeblock(Codeblock codeblock);
 };
-
-#endif  // CODEBLOCK_H

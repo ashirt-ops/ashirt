@@ -1,5 +1,4 @@
-#ifndef CLIPBOARDHELPER_H
-#define CLIPBOARDHELPER_H
+#pragma once
 
 #include <QApplication>
 #include <QClipboard>
@@ -19,5 +18,3 @@ class ClipboardHelper : public QObject {
 
  signals:
 };
-
-#endif  // CLIPBOARDHELPER_H

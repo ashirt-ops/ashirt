@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef EVIDENCEFILTER_H
-#define EVIDENCEFILTER_H
+#pragma once
 
 #include <QDate>
 #include <QString>
@@ -61,5 +60,3 @@ class EvidenceFilters {
   inline static const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, QStringLiteral("operation")};
   inline static const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, QStringLiteral("contentType")};
 };
-
-#endif  // EVIDENCEFILTER_H

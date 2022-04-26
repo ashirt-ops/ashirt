@@ -1,5 +1,4 @@
-#ifndef CODEBLOCKVIEW_H
-#define CODEBLOCKVIEW_H
+#pragma once
 
 #include <QComboBox>
 #include <QGridLayout>
@@ -114,5 +113,3 @@ class CodeBlockView : public EvidencePreview {
       std::pair<QString, QString>(QStringLiteral("XML"), QStringLiteral("xml")),
   };
 };
-
-#endif  // CODEBLOCKVIEW_H

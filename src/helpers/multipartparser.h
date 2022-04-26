@@ -6,8 +6,7 @@
  *     Description         :     Generate multipart/form-data POST body
  **********************************************************************************/
 
-#ifndef MULTIPARTPARSER_H
-#define MULTIPARTPARSER_H
+#pragma once
 
 #include <string>
 #include <tuple>
@@ -38,5 +37,3 @@ class MultipartParser {
   std::vector<std::pair<std::string, std::string>> params_;
   std::vector<std::pair<std::string, std::string>> files_;
 };
-
-#endif  // MULTIPARTPARSER_H

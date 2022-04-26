@@ -1,5 +1,4 @@
-#ifndef TAGVIEW_H
-#define TAGVIEW_H
+#pragma once
 
 #include <QObject>
 #include <QWidget>
@@ -40,5 +39,3 @@ class TagView : public QWidget
   QGroupBox* tagGroupBox = nullptr;
   std::vector<TagWidget*> includedTags;
 };
-
-#endif // TAGVIEW_H

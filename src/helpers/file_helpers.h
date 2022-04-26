@@ -1,5 +1,4 @@
-#ifndef FILE_HELPERS_H
-#define FILE_HELPERS_H
+#pragma once
 
 #include <QDir>
 #include <QFile>
@@ -160,5 +159,3 @@ class FileHelpers {
     return QFileInfo(filepath).dir().path();
   }
 };
-
-#endif  // FILE_HELPERS_H

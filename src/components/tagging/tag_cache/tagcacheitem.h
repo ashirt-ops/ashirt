@@ -1,5 +1,4 @@
-#ifndef TAGCACHEITEM_H
-#define TAGCACHEITEM_H
+#pragma once
 
 #include "dtos/tag.h"
 
@@ -22,5 +21,3 @@ class TagCacheItem
   qint64 expiry;
   std::vector<dto::Tag> tags;
 };
-
-#endif // TAGCACHEITEM_H

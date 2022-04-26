@@ -1,5 +1,4 @@
-#ifndef GITHUB_RELEASE_H
-#define GITHUB_RELEASE_H
+#pragma once
 
 #include <QVariant>
 #include <QRegularExpression>
@@ -187,5 +186,3 @@ class ReleaseDigest {
 };
 
 }
-
-#endif // GITHUB_RELEASE_H

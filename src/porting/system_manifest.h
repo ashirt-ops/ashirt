@@ -1,5 +1,4 @@
-#ifndef SYNC_SYSTEM_MANIFEST_H
-#define SYNC_SYSTEM_MANIFEST_H
+#pragma once
 
 #include <QFile>
 #include <QJsonObject>
@@ -138,6 +137,3 @@ class SystemManifest : public QObject {
   QString pathToManifest;
 };
 }
-
-#endif // SYNC_SYSTEM_MANIFEST_H
-

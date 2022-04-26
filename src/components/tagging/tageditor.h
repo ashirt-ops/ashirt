@@ -1,5 +1,4 @@
-#ifndef TAGEDITOR_H
-#define TAGEDITOR_H
+#pragma once
 
 #include <QCompleter>
 #include <QErrorMessage>
@@ -77,5 +76,3 @@ class TagEditor : public QWidget {
   QLabel* errorLabel = nullptr;
   TagView* tagView = nullptr;
 };
-
-#endif  // TAGEDITOR_H

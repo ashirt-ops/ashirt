@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DATA_H
-#define DATA_H
+#pragma once
 
 #include <QDir>
 #include <QFile>
@@ -163,5 +162,3 @@ class AppConfig {
     return;
    }
 };
-
-#endif  // DATA_H

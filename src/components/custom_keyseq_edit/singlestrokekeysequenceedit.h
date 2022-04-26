@@ -1,5 +1,4 @@
-#ifndef SINGLESTROKEKEYSEQUENCEEDIT_H
-#define SINGLESTROKEKEYSEQUENCEEDIT_H
+#pragma once
 
 #include <QObject>
 #include <QKeySequenceEdit>
@@ -18,5 +17,3 @@ class SingleStrokeKeySequenceEdit : public QKeySequenceEdit
  private:
   QKeySequence previousSequence;
 };
-
-#endif // SINGLESTROKEKEYSEQUENCEEDIT_H

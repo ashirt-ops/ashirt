@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
 #include <QStandardPaths>
 #include <QString>
@@ -105,5 +104,3 @@ class Constants {
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }
 };
-
-#endif // CONSTANTS_H

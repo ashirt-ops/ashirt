@@ -1,5 +1,4 @@
-#ifndef DELETEEVIDENCERESPONSE_H
-#define DELETEEVIDENCERESPONSE_H
+#pragma once
 
 #include <QString>
 
@@ -21,5 +20,3 @@ struct DeleteEvidenceResponse {
   QString errorText;
   model::Evidence model;
 };
-
-#endif  // DELETEEVIDENCERESPONSE_H

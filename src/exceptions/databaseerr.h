@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DATABASEERR_H
-#define DATABASEERR_H
+#pragma once
 
 #include <stdexcept>
 
@@ -16,5 +15,3 @@ class DBDriverUnavailableError : public std::runtime_error {
   DBDriverUnavailableError(std::string friendlyDriverName)
       : std::runtime_error(friendlyDriverName + " driver is unavailable") {}
 };
-
-#endif  // DATABASEERR_H

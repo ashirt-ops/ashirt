@@ -23,8 +23,7 @@
  */
 
 // clang-format off
-#ifndef QPROGRESSINDICATOR_H
-#define QPROGRESSINDICATOR_H
+#pragma once
 
 #include <QColor>
 #include <QWidget>
@@ -117,6 +116,4 @@ class QProgressIndicator : public QWidget
     bool m_displayedWhenStopped;
     QColor m_color;
 };
-
-#endif // QPROGRESSINDICATOR_H
 // clang-format on

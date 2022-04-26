@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef NETMAN_H
-#define NETMAN_H
+#pragma once
 
 #include <QMessageAuthenticationCode>
 #include <QNetworkAccessManager>
@@ -268,5 +267,3 @@ class NetMan : public QObject {
   QNetworkReply *allOpsReply = nullptr;
   QNetworkReply *githubReleaseReply = nullptr;
 };
-
-#endif  // NETMAN_H

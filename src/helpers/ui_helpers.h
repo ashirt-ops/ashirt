@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef REPLACE_PLACEHOLDER_H
-#define REPLACE_PLACEHOLDER_H
+#pragma once
 
 #include <QComboBox>
 #include <QGridLayout>
@@ -62,5 +61,3 @@ class UiHelpers {
     }
   }
 };
-
-#endif  // REPLACE_PLACEHOLDER_H

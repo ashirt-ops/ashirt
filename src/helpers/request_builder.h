@@ -1,5 +1,4 @@
-#ifndef REQUESTBUILDER_H
-#define REQUESTBUILDER_H
+#pragma once
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -194,5 +193,3 @@ class RequestBuilder {
     return reply;
   }
 };
-
-#endif // REQUESTBUILDER_H

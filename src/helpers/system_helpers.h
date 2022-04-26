@@ -1,5 +1,4 @@
-#ifndef SYSTEM_HELPERS_H
-#define SYSTEM_HELPERS_H
+#pragma once
 
 #include <QString>
 #include <QDir>
@@ -26,5 +25,3 @@ class SystemHelpers {
   }
 
 };
-
-#endif // SYSTEM_HELPERS_H

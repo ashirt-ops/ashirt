@@ -1,5 +1,4 @@
-#ifndef IMAGEVIEW_H
-#define IMAGEVIEW_H
+#pragma once
 
 #include <QGridLayout>
 #include <QWidget>
@@ -36,5 +35,3 @@ class ImageView : public EvidencePreview {
   QGridLayout* gridLayout;
   AspectRatioPixmapLabel* previewImage;
 };
-
-#endif  // IMAGEVIEW_H

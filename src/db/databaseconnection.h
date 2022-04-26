@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DATABASECONNECTION_H
-#define DATABASECONNECTION_H
+#pragma once
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -136,5 +135,3 @@ class DatabaseConnection {
                   const FieldEncoderFunc &encodeValues, const RowDecoderFunc& decodeRows,
                   QString variableTemplate = QString());
 };
-
-#endif  // DATABASECONNECTION_H
