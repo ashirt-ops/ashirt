@@ -37,7 +37,7 @@ class NetMan : public QObject {
   using OperationVector = std::vector<dto::Operation>;
 
  signals:
-  void operationListUpdated(bool success, OperationVector  operations = OperationVector());
+  void operationListUpdated(bool success, NetMan::OperationVector  operations = NetMan::OperationVector());
   void releasesChecked(bool success, std::vector<dto::GithubRelease> releases = std::vector<dto::GithubRelease>());
   void testConnectionComplete(bool connected, int statusCode);
 
