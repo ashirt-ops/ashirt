@@ -44,7 +44,6 @@ on run argv
         set position of item "Applications" to { 500, 225 }
         try
             do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/MacOS/ashirt"
-            do shell script "codesign -v -f --timestamp --options runtime --sign \"$(cat deploy/NOTARIZE_AS)\" /Volumes/" & image_name & "/ashirt.app/Contents/Frameworks/libbrotlicommon.1.dylib"
         end try
       end tell
       delay 5
