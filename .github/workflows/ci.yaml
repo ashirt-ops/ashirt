@@ -128,12 +128,14 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        echo CMAKE_OPTIONS=
         if [[ "${{ env.signRelease }}" == "true" ]]; then
-            cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
-            cmake -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
         fi
-        cmake --build . ${{ matrix.config.buildTarget }}
+        cmake --build build ${{ matrix.config.buildTarget }}
+        cd build
         mkdir -p dist
         if [ "$RUNNER_OS" == "Linux" ]; then
             wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
@@ -143,8 +145,8 @@ jobs:
             export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e src/ashirt \
-                -d deploy/ashirt.desktop \
-                -i deploy/hicolor/128x128/apps/ashirt.png \
+                -d ../deploy/ashirt.desktop \
+                -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signRelease }}" == "true" ]]; then
             brew tap mitchellh/gon
@@ -159,7 +161,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ashirt-${{env.githash}}
-        path: dist/ashirt-*.*
+        path: build/dist/ashirt-*.*
 
   release:
     name: Release
@@ -177,7 +179,7 @@ jobs:
        automatic_release_tag: "continuous"
        prerelease: false
        title: "Continuous Build"
-       files: dist/ashirt-*.*
+       files: build/dist/ashirt-*.*
 
     - name: Deploy Tag
       if: needs.run-info.outputs.isRelease == 'true'
@@ -187,4 +189,4 @@ jobs:
        automatic_release_tag: ${{ github.ref }}
        prerelease: false
        title: ${{ github.ref }}
-       files: dist/ashirt-*.*
+       files: build/dist/ashirt-*.*
