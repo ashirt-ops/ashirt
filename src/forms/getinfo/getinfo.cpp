@@ -3,11 +3,12 @@
 
 #include "getinfo.h"
 
-#include <QKeySequence>
 #include <QMessageBox>
 
 #include "appsettings.h"
 #include "components/evidence_editor/evidenceeditor.h"
+#include "components/loading_button/loadingbutton.h"
+#include "db/databaseconnection.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 #include "helpers/ui_helpers.h"
@@ -16,6 +17,8 @@ GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
     : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
     , db(db)
     , evidenceID(evidenceID)
+    , submitButton(new LoadingButton(tr("Submit"), this))
+    , evidenceEditor(new EvidenceEditor(this->evidenceID, this->db, this))
 {
   buildUi();
   wireUi();
@@ -23,24 +26,21 @@ GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
 
 GetInfo::~GetInfo() {
   delete evidenceEditor;
-  delete submitButton;
-  delete deleteButton;
-
-  delete gridLayout;
   stopReply(&uploadAssetReply);
 }
 
 void GetInfo::buildUi() {
-  gridLayout = new QGridLayout(this);
-
-  submitButton = new LoadingButton(tr("Submit"), this);
   submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   submitButton->setAutoDefault(false);
-  deleteButton = new QPushButton(tr("Delete"), this);
+  connect(submitButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
+  connect(this, &GetInfo::setActionButtonsEnabled, submitButton, &QPushButton::setEnabled);
+
+  auto deleteButton = new QPushButton(tr("Delete"), this);
   deleteButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   deleteButton->setAutoDefault(false);
+  connect(deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
+  connect(this, &GetInfo::setActionButtonsEnabled, deleteButton, &QPushButton::setEnabled);
 
-  evidenceEditor = new EvidenceEditor(evidenceID, db, this);
   evidenceEditor->setEnabled(true);
 
   // Layout
@@ -53,25 +53,19 @@ void GetInfo::buildUi() {
     1  | Delete Btn    | <None>      | Submit Btn |
        +---------------+-------------+------------+
   */
-
-  // row 0
+  auto gridLayout = new QGridLayout(this);
   gridLayout->addWidget(evidenceEditor, 0, 0, 1, 3);
-
-  // row 1
   gridLayout->addWidget(deleteButton, 1, 0);
   gridLayout->addWidget(submitButton, 1, 2);
+  setLayout(gridLayout);
 
-  this->setLayout(gridLayout);
-  this->setAttribute(Qt::WA_DeleteOnClose);
-  this->resize(720, 480);
-  this->setWindowTitle(tr("Add Evidence Details"));
-
+  setAttribute(Qt::WA_DeleteOnClose);
+  resize(720, 480);
+  setWindowTitle(tr("Add Evidence Details"));
   setFocus(); // ensure focus is not on the submit button
 }
 
 void GetInfo::wireUi() {
-  connect(submitButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
-  connect(deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
 }
 
 void GetInfo::showEvent(QShowEvent* evt) {
@@ -93,7 +87,7 @@ bool GetInfo::saveData() {
 
 void GetInfo::submitButtonClicked() {
   submitButton->startAnimation();
-  setActionButtonsEnabled(false);
+  Q_EMIT setActionButtonsEnabled(false);
   if (saveData()) {
     try {
       model::Evidence evi = db->getEvidenceDetails(evidenceID);
@@ -113,7 +107,7 @@ void GetInfo::deleteButtonClicked() {
                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
-    setActionButtonsEnabled(false);
+    Q_EMIT  setActionButtonsEnabled(false);
     bool shouldClose = true;
 
     model::Evidence evi = evidenceEditor->encodeEvidence();
@@ -132,16 +126,11 @@ void GetInfo::deleteButtonClicked() {
                 << e.text().toStdString() << std::endl;
     }
 
-    setActionButtonsEnabled(true);
+    Q_EMIT setActionButtonsEnabled(true);
     if (shouldClose) {
-      this->close();
+      close();
     }
   }
-}
-
-void GetInfo::setActionButtonsEnabled(bool enabled) {
-  submitButton->setEnabled(enabled);
-  deleteButton->setEnabled(enabled);
 }
 
 void GetInfo::onUploadComplete() {
@@ -149,7 +138,7 @@ void GetInfo::onUploadComplete() {
     auto errMessage =
         tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
     try {
-      db->updateEvidenceError(errMessage, this->evidenceID);
+      db->updateEvidenceError(errMessage, evidenceID);
     }
     catch (QSqlError& e) {
       std::cout << "Upload failed. Could not update internal database. Error: "
@@ -163,9 +152,9 @@ void GetInfo::onUploadComplete() {
   }
   else {
     try {
-      db->updateEvidenceSubmitted(this->evidenceID);
-      Q_EMIT evidenceSubmitted(db->getEvidenceDetails(this->evidenceID));
-      this->close();
+      db->updateEvidenceSubmitted(evidenceID);
+      Q_EMIT evidenceSubmitted(db->getEvidenceDetails(evidenceID));
+      close();
     }
     catch (QSqlError& e) {
       std::cout << "Upload successful. Could not update internal database. Error: "
@@ -175,6 +164,6 @@ void GetInfo::onUploadComplete() {
   // we don't actually need anything from the uploadAssets reply, so just clean it up.
   // one thing we might want to record: evidence uuid... not sure why we'd need it though.
   submitButton->stopAnimation();
-  setActionButtonsEnabled(true);
+  Q_EMIT setActionButtonsEnabled(true);
   tidyReply(&uploadAssetReply);
 }
