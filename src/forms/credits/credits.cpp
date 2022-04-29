@@ -4,10 +4,13 @@
 #include "credits.h"
 
 #include <QDateTime>
-#include <QKeySequence>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QTextBrowser>
 
-#include "helpers/netman.h"
 #include "helpers/constants.h"
+#include "helpers/netman.h"
 
 struct Attribution {
   std::string library;
@@ -106,14 +109,14 @@ static std::string normalBodyMarkdown() {
 }
 
 Credits::Credits(QWidget* parent)
-  : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    , updateLabel(new QLabel(this))
 {
   buildUi();
   wireUi();
 }
 
 void Credits::updateRelease() {
-  static QString baseUpdateText = "A new update is available! Click <a href=\"%1\">here</a> for more details.";
   if (updateDigest.hasUpgrade()) {
     updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl()));
   }
@@ -123,20 +126,17 @@ void Credits::updateRelease() {
 }
 
 void Credits::buildUi() {
-  gridLayout = new QGridLayout(this);
-
-  updateLabel = new QLabel();
   updateLabel->setOpenExternalLinks(true);
   updateLabel->setTextFormat(Qt::RichText);
   updateLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
-  creditsArea = new QTextBrowser(this);
+  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
+
+  auto creditsArea = new QTextBrowser(this);
   creditsArea->setOpenExternalLinks(true);
   creditsArea->setReadOnly(true);
   creditsArea->setMarkdown(normalBodyMarkdown().c_str());
-
-  buttonBox = new QDialogButtonBox(this);
-  buttonBox->addButton(QDialogButtonBox::Close);
 
   // Layout
   /*                   0
@@ -151,31 +151,18 @@ void Credits::buildUi() {
        +------------------------------------+
   */
 
-  // row 0
+  auto gridLayout = new QGridLayout(this);
   gridLayout->addWidget(updateLabel, 0, 0);
-
-  // row 1
   gridLayout->addWidget(creditsArea, 1, 0);
-
-  // row 2
   gridLayout->addWidget(buttonBox, 2, 0);
+  setLayout(gridLayout);
 
-  this->setLayout(gridLayout);
-  this->resize(640, 500);
-  this->setWindowTitle("About");
+  resize(450, 500);
+  setWindowTitle("About");
 }
 
 void Credits::wireUi() {
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
-}
-
-Credits::~Credits() {
-  delete updateLabel;
-  delete creditsArea;
-  delete buttonBox;
-
-  delete gridLayout;
 }
 
 void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases) {

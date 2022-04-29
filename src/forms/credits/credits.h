@@ -4,20 +4,16 @@
 #pragma once
 
 #include "ashirtdialog/ashirtdialog.h"
-
-#include <QLabel>
-#include <QTextBrowser>
-#include <QDialogButtonBox>
-#include <QGridLayout>
-
 #include "dtos/github_release.h"
+
+class QLabel;
 
 class Credits : public AShirtDialog {
   Q_OBJECT
 
  public:
   explicit Credits(QWidget *parent = nullptr);
-  ~Credits();
+  ~Credits() = default;
 
  public slots:
   void onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases);
@@ -32,12 +28,7 @@ class Credits : public AShirtDialog {
   void updateRelease();
 
  private:
-  // UI Components
-  QGridLayout* gridLayout = nullptr;
-  QTextBrowser* creditsArea = nullptr;
-  QDialogButtonBox* buttonBox = nullptr;
   QLabel* updateLabel = nullptr;
-
   dto::ReleaseDigest updateDigest;
-
+  inline static const QString baseUpdateText = QStringLiteral("A new update is available! Click <a href=\"%1\">here</a> for more details.");
 };
