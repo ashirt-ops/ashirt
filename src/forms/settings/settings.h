@@ -6,18 +6,15 @@
 #include "ashirtdialog/ashirtdialog.h"
 
 #include <QCloseEvent>
-#include <QDialogButtonBox>
-#include <QErrorMessage>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QNetworkReply>
-#include <QPushButton>
-#include <QSpacerItem>
-#include <QKeySequenceEdit>
 
-#include "components/loading_button/loadingbutton.h"
-#include "hotkeymanager.h"
+class HotkeyManager;
+class QErrorMessage;
+class QKeySequenceEdit;
+class QLabel;
+class QLineEdit;
+class LoadingButton;
+class QNetworkReply;
+class QPushButton;
 
 /**
  * @brief The Settings class represents the settings dialog that displays when
@@ -70,16 +67,6 @@ class Settings : public AShirtDialog {
   QNetworkReply* currentTestReply = nullptr;
 
   // UI components
-  QGridLayout* gridLayout = nullptr;
-  QLabel* _eviRepoLabel = nullptr;
-  QLabel* _accessKeyLabel = nullptr;
-  QLabel* _secretKeyLabel = nullptr;
-  QLabel* _hostPathLabel = nullptr;
-  QLabel* _captureAreaCmdLabel = nullptr;
-  QLabel* _captureAreaShortcutLabel = nullptr;
-  QLabel* _captureWindowCmdLabel = nullptr;
-  QLabel* _captureWindowShortcutLabel = nullptr;
-  QLabel* _recordCodeblockShortcutLabel = nullptr;
   QLabel* connStatusLabel = nullptr;
 
   QLineEdit* eviRepoTextBox = nullptr;
@@ -94,8 +81,5 @@ class Settings : public AShirtDialog {
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QPushButton* clearHotkeysButton = nullptr;
-  QDialogButtonBox* buttonBox = nullptr;
-
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
-  QSpacerItem* spacer = nullptr;
 };

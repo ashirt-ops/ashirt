@@ -4,8 +4,16 @@
 #include "settings.h"
 
 #include <QDateTime>
+#include <QDialogButtonBox>
+#include <QErrorMessage>
 #include <QFileDialog>
+#include <QGridLayout>
 #include <QKeySequence>
+#include <QKeySequenceEdit>
+#include <QLabel>
+#include <QLineEdit>
+#include <QNetworkReply>
+#include <QPushButton>
 #include <QString>
 
 #include "appconfig.h"
@@ -17,78 +25,42 @@
 #include "helpers/ui_helpers.h"
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
+#include "components/loading_button/loadingbutton.h"
 
 Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
-  : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    , hotkeyManager(hotkeyManager)
+    , connStatusLabel(new QLabel(this))
+    , eviRepoTextBox(new QLineEdit(this))
+    , accessKeyTextBox(new QLineEdit(this))
+    , secretKeyTextBox(new QLineEdit(this))
+    , hostPathTextBox(new QLineEdit(this))
+    , captureAreaCmdTextBox(new QLineEdit(this))
+    , captureAreaShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
+    , captureWindowCmdTextBox(new QLineEdit(this))
+    , captureWindowShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
+    , recordCodeblockShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
+    , testConnectionButton(new LoadingButton(tr("Test Connection"), this))
+    , couldNotSaveSettingsMsg(new QErrorMessage(this))
 {
-  this->hotkeyManager = hotkeyManager;
   buildUi();
   wireUi();
 }
 
 Settings::~Settings() {
-  delete _eviRepoLabel;
-  delete _accessKeyLabel;
-  delete _secretKeyLabel;
-  delete _hostPathLabel;
-  delete _captureAreaCmdLabel;
-  delete _captureAreaShortcutLabel;
-  delete _captureWindowCmdLabel;
-  delete _captureWindowShortcutLabel;
-  delete _recordCodeblockShortcutLabel;
-  delete connStatusLabel;
-
-  delete eviRepoTextBox;
-  delete accessKeyTextBox;
-  delete secretKeyTextBox;
-  delete hostPathTextBox;
-  delete captureAreaCmdTextBox;
-  delete captureAreaShortcutTextBox;
-  delete captureWindowCmdTextBox;
-  delete captureWindowShortcutTextBox;
-  delete recordCodeblockShortcutTextBox;
-  delete testConnectionButton;
-  delete eviRepoBrowseButton;
-  delete buttonBox;
-
-  delete gridLayout;
-
-  delete couldNotSaveSettingsMsg;
   stopReply(&currentTestReply);
 }
 
 void Settings::buildUi() {
-  gridLayout = new QGridLayout(this);
-  _eviRepoLabel = new QLabel(tr("Evidence Repository"), this);
-  _accessKeyLabel = new QLabel(tr("Access Key"), this);
-  _secretKeyLabel = new QLabel(tr("Secret Key"), this);
-  _hostPathLabel = new QLabel(tr("Host Path"), this);
-  _captureAreaCmdLabel = new QLabel(tr("Capture Area Command"), this);
-  _captureAreaShortcutLabel = new QLabel(tr("Shortcut"), this);
-  _captureWindowCmdLabel = new QLabel(tr("Capture Window Command"), this);
-  _captureWindowShortcutLabel = new QLabel(tr("Shortcut"), this);
-  _recordCodeblockShortcutLabel = new QLabel(tr("Record Codeblock Shortcut"), this);
-  connStatusLabel = new QLabel(QString(), this);
+  auto eviRepoBrowseButton = new QPushButton(tr("Browse"), this);
+  connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
 
-  eviRepoTextBox = new QLineEdit(this);
-  accessKeyTextBox = new QLineEdit(this);
-  secretKeyTextBox = new QLineEdit(this);
-  hostPathTextBox = new QLineEdit(this);
-  captureAreaCmdTextBox = new QLineEdit(this);
-  captureAreaShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  captureWindowCmdTextBox = new QLineEdit(this);
-  captureWindowShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  recordCodeblockShortcutTextBox = new SingleStrokeKeySequenceEdit(this);
-  eviRepoBrowseButton = new QPushButton(tr("Browse"), this);
-  testConnectionButton = new LoadingButton(tr("Test Connection"), this);
-  clearHotkeysButton = new QPushButton(tr("Clear Shortcuts"), this);
-  buttonBox = new QDialogButtonBox(this);
-  buttonBox->addButton(QDialogButtonBox::Save);
-  buttonBox->addButton(QDialogButtonBox::Cancel);
+  auto clearHotkeysButton = new QPushButton(tr("Clear Shortcuts"), this);
+  connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
 
-  spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding);
-  couldNotSaveSettingsMsg = new QErrorMessage(this);
-
+  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, this);
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
   // Layout
   /*        0                 1           2             3
        +---------------+-------------+------------+-------------+
@@ -113,38 +85,38 @@ void Settings::buildUi() {
     9  | Dialog button Box{save, cancel}                        |
        +---------------+-------------+------------+-------------+
   */
-
+  auto gridLayout = new QGridLayout(this);
   // row 0
-  gridLayout->addWidget(_eviRepoLabel, 0, 0);
+  gridLayout->addWidget(new QLabel(tr("Evidence Repository"), this), 0, 0);
   gridLayout->addWidget(eviRepoTextBox, 0, 1, 1, 3);
   gridLayout->addWidget(eviRepoBrowseButton, 0, 4);
 
   // row 1
-  gridLayout->addWidget(_accessKeyLabel, 1, 0);
+  gridLayout->addWidget(new QLabel(tr("Access Key"), this), 1, 0);
   gridLayout->addWidget(accessKeyTextBox, 1, 1, 1, 4);
 
   // row 2
-  gridLayout->addWidget(_secretKeyLabel, 2, 0);
+  gridLayout->addWidget(new QLabel(tr("Secret Key"), this), 2, 0);
   gridLayout->addWidget(secretKeyTextBox, 2, 1, 1, 4);
 
   // row 3
-  gridLayout->addWidget(_hostPathLabel, 3, 0);
+  gridLayout->addWidget(new QLabel(tr("Host Path"), this), 3, 0);
   gridLayout->addWidget(hostPathTextBox, 3, 1, 1, 4);
 
   // row 4
-  gridLayout->addWidget(_captureAreaCmdLabel, 4, 0);
+  gridLayout->addWidget(new QLabel(tr("Capture Area Command"), this), 4, 0);
   gridLayout->addWidget(captureAreaCmdTextBox, 4, 1);
-  gridLayout->addWidget(_captureAreaShortcutLabel, 4, 2);
+  gridLayout->addWidget(new QLabel(tr("Shortcut"), this), 4, 2);
   gridLayout->addWidget(captureAreaShortcutTextBox, 4, 3, 1, 2);
 
   // row 5
-  gridLayout->addWidget(_captureWindowCmdLabel, 5, 0);
+  gridLayout->addWidget(new QLabel(tr("Capture Window Command"), this), 5, 0);
   gridLayout->addWidget(captureWindowCmdTextBox, 5, 1);
-  gridLayout->addWidget(_captureWindowShortcutLabel, 5, 2);
+  gridLayout->addWidget(new QLabel(tr("Shortcut"), this), 5, 2);
   gridLayout->addWidget(captureWindowShortcutTextBox, 5, 3, 1, 2);
 
   // row 6 (reserved for codeblocks)
-  gridLayout->addWidget(_recordCodeblockShortcutLabel, 6, 0);
+  gridLayout->addWidget(new QLabel(tr("Record Codeblock Shortcut"), this), 6, 0);
   gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
   gridLayout->addWidget(clearHotkeysButton, 6, 2, 1, 3, Qt::AlignRight);
 
@@ -153,24 +125,19 @@ void Settings::buildUi() {
   gridLayout->addWidget(connStatusLabel, 7, 1, 1, 4);
 
   // row 8
-  gridLayout->addItem(spacer, 8, 0, 1, gridLayout->columnCount());
+  gridLayout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding), 8, 0, 1, gridLayout->columnCount());
 
   // row 9
   gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
 
-  this->setLayout(gridLayout);
-  this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  this->resize(760, 300);
-  this->setWindowTitle(tr("Settings"));
+  setLayout(gridLayout);
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  resize(760, 300);
+  setWindowTitle(tr("Settings"));
 }
 
 void Settings::wireUi() {
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
-  connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
-  connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
-
   connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, captureAreaShortcutTextBox);
   });
@@ -209,7 +176,7 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
 
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
-  this->hotkeyManager->disableHotkeys();
+  hotkeyManager->disableHotkeys();
   
   AppConfig &inst = AppConfig::getInstance();
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
@@ -232,13 +199,13 @@ void Settings::showEvent(QShowEvent *evt) {
 
 void Settings::closeEvent(QCloseEvent *event) {
   onSaveClicked();
-  this->hotkeyManager->enableHotkeys();
+  hotkeyManager->enableHotkeys();
   QDialog::closeEvent(event);
 }
 
 void Settings::onCancelClicked() {
   stopReply(&currentTestReply);
-  this->hotkeyManager->enableHotkeys();
+  hotkeyManager->enableHotkeys();
   reject();
 }
 
