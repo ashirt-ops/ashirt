@@ -5,7 +5,6 @@
 
 #include <QCheckBox>
 #include <QHeaderView>
-#include <QKeySequence>
 #include <QMessageBox>
 #include <QRandomGenerator>
 #include <QStandardPaths>
@@ -32,57 +31,35 @@ enum ColumnIndexes {
   COL_ERROR_MSG
 };
 
-static QStringList columnNames() {
-  static QStringList names;
-  if (names.count() == 0) {
-    names.insert(COL_DATE_CAPTURED, QStringLiteral("Date Captured"));
-    names.insert(COL_OPERATION, QStringLiteral("Operation"));
-    names.insert(COL_PATH, QStringLiteral("Path"));
-    names.insert(COL_CONTENT_TYPE, QStringLiteral("Content Type"));
-    names.insert(COL_DESCRIPTION, QStringLiteral("Description"));
-    names.insert(COL_SUBMITTED, QStringLiteral("Submitted"));
-    names.insert(COL_DATE_SUBMITTED, QStringLiteral("Date Submitted"));
-    names.insert(COL_FAILED, QStringLiteral("Failed"));
-    names.insert(COL_ERROR_MSG, QStringLiteral("Error"));
-  }
-  return names;
-}
-
 EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
-  : AShirtDialog(parent)
+    : AShirtDialog(parent)
+    , db(db)
+    , evidenceTable(new QTableWidget(this))
+    , filterForm(new EvidenceFilterForm(this))
+    , evidenceTableContextMenu(new QMenu(this))
+    , submitEvidenceAction(new QAction(tr("Submit Evidence"), evidenceTableContextMenu))
+    , copyPathToClipboardAction(new QAction(tr("Copy Path"), evidenceTableContextMenu))
+    , filterTextBox(new QLineEdit(this))
+    , editFiltersButton(new QPushButton(tr("Edit Filters"), this))
+    , applyFilterButton(new QPushButton(tr("Apply"), this))
+    , resetFilterButton(new QPushButton(tr("Reset"), this))
+    , editButton(new QPushButton(tr("Edit"), this))
+    , cancelEditButton(new QPushButton(tr("Cancel"), this))
+    , evidenceEditor(new EvidenceEditor(this->db, this))
+    , loadingAnimation(new QProgressIndicator(this))
 {
-  this->db = db;
   buildUi();
   wireUi();
 }
 
 EvidenceManager::~EvidenceManager() {
-  delete submitEvidenceAction;
-  delete deleteEvidenceAction;
-  delete copyPathToClipboardAction;
-  delete deleteTableContentsAction;
-  delete evidenceTableContextMenu;
-  delete filterForm;
-  delete evidenceEditor;
-  delete editButton;
-  delete cancelEditButton;
-  delete editFiltersButton;
-  delete applyFilterButton;
-  delete resetFilterButton;
-  delete filterTextBox;
-  delete evidenceTable;
-  delete loadingAnimation;
-
-  delete gridLayout;
   stopReply(&uploadAssetReply);
 }
 
 void EvidenceManager::buildEvidenceTableUi() {
-  evidenceTable = new QTableWidget(this);
   evidenceTable->setContextMenuPolicy(Qt::CustomContextMenu);
-  QStringList colNames = columnNames();
-  evidenceTable->setColumnCount(colNames.length());
-  evidenceTable->setHorizontalHeaderLabels(colNames);
+  evidenceTable->setColumnCount(columnNames.length());
+  evidenceTable->setHorizontalHeaderLabels(columnNames);
   evidenceTable->setSelectionMode(QAbstractItemView::SingleSelection);
   evidenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   evidenceTable->setSortingEnabled(true);
@@ -95,26 +72,13 @@ void EvidenceManager::buildEvidenceTableUi() {
 }
 
 void EvidenceManager::buildUi() {
-  gridLayout = new QGridLayout(this);
-  filterForm = new EvidenceFilterForm(this);
-  evidenceTableContextMenu = new QMenu(this);
-  submitEvidenceAction = new QAction(tr("Submit Evidence"), evidenceTableContextMenu);
+
   evidenceTableContextMenu->addAction(submitEvidenceAction);
-  deleteEvidenceAction = new QAction(tr("Delete Evidence"), evidenceTableContextMenu);
-  evidenceTableContextMenu->addAction(deleteEvidenceAction);
-  copyPathToClipboardAction = new QAction(tr("Copy Path"), evidenceTableContextMenu);
+  evidenceTableContextMenu->addAction(tr("Delete Evidence"), this, &EvidenceManager::deleteEvidenceTriggered);
   evidenceTableContextMenu->addAction(copyPathToClipboardAction);
   evidenceTableContextMenu->addSeparator();
-  deleteTableContentsAction = new QAction(tr("Delete All from table"), evidenceTableContextMenu);
-  evidenceTableContextMenu->addAction(deleteTableContentsAction);
+  evidenceTableContextMenu->addAction(tr("Delete All from table"), this , &EvidenceManager::deleteAllTriggered);
 
-  filterTextBox = new QLineEdit(this);
-  editFiltersButton = new QPushButton(tr("Edit Filters"), this);
-  applyFilterButton = new QPushButton(tr("Apply"), this);
-  resetFilterButton = new QPushButton(tr("Reset"), this);
-
-  editButton = new QPushButton(tr("Edit"), this);
-  cancelEditButton = new QPushButton(tr("Cancel"), this);
   cancelEditButton->setVisible(false);
 
   // remove button defaults (i.e. enter-submits-form functionality)
@@ -129,11 +93,7 @@ void EvidenceManager::buildUi() {
 
   buildEvidenceTableUi();
 
-  evidenceEditor = new EvidenceEditor(db, this);
   evidenceEditor->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-
-  loadingAnimation = new QProgressIndicator(this);
-  spacer = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   setTabOrder(editFiltersButton, filterTextBox);
   setTabOrder(filterTextBox, applyFilterButton);
@@ -157,28 +117,26 @@ void EvidenceManager::buildUi() {
        +---------------+-------------+------------+-------------+
   */
 
-  // row 0
+  auto gridLayout = new QGridLayout(this);
+
   gridLayout->addWidget(editFiltersButton, 0, 0);
   gridLayout->addWidget(filterTextBox, 0, 1);
   gridLayout->addWidget(applyFilterButton, 0, 2);
   gridLayout->addWidget(resetFilterButton, 0, 3);
 
-  // row 1
   gridLayout->addWidget(evidenceTable, 1, 0, 1, gridLayout->columnCount());
 
-  // row 2
   gridLayout->addWidget(evidenceEditor, 2, 0, 1, gridLayout->columnCount());
 
-  // row 3
   gridLayout->addWidget(loadingAnimation, 3, 0);
-  gridLayout->addItem(spacer, 3, 1);
+  gridLayout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum), 3, 1);
   gridLayout->addWidget(cancelEditButton, 3, 2);
   gridLayout->addWidget(editButton, 3, 3);
+  setLayout(gridLayout);
 
-  this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  this->resize(800, 600);
-  this->setWindowTitle(tr("Evidence Manager"));
-  this->setLayout(gridLayout);
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  resize(800, 600);
+  setWindowTitle(tr("Evidence Manager"));
 }
 
 void EvidenceManager::wireUi() {
@@ -193,9 +151,7 @@ void EvidenceManager::wireUi() {
   connect(cancelEditButton, btnClicked, this, &EvidenceManager::cancelEditEvidenceButtonClicked);
 
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
-  connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
   connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
-  connect(deleteTableContentsAction, actionTriggered, this, &EvidenceManager::deleteAllTriggered);
 
   connect(filterForm, &EvidenceFilterForm::evidenceSet, this, &EvidenceManager::applyFilterForm);
 
@@ -358,7 +314,6 @@ void EvidenceManager::openTableContextMenu(QPoint pos) {
   copyPathToClipboardAction->setEnabled(singleItemSelected);
   bool wasSubmitted = !evidenceEditor->encodeEvidence().uploadDate.isNull();
   submitEvidenceAction->setEnabled(singleItemSelected && !wasSubmitted);
-
   evidenceTableContextMenu->popup(evidenceTable->viewport()->mapToGlobal(pos));
 }
 
