@@ -1,6 +1,7 @@
 
 
 if(WIN32)
+    configure_file(ashirt.rc.in ${CMAKE_CURRENT_BINARY_DIR}/ashirt.rc @ONLY)
     install(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION . RENAME LICENSE.txt)
     install(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION . RENAME README.txt)
 elseif(APPLE)

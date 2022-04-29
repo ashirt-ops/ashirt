@@ -34,7 +34,7 @@ if(APPLE)
     set_source_files_properties(${ASHIRT_PLATFORM_EX_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 elseif(WIN32)
     set(CMAKE_PREFIX_PATH $ENV{QTDIR})
-    configure_file(${CMAKE_SOURCE_DIR}/deploy/ashirt.rc.in ${CMAKE_BINARY_DIR}/deploy/ashirt.rc @ONLY)
+    include_directories(${CMAKE_SOURCE_DIR}/deploy)
     set(ASHIRT_PLATFORM_EX_SRC ${CMAKE_BINARY_DIR}/deploy/ashirt.rc)
 endif()
 
