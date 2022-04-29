@@ -1,68 +1,50 @@
 #include "createoperation.h"
 
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QNetworkReply>
 #include <QRegularExpression>
 
+#include "appsettings.h"
+#include "dtos/ashirt_error.h"
+#include "components/loading_button/loadingbutton.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
-#include "dtos/ashirt_error.h"
-#include "appsettings.h"
 
 CreateOperation::CreateOperation(QWidget* parent)
   : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    , submitButton(new LoadingButton(tr("Submit"), this))
+    , responseLabel(new QLabel(this))
+    , operationNameTextBox(new QLineEdit(this))
 {
-  buildUi();
-  wireUi();
+    submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(submitButton, &QPushButton::clicked, this, &CreateOperation::submitButtonClicked);
+
+    // Layout
+    /*        0                 1            2
+         +---------------+-------------+------------+
+      0  | Op Lbl        | [Operation TB]           |
+         +---------------+-------------+------------+
+      1  | Error Lbl                                |
+         +---------------+-------------+------------+
+      2  | <None>        | <None>      | Submit Btn |
+         +---------------+-------------+------------+
+    */
+
+    auto gridLayout = new QGridLayout(this);
+    gridLayout->addWidget(new QLabel(tr("Operation Name"), this), 0, 0);
+    gridLayout->addWidget(operationNameTextBox, 0, 1, 1, 2);
+    gridLayout->addWidget(responseLabel, 1, 0, 1, 3);
+    gridLayout->addWidget(submitButton, 2, 2);
+    setLayout(gridLayout);
+
+    resize(400, 1);
+    setWindowTitle(tr("Create Operation"));
 }
 
 CreateOperation::~CreateOperation() {
-  delete submitButton;
-  delete _operationLabel;
-  delete responseLabel;
-  delete operationNameTextBox;
-
-  delete gridLayout;
   stopReply(&createOpReply);
-}
-
-void CreateOperation::buildUi() {
-  gridLayout = new QGridLayout(this);
-
-  submitButton = new LoadingButton(tr("Submit"), this);
-  submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-  _operationLabel = new QLabel(tr("Operation Name"), this);
-  _operationLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  responseLabel = new QLabel(this);
-  operationNameTextBox = new QLineEdit(this);
-
-  // Layout
-  /*        0                 1            2
-       +---------------+-------------+------------+
-    0  | Op Lbl        | [Operation TB]           |
-       +---------------+-------------+------------+
-    1  | Error Lbl                                |
-       +---------------+-------------+------------+
-    2  | <None>        | <None>      | Submit Btn |
-       +---------------+-------------+------------+
-  */
-
-  // row 0
-  gridLayout->addWidget(_operationLabel, 0, 0);
-  gridLayout->addWidget(operationNameTextBox, 0, 1, 1, 2);
-
-  // row 1
-  gridLayout->addWidget(responseLabel, 1, 0, 1, 3);
-
-  // row 2
-  gridLayout->addWidget(submitButton, 2, 2);
-
-  this->setLayout(gridLayout);
-  this->resize(400, 1);
-  this->setWindowTitle(tr("Create Operation"));
-}
-
-void CreateOperation::wireUi() {
-  connect(submitButton, &QPushButton::clicked, this, &CreateOperation::submitButtonClicked);
 }
 
 void CreateOperation::submitButtonClicked() {
@@ -99,7 +81,7 @@ void CreateOperation::onRequestComplete() {
     dto::Operation op = dto::Operation::parseData(data);
     AppSettings::getInstance().setOperationDetails(op.slug, op.name);
     operationNameTextBox->clear();
-    this->close();
+    close();
   }
   else {
     dto::AShirtError err = dto::AShirtError::parseData(data);
