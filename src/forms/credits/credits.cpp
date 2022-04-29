@@ -105,7 +105,9 @@ static std::string normalBodyMarkdown() {
   // clang-format on
 }
 
-Credits::Credits(QWidget* parent) : QDialog(parent) {
+Credits::Credits(QWidget* parent)
+  : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+{
   buildUi();
   wireUi();
 }
@@ -158,29 +160,17 @@ void Credits::buildUi() {
   // row 2
   gridLayout->addWidget(buttonBox, 2, 0);
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setLayout(gridLayout);
   this->resize(640, 500);
   this->setWindowTitle("About");
-
-  // Make the dialog pop up above any other windows but retain title bar and buttons
-  Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
-           Qt::WindowCloseButtonHint;
-  this->setWindowFlags(flags);
 }
 
 void Credits::wireUi() {
-  connect(closeWindowAction, &QAction::triggered, this, &QDialog::close);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::close);
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
 }
 
 Credits::~Credits() {
-  delete closeWindowAction;
   delete updateLabel;
   delete creditsArea;
   delete buttonBox;

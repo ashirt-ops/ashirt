@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <QAction>
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QCloseEvent>
-#include <QDialog>
 #include <QDialogButtonBox>
 #include <QErrorMessage>
 #include <QGridLayout>
@@ -23,7 +23,7 @@
  * @brief The Settings class represents the settings dialog that displays when
  * a user chooses the "settings" option in the tray menu
  */
-class Settings : public QDialog {
+class Settings : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -68,7 +68,6 @@ class Settings : public QDialog {
   HotkeyManager* hotkeyManager;
 
   QNetworkReply* currentTestReply = nullptr;
-  QAction* closeWindowAction = nullptr;
 
   // UI components
   QGridLayout* gridLayout = nullptr;

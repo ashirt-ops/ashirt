@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QAction>
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QCheckBox>
-#include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -19,7 +19,7 @@
  * while Export will render an export window.
  * @see PortType
  */
-class PortingDialog : public QDialog {
+class PortingDialog : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -93,8 +93,6 @@ class PortingDialog : public QDialog {
   /// executedManifest contains a pointer to the system manifest used to import/export data
   /// Saved so that it can be cleaned up post-execution
   porting::SystemManifest* executedManifest = nullptr;
-
-  QAction* closeWindowAction = nullptr;
 
   // UI Components
   QGridLayout* gridLayout = nullptr;

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <QAction>
-#include <QDialog>
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QLabel>
 #include <QTextBrowser>
 #include <QDialogButtonBox>
@@ -12,7 +12,7 @@
 
 #include "dtos/github_release.h"
 
-class Credits : public QDialog {
+class Credits : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -32,8 +32,6 @@ class Credits : public QDialog {
   void updateRelease();
 
  private:
-  QAction* closeWindowAction = nullptr;
-
   // UI Components
   QGridLayout* gridLayout = nullptr;
   QTextBrowser* creditsArea = nullptr;

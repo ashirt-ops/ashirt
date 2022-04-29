@@ -6,7 +6,7 @@
 #include <iostream>
 
 PortingDialog::PortingDialog(PortType dialogType, DatabaseConnection* db, QWidget *parent)
-  : QDialog(parent) {
+  : AShirtDialog(parent) {
   this->dialogType = dialogType;
   this->db = db;
 
@@ -15,7 +15,6 @@ PortingDialog::PortingDialog(PortType dialogType, DatabaseConnection* db, QWidge
 }
 
 PortingDialog::~PortingDialog() {
-  delete closeWindowAction;
 
   delete _selectFileLabel;
   delete portConfigCheckBox;
@@ -91,10 +90,6 @@ void PortingDialog::buildUi() {
 
   // row 5
   gridLayout->addWidget(submitButton, 5, 2);
-
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
 
   this->setLayout(gridLayout);
   this->resize(500, 1);

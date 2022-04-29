@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QGridLayout>
-#include <QAction>
-#include <QDialog>
 #include <QNetworkReply>
 
 #include "components/evidence_editor/evidenceeditor.h"
@@ -18,7 +18,7 @@ namespace Ui {
 class GetInfo;
 }
 
-class GetInfo : public QDialog {
+class GetInfo : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -48,9 +48,6 @@ class GetInfo : public QDialog {
   qint64 evidenceID;
 
   QNetworkReply *uploadAssetReply = nullptr;
-
-  // Actions
-  QAction* closeWindowAction = nullptr;
 
   // Ui Components
   QGridLayout* gridLayout;

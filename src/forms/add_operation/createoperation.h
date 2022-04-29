@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QAction>
-#include <QDialog>
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -9,7 +9,7 @@
 
 #include "components/loading_button/loadingbutton.h"
 
-class CreateOperation : public QDialog {
+class CreateOperation : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -35,7 +35,6 @@ class CreateOperation : public QDialog {
 
   // ui elements
   QGridLayout* gridLayout = nullptr;
-  QAction* closeWindowAction = nullptr;
   LoadingButton* submitButton = nullptr;
   QLabel* _operationLabel = nullptr;
   QLabel* responseLabel = nullptr;

@@ -24,14 +24,12 @@ static void initializeDateEdit(QDateEdit *dateEdit) {
 }
 
 EvidenceFilterForm::EvidenceFilterForm(QWidget *parent)
-    : QDialog(parent) {
+    : AShirtDialog(parent) {
   buildUi();
   wireUi();
 }
 
 EvidenceFilterForm::~EvidenceFilterForm() {
-  delete closeWindowAction;
-
   delete _operationLabel;
   delete _contentTypeLabel;
   delete _hadErrorLabel;
@@ -140,10 +138,6 @@ void EvidenceFilterForm::buildUi() {
   // row 6
   gridLayout->addWidget(buttonBox, 6, 0, 1, gridLayout->columnCount());
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setLayout(gridLayout);
   this->setWindowTitle(tr("Evidence Filters"));
   this->resize(320, 245);
@@ -163,8 +157,6 @@ void EvidenceFilterForm::wireUi() {
           [this](bool checked) { fromDateEdit->setEnabled(checked); });
   connect(includeEndDateCheckBox, &QCheckBox::stateChanged, this,
           [this](bool checked) { toDateEdit->setEnabled(checked); });
-
-  connect(closeWindowAction, &QAction::triggered, this, &EvidenceFilterForm::writeAndClose);
 }
 
 void EvidenceFilterForm::writeAndClose() {

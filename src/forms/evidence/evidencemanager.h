@@ -3,8 +3,9 @@
 
 #pragma once
 
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QAction>
-#include <QDialog>
 #include <QLineEdit>
 #include <QMenu>
 #include <QNetworkReply>
@@ -34,7 +35,7 @@ struct EvidenceRow {
  * @brief The EvidenceManager class represents the Evidence Manager window that is shown
  * when selecting "View Accumulated Evidence."
  */
-class EvidenceManager : public QDialog {
+class EvidenceManager : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -126,7 +127,6 @@ class EvidenceManager : public QDialog {
 
   QAction* submitEvidenceAction = nullptr;
   QAction* deleteEvidenceAction = nullptr;
-  QAction* closeWindowAction = nullptr;
   QAction* copyPathToClipboardAction = nullptr;
   QAction* deleteTableContentsAction = nullptr;
 
