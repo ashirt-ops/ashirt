@@ -7,7 +7,8 @@ on:
       'v*'
   pull_request:
     branches: [ main ]
-
+env:
+    QT_VERSION: 6.3.0
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -49,32 +50,24 @@ jobs:
       matrix:
         config:
         - {
-         name: "Linux-Qt5"
-            , os: ubuntu-18.04
-            , QT_VERSION: 5.15.2 , QT_INST_DIR: /opt
-            , QT_STRING: "-Qt5"
-            , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr -DQT_DEFAULT_MAJOR_VERSION=5"
-          }
-        - {
-            name: "Linux-Qt6"
+            name: "Linux"
             , os: ubuntu-20.04
-            , QT_VERSION: 6.3.0, QT_INST_DIR: /opt
-            , QT_STRING: "-Qt6"
+            , QT_INST_DIR: /opt
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr"
-            , linuxDeployQtPath: "export PATH=$PATH:/opt/Qt/6.3.0/gcc_64/libexec"
+            , linuxDeployQtPath:
           }
         - {
-            name: "Mac-Qt6"
+            name: "Mac"
             , os: macos-latest
-            , QT_VERSION: 6.3.0, QT_INST_DIR: /Users/runner
+            , QT_INST_DIR: /Users/runner
             , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\""
             , cmakeSigning: "-DNOTARIZE_AS=\"John Kennedy\""
             , buildTarget: "--target package"
           }
         - {
-            name: "Windows-Qt6", WIN_ARCH: "x64"
+            name: "Windows", WIN_ARCH: "x64"
             , os: windows-2019
-            , QT_VERSION: 6.3.0, QT_INST_DIR: "C:/", QTDIR: "C:/Qt/6.3.0/msvc2019_64", QT_ARCH: win64_msvc2019_64
+            , QT_INST_DIR: "C:/", QT_ARCH: win64_msvc2019_64
             , extraCMakeConfig: "-G Ninja"
             , buildTarget: "--target package"
           }
@@ -82,7 +75,7 @@ jobs:
     - name: Setup env
       shell: bash
       run: |
-        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}${{matrix.config.QT_STRING}}" >> $GITHUB_ENV
+        echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
         echo "githash=${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
         echo "signRelease=${{ needs.run-info.outputs.signRelease }}" >> $GITHUB_ENV
 
@@ -98,7 +91,7 @@ jobs:
       uses: actions/cache@v3.0.2
       with:
         path: ${{matrix.config.QT_INST_DIR}}/Qt
-        key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ matrix.config.QT_VERSION }}
+        key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ env.QT_VERSION }}
 
     - name: Env Script (Windows)
       uses: ilammy/msvc-dev-cmd@v1
@@ -120,7 +113,7 @@ jobs:
        py7zrversion: ==0.16.2
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
-       version: ${{ matrix.config.QT_VERSION }}
+       version: ${{ env.QT_VERSION }}
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Install Dependencies
@@ -146,8 +139,8 @@ jobs:
             wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
             wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
             chmod a+x linuxdeploy*.AppImage
-            export VERSION=${{ env.githash }}${{ matrix.config.QT_STRING }}
-            ${{matrix.config.linuxDeployQtPath}}
+            export VERSION=${{ env.githash }}
+            export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e src/ashirt \
                 -d deploy/ashirt.desktop \

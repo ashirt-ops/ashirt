@@ -42,10 +42,8 @@ public:
     void onHotkeyPressed(size_t id);
 #endif
 
-#if (defined (Q_OS_WIN) || defined (Q_OS_LINUX)) && QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+#if (defined (Q_OS_WIN) || defined (Q_OS_LINUX))
     typedef qintptr RESULT_TYPE;
-#elif defined (Q_OS_WIN) || defined (Q_OS_LINUX)
-    typedef long RESULT_TYPE;
 #endif
 
 protected:
