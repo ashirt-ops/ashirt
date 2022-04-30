@@ -18,7 +18,9 @@
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 
-Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent) : QDialog(parent) {
+Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
+  : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+{
   this->hotkeyManager = hotkeyManager;
   buildUi();
   wireUi();
@@ -53,7 +55,6 @@ Settings::~Settings() {
 
   delete couldNotSaveSettingsMsg;
   stopReply(&currentTestReply);
-  delete closeWindowAction;
 }
 
 void Settings::buildUi() {
@@ -157,20 +158,10 @@ void Settings::buildUi() {
   // row 9
   gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setLayout(gridLayout);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(760, 300);
   this->setWindowTitle(tr("Settings"));
-
-  // Make the dialog pop up above any other windows but retain title bar and buttons
-  Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
-           Qt::WindowCloseButtonHint;
-  this->setWindowFlags(flags);
 }
 
 void Settings::wireUi() {
@@ -178,7 +169,6 @@ void Settings::wireUi() {
   connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
-  connect(closeWindowAction, &QAction::triggered, this, &Settings::onSaveClicked);
   connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
 
   connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){

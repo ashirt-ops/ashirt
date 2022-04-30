@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include <QComboBox>
-#include <QDialog>
-#include <QAction>
+#include "ashirtdialog/ashirtdialog.h"
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QComboBox>
@@ -16,7 +15,7 @@
 #include "db/databaseconnection.h"
 #include "dtos/operation.h"
 
-class EvidenceFilterForm : public QDialog {
+class EvidenceFilterForm : public AShirtDialog {
   Q_OBJECT
 
  public:
@@ -49,8 +48,6 @@ class EvidenceFilterForm : public QDialog {
   EvidenceFilters encodeForm();
 
  private:
-  QAction* closeWindowAction = nullptr;
-
   // UI Components
   QGridLayout* gridLayout = nullptr;
   QLabel* _operationLabel = nullptr;

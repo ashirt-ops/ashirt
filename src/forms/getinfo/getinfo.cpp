@@ -13,10 +13,10 @@
 #include "helpers/ui_helpers.h"
 
 GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
-    : QDialog(parent), db(db), evidenceID(evidenceID) {
-  this->db = db;
-  this->evidenceID = evidenceID;
-
+    : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+    , db(db)
+    , evidenceID(evidenceID)
+{
   buildUi();
   wireUi();
 }
@@ -25,7 +25,6 @@ GetInfo::~GetInfo() {
   delete evidenceEditor;
   delete submitButton;
   delete deleteButton;
-  delete closeWindowAction;
 
   delete gridLayout;
   stopReply(&uploadAssetReply);
@@ -62,27 +61,17 @@ void GetInfo::buildUi() {
   gridLayout->addWidget(deleteButton, 1, 0);
   gridLayout->addWidget(submitButton, 1, 2);
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setLayout(gridLayout);
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->resize(720, 480);
   this->setWindowTitle(tr("Add Evidence Details"));
 
-  // Make the dialog pop up above any other windows but retain title bar and buttons
-  Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
-           Qt::WindowCloseButtonHint;
-  this->setWindowFlags(flags);
   setFocus(); // ensure focus is not on the submit button
 }
 
 void GetInfo::wireUi() {
   connect(submitButton, &QPushButton::clicked, this, &GetInfo::submitButtonClicked);
   connect(deleteButton, &QPushButton::clicked, this, &GetInfo::deleteButtonClicked);
-  connect(closeWindowAction, &QAction::triggered, this, &GetInfo::deleteButtonClicked);
 }
 
 void GetInfo::showEvent(QShowEvent* evt) {

@@ -7,13 +7,14 @@
 #include "dtos/ashirt_error.h"
 #include "appsettings.h"
 
-CreateOperation::CreateOperation(QWidget* parent) : QDialog(parent) {
+CreateOperation::CreateOperation(QWidget* parent)
+  : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
+{
   buildUi();
   wireUi();
 }
 
 CreateOperation::~CreateOperation() {
-  delete closeWindowAction;
   delete submitButton;
   delete _operationLabel;
   delete responseLabel;
@@ -55,18 +56,9 @@ void CreateOperation::buildUi() {
   // row 2
   gridLayout->addWidget(submitButton, 2, 2);
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setLayout(gridLayout);
   this->resize(400, 1);
   this->setWindowTitle(tr("Create Operation"));
-
-  Qt::WindowFlags flags = this->windowFlags();
-  flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
-           Qt::WindowCloseButtonHint;
-  this->setWindowFlags(flags);
 }
 
 void CreateOperation::wireUi() {

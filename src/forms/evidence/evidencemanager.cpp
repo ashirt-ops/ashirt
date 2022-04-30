@@ -48,7 +48,9 @@ static QStringList columnNames() {
   return names;
 }
 
-EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent) : QDialog(parent) {
+EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
+  : AShirtDialog(parent)
+{
   this->db = db;
   buildUi();
   wireUi();
@@ -59,7 +61,6 @@ EvidenceManager::~EvidenceManager() {
   delete deleteEvidenceAction;
   delete copyPathToClipboardAction;
   delete deleteTableContentsAction;
-  delete closeWindowAction;
   delete evidenceTableContextMenu;
   delete filterForm;
   delete evidenceEditor;
@@ -174,10 +175,6 @@ void EvidenceManager::buildUi() {
   gridLayout->addWidget(cancelEditButton, 3, 2);
   gridLayout->addWidget(editButton, 3, 3);
 
-  closeWindowAction = new QAction(this);
-  closeWindowAction->setShortcut(QKeySequence::Close);
-  this->addAction(closeWindowAction);
-
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   this->resize(800, 600);
   this->setWindowTitle(tr("Evidence Manager"));
@@ -197,7 +194,6 @@ void EvidenceManager::wireUi() {
 
   connect(submitEvidenceAction, actionTriggered, this, &EvidenceManager::submitEvidenceTriggered);
   connect(deleteEvidenceAction, actionTriggered, this, &EvidenceManager::deleteEvidenceTriggered);
-  connect(closeWindowAction, actionTriggered, this, &EvidenceManager::close);
   connect(copyPathToClipboardAction, actionTriggered, this, &EvidenceManager::copyPathTriggered);
   connect(deleteTableContentsAction, actionTriggered, this, &EvidenceManager::deleteAllTriggered);
 
