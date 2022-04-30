@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
 #include <QStandardPaths>
 #include <QString>
@@ -10,26 +9,26 @@
 class Constants {
  public:
   static QString unknownRepoValue() {
-    return "???";
+    return QStringLiteral("???");
   }
   static QString unknownOwnerValue() {
-    return "???";
+    return QStringLiteral("???");
   }
 
   static QString configLocation() {
 #ifdef Q_OS_MACOS
-    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/config.json";
+    return QStringLiteral("%1/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
 #else
-    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/ashirt/config.json";
+    return QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
 #endif
   }
 
   static QString dbLocation() {
-    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/evidence.sqlite";
+    return QStringLiteral("%1/evidence.sqlite").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   }
 
   static QString defaultEvidenceRepo() {
-    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/evidence";
+    return QStringLiteral("%1/evidence").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   }
 
   static QString releaseOwner() {
@@ -41,46 +40,46 @@ class Constants {
   }
 
   static QString commitHash() {
-    return QString("%1").arg(COMMIT_HASH);
+    return QStringLiteral("%1").arg(COMMIT_HASH);
   }
 
   static QString releaseTag() {
-    static QString parsedReleaseTag = "";
+    static QString parsedReleaseTag;
 
     if (parsedReleaseTag.isEmpty()) {
-      QRegularExpression compiledTagRegex("(?:tags/)?v(.*)");
-      auto rawVersion = QString("%1").arg(VERSION_TAG);
+      QRegularExpression compiledTagRegex(QStringLiteral("(?:tags/)?v(.*)"));
+      auto rawVersion = QStringLiteral("%1").arg(VERSION_TAG);
       QRegularExpressionMatch match = compiledTagRegex.match(rawVersion);
-      parsedReleaseTag = match.hasMatch() ? "v" + match.captured(1) : "v0.0.0-unversioned";
+      parsedReleaseTag = match.hasMatch() ? QStringLiteral("v") + match.captured(1) : QStringLiteral("v0.0.0-unversioned");
     }
 
     return parsedReleaseTag;
   }
 
   static QString userGuideUrl() {
-    return "https://www.github.com/theparanoids/ashirt/blob/master/README.md";
+    return QStringLiteral("https://www.github.com/theparanoids/ashirt/blob/master/README.md");
   }
 
   static QString reportAnIssueUrl() {
-    return "https://www.github.com/theparanoids/ashirt/issues";
+    return QStringLiteral("https://www.github.com/theparanoids/ashirt/issues");
   }
 
   static QString releasePageUrl() {
-    return "https://github.com/theparanoids/ashirt/releases";
+    return QStringLiteral("https://github.com/theparanoids/ashirt/releases");
   }
 
   static QString codeFont() {
     #ifdef Q_OS_MACX
-    return "monaco";
+    return QStringLiteral("monaco");
     #endif
 
-    return "source code pro";
+    return QStringLiteral("source code pro");
   }
 
   /// defaultDbName returns a string storing the "name" of the database for Qt identification
   /// purposes. This _value_ should not be reused for other db connections.
   static QString defaultDbName() {
-    return "evidence";
+    return QStringLiteral("evidence");
   }
 
  private:
@@ -90,12 +89,12 @@ class Constants {
   };
 
   static QString parseRepo(RepoField field) {
-    static QString parsedRepo = "";
-    static QString parsedOwner = "";
+    static QString parsedRepo;
+    static QString parsedOwner;
 
-    if (parsedRepo == "") {
-      auto rawRepo = QString("%1").arg(SOURCE_CONTROL_REPO);
-      QRegularExpression ownerRegex("^([^/]+)/(.*)");
+    if (parsedRepo.isEmpty()) {
+      auto rawRepo = QStringLiteral("%1").arg(SOURCE_CONTROL_REPO);
+      QRegularExpression ownerRegex(QStringLiteral("^([^/]+)/(.*)"));
       QRegularExpressionMatch match = ownerRegex.match(rawRepo);
       // Note that the specific values for the error cases below don't matter
       // They are set to avoid rerunning the parsing (since these values won't change mid-run)
@@ -105,5 +104,3 @@ class Constants {
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }
 };
-
-#endif // CONSTANTS_H

@@ -1,5 +1,4 @@
-#ifndef ERRORVIEW_H
-#define ERRORVIEW_H
+#pragma once
 
 #include <QGridLayout>
 #include <QLabel>
@@ -39,5 +38,3 @@ class ErrorView : public EvidencePreview {
 
   QString errorText;
 };
-
-#endif  // ERRORVIEW_H

@@ -34,10 +34,10 @@ GetInfo::~GetInfo() {
 void GetInfo::buildUi() {
   gridLayout = new QGridLayout(this);
 
-  submitButton = new LoadingButton("Submit", this);
+  submitButton = new LoadingButton(tr("Submit"), this);
   submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   submitButton->setAutoDefault(false);
-  deleteButton = new QPushButton("Delete", this);
+  deleteButton = new QPushButton(tr("Delete"), this);
   deleteButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   deleteButton->setAutoDefault(false);
 
@@ -69,7 +69,7 @@ void GetInfo::buildUi() {
   this->setLayout(gridLayout);
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->resize(720, 480);
-  this->setWindowTitle("Add Evidence Details");
+  this->setWindowTitle(tr("Add Evidence Details"));
 
   // Make the dialog pop up above any other windows but retain title bar and buttons
   Qt::WindowFlags flags = this->windowFlags();
@@ -94,10 +94,10 @@ void GetInfo::showEvent(QShowEvent* evt) {
 bool GetInfo::saveData() {
   auto saveResponse = evidenceEditor->saveEvidence();
   if (!saveResponse.actionSucceeded) {
-    QMessageBox::warning(this, "Cannot Save",
-                         "Unable to save evidence data.\n"
-                         "You can try uploading directly to the website. File Location:\n" +
-                             saveResponse.model.path);
+    QMessageBox::warning(this, tr("Cannot Save"),
+                         tr("Unable to save evidence data.\n"
+                         "You can try uploading directly to the website. File Location:\n%1")
+                           .arg(saveResponse.model.path));
   }
   return saveResponse.actionSucceeded;
 }
@@ -112,15 +112,15 @@ void GetInfo::submitButtonClicked() {
       connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
     }
     catch (QSqlError& e) {
-      QMessageBox::warning(this, "Cannot submit evidence",
-                           "Could not retrieve data. Please try again.");
+      QMessageBox::warning(this, tr("Cannot submit evidence"),
+                           tr("Could not retrieve data. Please try again."));
     }
   }
 }
 
 void GetInfo::deleteButtonClicked() {
-  auto reply = QMessageBox::question(this, "Discard Evidence",
-                                     "Are you sure you want to discard this evidence?",
+  auto reply = QMessageBox::question(this, tr("Discard Evidence"),
+                                     tr("Are you sure you want to discard this evidence?"),
                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
@@ -129,10 +129,10 @@ void GetInfo::deleteButtonClicked() {
 
     model::Evidence evi = evidenceEditor->encodeEvidence();
     if (!QFile::remove(evi.path)) {
-      QMessageBox::warning(this, "Could not delete",
-                           "Unable to delete evidence file.\n"
-                           "You can try deleting the file directly. File Location:\n" +
-                               evi.path);
+      QMessageBox::warning(this, tr("Could not delete"),
+                           tr("Unable to delete evidence file.\n"
+                           "You can try deleting the file directly. File Location:\n%1")
+                             .arg(evi.path));
       shouldClose = false;
     }
     try {
@@ -158,7 +158,7 @@ void GetInfo::setActionButtonsEnabled(bool enabled) {
 void GetInfo::onUploadComplete() {
   if (uploadAssetReply->error() != QNetworkReply::NoError) {
     auto errMessage =
-        "Unable to upload evidence: Network error (" + uploadAssetReply->errorString() + ")";
+        tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
     try {
       db->updateEvidenceError(errMessage, this->evidenceID);
     }
@@ -166,17 +166,16 @@ void GetInfo::onUploadComplete() {
       std::cout << "Upload failed. Could not update internal database. Error: "
                 << e.text().toStdString() << std::endl;
     }
-    QMessageBox::warning(this, "Cannot submit evidence",
-                         "Upload failed: Network error. Check your connection and try again.\n"
+    QMessageBox::warning(this, tr("Cannot submit evidence"),
+                         tr("Upload failed: Network error. Check your connection and try again.\n"
                          "Note: This evidence has been saved. You can close this window and "
                          "re-submit from the evidence manager."
-                         "\n(Error: " +
-                             uploadAssetReply->errorString() + ")");
+                         "\n(Error: %1)").arg(uploadAssetReply->errorString()));
   }
   else {
     try {
       db->updateEvidenceSubmitted(this->evidenceID);
-      emit evidenceSubmitted(db->getEvidenceDetails(this->evidenceID));
+      Q_EMIT evidenceSubmitted(db->getEvidenceDetails(this->evidenceID));
       this->close();
     }
     catch (QSqlError& e) {

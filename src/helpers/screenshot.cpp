@@ -21,12 +21,12 @@ Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
 
 QString Screenshot::formatScreenshotCmd(QString cmdProto, const QString &filename) {
   auto lowerCmd = cmdProto.toLower();
-  QString key = "%file";
+  QString key = QStringLiteral("%file");
   auto idx = lowerCmd.indexOf(key);
   if (idx == -1) {
     return cmdProto;
   }
-  QString fixedFilename = "'" + filename + "'";
+  QString fixedFilename = QStringLiteral("'%1'").arg(filename);
   return cmdProto.replace(idx, key.length(), fixedFilename);
 }
 
@@ -35,10 +35,10 @@ void Screenshot::captureArea() { basicScreenshot(AppConfig::getInstance().screen
 void Screenshot::captureWindow() { basicScreenshot(AppConfig::getInstance().captureWindowExec); }
 
 QString Screenshot::mkName() {
-  return FileHelpers::randomFilename("ashirt_screenshot_XXXXXX." + extension());
+  return FileHelpers::randomFilename(QStringLiteral("ashirt_screenshot_XXXXXX.%1").arg(extension()));
 }
-QString Screenshot::contentType() { return "image"; }
-QString Screenshot::extension() { return "png"; }
+QString Screenshot::contentType() { return QStringLiteral("image"); }
+QString Screenshot::extension() { return QStringLiteral("png"); }
 
 
 void Screenshot::basicScreenshot(QString cmdProto) {
@@ -46,10 +46,10 @@ void Screenshot::basicScreenshot(QString cmdProto) {
   auto hasPath = QDir().mkpath(root);
 
   if (hasPath) {
-    auto tempPath = QDir::tempPath() + "/" + mkName();
+    auto tempPath = QStringLiteral("%1/%2").arg(QDir::tempPath(), mkName());
 
     QString cmd = formatScreenshotCmd(std::move(cmdProto), tempPath);
-    auto lastSlash = tempPath.lastIndexOf("/") + 1;
+    auto lastSlash = tempPath.lastIndexOf(QStringLiteral("/")) + 1;
     QString tempName = tempPath.right(tempPath.length() - lastSlash);
 
     system(cmd.toStdString().c_str());
@@ -60,7 +60,7 @@ void Screenshot::basicScreenshot(QString cmdProto) {
     if (src.exists()) {
       auto moved = src.rename(QString(finalName));
       auto trueName = moved ? finalName : tempName;
-      emit onScreenshotCaptured(trueName);
+      Q_EMIT onScreenshotCaptured(trueName);
     }
   }
 }

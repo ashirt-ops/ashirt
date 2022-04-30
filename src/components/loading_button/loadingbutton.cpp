@@ -6,7 +6,7 @@
 #include <QResizeEvent>
 
 LoadingButton::LoadingButton(QWidget* parent, QPushButton* model)
-    : LoadingButton("", parent, model) {}
+    : LoadingButton(QString(), parent, model) {}
 LoadingButton::LoadingButton(const QString& text, QWidget* parent, QPushButton* model)
     : QPushButton(text, parent) {
   if (model == nullptr) {
@@ -37,7 +37,7 @@ void LoadingButton::showLabel(bool show) {
     this->setText(this->label);
   }
   else {
-    this->setText("");
+    this->setText(QString());
     loading->startAnimation();
   }
 }

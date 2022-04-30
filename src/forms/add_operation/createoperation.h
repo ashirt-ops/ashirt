@@ -1,5 +1,4 @@
-#ifndef FORM_CREATEOPERATION_H
-#define FORM_CREATEOPERATION_H
+#pragma once
 
 #include <QAction>
 #include <QDialog>
@@ -42,5 +41,3 @@ class CreateOperation : public QDialog {
   QLabel* responseLabel = nullptr;
   QLineEdit* operationNameTextBox = nullptr;
 };
-
-#endif // FORM_CREATEOPERATION_H

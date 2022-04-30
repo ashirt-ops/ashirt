@@ -28,10 +28,10 @@ void TagWidget::mouseReleaseEvent(QMouseEvent* evt) {
   const int y = evt->position().y();
 
   if (removeArea.contains(x, y)) {
-    emit removePressed();
+    Q_EMIT removePressed();
   }
   else if (labelArea.contains(x, y)) {
-    emit labelPressed();
+    Q_EMIT labelPressed();
   }
 }
 
@@ -82,7 +82,7 @@ void TagWidget::buildTag() {
   pixmap.setDevicePixelRatio(dpr);
   pixmap.fill(Qt::transparent);
 
-  QColor bgColor = colorMap[tag.colorName];
+  QColor bgColor = colorMap.at(tag.colorName);
   QPainter painter(&pixmap);
   // these actually are used and removing them makes the edges/text slightly less sharp
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);

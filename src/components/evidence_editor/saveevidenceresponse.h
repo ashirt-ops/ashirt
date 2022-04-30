@@ -1,5 +1,4 @@
-#ifndef SAVEEVIDENCERESPONSE_H
-#define SAVEEVIDENCERESPONSE_H
+#pragma once
 
 #include <QString>
 
@@ -8,7 +7,6 @@
 struct SaveEvidenceResponse {
   SaveEvidenceResponse(model::Evidence model) {
     this->model = model;
-    this->errorText = "";
   }
   SaveEvidenceResponse(bool success, QString err, model::Evidence model)
       : SaveEvidenceResponse(model) {
@@ -19,5 +17,3 @@ struct SaveEvidenceResponse {
   QString errorText;
   model::Evidence model;
 };
-
-#endif  // SAVEEVIDENCERESPONSE_H

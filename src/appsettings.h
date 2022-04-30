@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef APPSETTINGS_H
-#define APPSETTINGS_H
+#pragma once
 
 #include <QSequentialIterable>
 #include <QSettings>
@@ -44,14 +43,14 @@ class AppSettings : public QObject {
  public:
   void sync() {
     settings.sync();  // ignoring the error
-    emit this->onSettingsSynced();
+    Q_EMIT this->onSettingsSynced();
   }
 
   void setOperationDetails(QString operationSlug, QString operationName) {
     settings.setValue(opSlugSetting, operationSlug);
     settings.setValue(opNameSetting, operationName);
 
-    emit onOperationUpdated(operationSlug, operationName);
+    Q_EMIT onOperationUpdated(operationSlug, operationName);
   }
   QString operationSlug() { return settings.value(opSlugSetting).toString(); }
   QString operationName() { return settings.value(opNameSetting).toString(); }
@@ -59,7 +58,7 @@ class AppSettings : public QObject {
   void setLastUsedTags(std::vector<model::Tag> lastTags) {
     QVariantList writeTags;
     
-    for (auto tag : lastTags) {
+    for (const auto &tag : lastTags) {
       writeTags << QVariant::fromValue(tag);
     }
 
@@ -81,4 +80,3 @@ class AppSettings : public QObject {
     return rtn;
   }
 };
-#endif  // APPSETTINGS_H

@@ -1,5 +1,4 @@
-#ifndef REQUESTBUILDER_H
-#define REQUESTBUILDER_H
+#pragma once
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -20,7 +19,7 @@ enum RequestMethod { METHOD_GET = 0, METHOD_POST };
 /// RequestMethodToString converst the given RequestMethod enum into a proper method string.
 /// METHOD_GET corresponds to "GET", METHOD_POST corresponds to "POST" and so on
 static QString RequestMethodToString(RequestMethod val) {
-  static QString names[] = {"GET", "POST"};
+  static QString names[] = {QStringLiteral("GET"), QStringLiteral("POST")};
   return names[val];
 }
 
@@ -68,7 +67,7 @@ class RequestBuilder {
     RequestBuilder* builder = new RequestBuilder();
     return builder
         ->setMethod(METHOD_POST)
-        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + formBoundry);
+        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("multipart/form-data; boundary=%1").arg(formBoundry));
   }
 
   /// newJSONPost constructs a request builder with method POST and contentType application/json
@@ -76,7 +75,7 @@ class RequestBuilder {
     RequestBuilder* builder = new RequestBuilder();
     return builder
         ->setMethod(METHOD_POST)
-        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
   }
 
   // accessors
@@ -149,11 +148,11 @@ class RequestBuilder {
   QNetworkRequest build() {
     QNetworkRequest req;
 
-    for(auto header : rawHeaders) {
+    for(const auto& header : rawHeaders) {
       req.setRawHeader(FileHelpers::qstringToByteArray(header.first), FileHelpers::qstringToByteArray(header.second));
     }
 
-    for(auto header : knownHeaders) {
+    for(const auto& header : knownHeaders) {
       req.setHeader(header.first, header.second);
     }
 
@@ -194,5 +193,3 @@ class RequestBuilder {
     return reply;
   }
 };
-
-#endif // REQUESTBUILDER_H

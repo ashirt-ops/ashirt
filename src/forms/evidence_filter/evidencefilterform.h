@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef EVIDENCEFILTERFORM_H
-#define EVIDENCEFILTERFORM_H
+#pragma once
 
 #include <QComboBox>
 #include <QDialog>
@@ -71,5 +70,3 @@ class EvidenceFilterForm : public QDialog {
   QCheckBox* includeStartDateCheckBox = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
 };
-
-#endif  // EVIDENCEFILTERFORM_H

@@ -1,5 +1,4 @@
-#ifndef SYNC_SYSTEM_MANIFEST_H
-#define SYNC_SYSTEM_MANIFEST_H
+#pragma once
 
 #include <QFile>
 #include <QJsonObject>
@@ -123,21 +122,18 @@ class SystemManifest : public QObject {
 
  public:
   /// os is the operating system associated with the originating export
-  QString os = "";
+  QString os;
   /// dbPath is the (relative) path to the database file from the originating export
-  QString dbPath = "";
+  QString dbPath;
   /// configPath is the (relative) path to the config file from the originating export
-  QString configPath = "";
+  QString configPath;
   /// serversPath is currently unused
-  QString serversPath = "";
+  QString serversPath;
   /// evidenceManifestPath is the (relative) path to the evidence manifest file from the originating export
-  QString evidenceManifestPath = "";
+  QString evidenceManifestPath;
 
  private:
   /// pathToManifest is the (absolute) path to the system manifest file from the originating export
-  QString pathToManifest = "";
+  QString pathToManifest;
 };
 }
-
-#endif // SYNC_SYSTEM_MANIFEST_H
-

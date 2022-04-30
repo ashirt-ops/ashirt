@@ -35,7 +35,7 @@ void TagView::addTag(dto::Tag tag) {
   TagWidget* widget = new TagWidget(tag, readonly, this);
   includedTags.push_back(widget);
   layout->addWidget(widget);
-  connect(widget, &TagWidget::removePressed, [this, widget](){
+  connect(widget, &TagWidget::removePressed, this, [this, widget](){
     removeWidget(widget);
   });
 }

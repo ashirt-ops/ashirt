@@ -25,7 +25,7 @@ TagEditor::~TagEditor() {
   delete completer;
 
   delete tagCache;
-  for (auto entry : activeRequests) {
+  for (auto& entry : activeRequests) {
     stopReply(&(entry.second));
   }
   stopReply(&createTagReply);
@@ -84,9 +84,9 @@ void TagEditor::wireUi() {
   connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this,
           &TagEditor::completerActivated);
 
-  connect(tagCompleteTextBox, &QLineEdit::textChanged, [this](const QString &text) {
+  connect(tagCompleteTextBox, &QLineEdit::textChanged, this, [this](const QString &text) {
     if (text.isEmpty()) {
-      tagCompleteTextBox->completer()->setCompletionPrefix("");
+      tagCompleteTextBox->completer()->setCompletionPrefix(QString());
     }
   });
 
@@ -120,8 +120,8 @@ void TagEditor::tagTextEntered(QString text) {
     tagView->contains(data) ? tagView->remove(data) : tagView->addTag(data);
   }
 
-  tagCompleteTextBox->setText("");
-  tagCompleteTextBox->completer()->setCompletionPrefix("");
+  tagCompleteTextBox->clear();
+  tagCompleteTextBox->completer()->setCompletionPrefix(QString());
 }
 
 void TagEditor::updateCompleterModel() {
@@ -134,7 +134,7 @@ void TagEditor::updateCompleterModel() {
 void TagEditor::clear() {
   stopReply(&createTagReply);
   tagCompleteTextBox->clear();
-  errorLabel->setText("");
+  errorLabel->clear();
   tagView->clear();
 }
 
@@ -148,7 +148,7 @@ void TagEditor::loadTags(const QString &operationSlug, std::vector<model::Tag> i
 void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
   if (this->operationSlug == operationSlug) {
     clearTags();
-    for (auto tag : tags) {
+    for (const auto& tag : tags) {
       addTag(tag);
 
       auto itr = std::find_if(initialTags.begin(), initialTags.end(), [tag](model::Tag modelTag) {
@@ -159,7 +159,7 @@ void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
       }
     }
     updateCompleterModel();
-    emit tagsLoaded(true);
+    Q_EMIT tagsLoaded(true);
   }
 }
 
@@ -171,19 +171,19 @@ void TagEditor::tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdat
            " (Tags names and colors may be incorrect)"));
     tagCompleteTextBox->setEnabled(false);
     // todo: factor in outdated data?
-    for (auto tag : initialTags) {
+    for (const auto& tag : initialTags) {
       tagView->addTag(dto::Tag::fromModelTag(tag, TagWidget::randomColor()));
     }
-    emit tagsLoaded(false);
+    Q_EMIT tagsLoaded(false);
   }
 }
 
 void TagEditor::createTag(QString tagName) {
   auto newText = tagName.trimmed();
-  if (newText == "") {
+  if (newText.isEmpty()) {
     return;
   }
-  errorLabel->setText("");
+  errorLabel->clear();
   loading->startAnimation();
   tagCompleteTextBox->setEnabled(false);
 

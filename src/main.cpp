@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 }
 
 QIcon getWindowIcon() {
-  return QIcon(":icons/windowIcon.png");
+  return QIcon(QStringLiteral(":icons/windowIcon.png"));
 }
 
 #else

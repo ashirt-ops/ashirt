@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef EVIDENCEFILTER_H
-#define EVIDENCEFILTER_H
+#pragma once
 
 #include <QDate>
 #include <QString>
@@ -11,24 +10,6 @@
 #include <QStringList>
 
 enum Tri { Any, Yes, No };
-
-// These represent the standard key for a filter
-const QString FILTER_KEY_ERROR = "err";
-const QString FILTER_KEY_SUBMITTED = "submitted";
-const QString FILTER_KEY_TO = "to";
-const QString FILTER_KEY_FROM = "from";
-const QString FILTER_KEY_ON = "on";
-const QString FILTER_KEY_OPERATION = "op";
-const QString FILTER_KEY_CONTENT_TYPE = "type";
-
-// These represent aliases for standard key for a filter
-const QStringList FILTER_KEYS_ERROR = {FILTER_KEY_ERROR, "error", "failed", "fail"};
-const QStringList FILTER_KEYS_SUBMITTED = {FILTER_KEY_SUBMITTED};
-const QStringList FILTER_KEYS_TO = {FILTER_KEY_TO, "before", "til", "until"};
-const QStringList FILTER_KEYS_FROM = {FILTER_KEY_FROM, "after"};
-const QStringList FILTER_KEYS_ON = {FILTER_KEY_ON};
-const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, "operation"};
-const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, "contentType"};
 
 class EvidenceFilters {
  public:
@@ -39,8 +20,8 @@ class EvidenceFilters {
   static EvidenceFilters parseFilter(const QString &text);
 
  public:
-  QString operationSlug = "";
-  QString contentType = "";
+  QString operationSlug;
+  QString contentType;
   Tri hasError = Any;
   Tri submitted = Any;
   QDate startDate = QDate();
@@ -54,6 +35,28 @@ class EvidenceFilters {
   static std::vector<std::pair<QString, QString>> tokenizeFilterText(const QString &text);
   static QDate parseDateString(QString text);
   static Tri parseTriFilterValue(const QString &text, bool strict = false);
-};
 
-#endif  // EVIDENCEFILTER_H
+  // These represent the standard key for a filter
+  inline static const QString FILTER_KEY_ERROR = QStringLiteral("err");
+  inline static const QString FILTER_KEY_SUBMITTED = QStringLiteral("submitted");
+  inline static const QString FILTER_KEY_TO = QStringLiteral("to");
+  inline static const QString FILTER_KEY_FROM = QStringLiteral("from");
+  inline static const QString FILTER_KEY_ON = QStringLiteral("on");
+  inline static const QString FILTER_KEY_OPERATION = QStringLiteral("op");
+  inline static const QString FILTER_KEY_CONTENT_TYPE = QStringLiteral("type");
+
+  // These represent aliases for standard key for a filter
+  inline static const QStringList FILTER_KEYS_ERROR = {
+      FILTER_KEY_ERROR , QStringLiteral("error")
+      , QStringLiteral("failed") , QStringLiteral("fail")
+  };
+  inline static const QStringList FILTER_KEYS_SUBMITTED = {FILTER_KEY_SUBMITTED};
+  inline static const QStringList FILTER_KEYS_TO = {
+      FILTER_KEY_TO, QStringLiteral("before")
+      , QStringLiteral("til"), QStringLiteral("until")
+  };
+  inline static const QStringList FILTER_KEYS_FROM = {FILTER_KEY_FROM, QStringLiteral("after")};
+  inline static const QStringList FILTER_KEYS_ON = {FILTER_KEY_ON};
+  inline static const QStringList FILTER_KEYS_OPERATION = {FILTER_KEY_OPERATION, QStringLiteral("operation")};
+  inline static const QStringList FILTER_KEYS_CONTENT_TYPE = {FILTER_KEY_CONTENT_TYPE, QStringLiteral("contentType")};
+};

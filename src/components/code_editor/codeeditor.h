@@ -48,8 +48,7 @@
 **
 ****************************************************************************/
 
-#ifndef CODEEDITOR_H
-#define CODEEDITOR_H
+#pragma once
 
 #include <QPlainTextEdit>
 
@@ -96,5 +95,3 @@ class LineNumberArea : public QWidget {
  private:
   CodeEditor *codeEditor;
 };
-
-#endif

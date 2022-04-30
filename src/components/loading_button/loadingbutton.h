@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef LOADINGBUTTON_H
-#define LOADINGBUTTON_H
+#pragma once
 
 #include <QPushButton>
 
@@ -34,5 +33,3 @@ class LoadingButton : public QPushButton {
   QString label;
   bool showingLabel;
 };
-
-#endif  // LOADINGBUTTON_H

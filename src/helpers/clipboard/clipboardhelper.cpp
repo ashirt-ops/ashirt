@@ -13,7 +13,7 @@ QString ClipboardHelper::readPlaintext() {
     data = mimeData->text();
   }
   else {
-    data = "";
+    data.clear();
   }
   return data;
 }

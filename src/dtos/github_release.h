@@ -1,5 +1,4 @@
-#ifndef GITHUB_RELEASE_H
-#define GITHUB_RELEASE_H
+#pragma once
 
 #include <QVariant>
 #include <QRegularExpression>
@@ -21,7 +20,7 @@ class SemVer {
   }
 
   static SemVer parse(QString strTag) {
-    QRegularExpression semverRegex("^[vV]?(\\d+)\\.(\\d+)\\.(\\d+)(.*)");
+    QRegularExpression semverRegex(QStringLiteral("^[vV]?(\\d+)\\.(\\d+)\\.(\\d+)(.*)"));
     SemVer ver;
 
     QRegularExpressionMatch match = semverRegex.match(strTag);
@@ -65,7 +64,7 @@ class SemVer {
   int major = 0;
   int minor = 0;
   int patch = 0;
-  QString extra = "";
+  QString extra;
 };
 
 class GithubRelease {
@@ -134,7 +133,7 @@ class ReleaseDigest {
  public:
   static ReleaseDigest fromReleases(QString curVersion, const std::vector<GithubRelease> &borrowedReleases) {
 
-    if (curVersion == "v0.0.0-unversioned" || curVersion == "v0.0.0-development") {
+    if (curVersion.contains(QStringLiteral("v0.0.0"))) {
       std::cerr << "skipping unversioned/development release check" << std::endl;
       return ReleaseDigest();
     }
@@ -146,7 +145,7 @@ class ReleaseDigest {
     SemVer minorVer = SemVer(currentVersion);
     SemVer patchVer = SemVer(currentVersion);
 
-    for (auto release : borrowedReleases) {
+    for (const auto& release : borrowedReleases) {
       if (SemVer::isUpgrade(currentVersion, SemVer::parse(release.tagName))) {
         upgrades.push_back(release);
       }
@@ -154,7 +153,7 @@ class ReleaseDigest {
 
     auto rtn = ReleaseDigest();
 
-    for (GithubRelease upgrade : upgrades) {
+    for (const GithubRelease& upgrade : upgrades) {
       auto upgradeVersion = SemVer::parse(upgrade.tagName);
       if (SemVer::isMajorUpgrade(currentVersion, upgradeVersion) && SemVer::isUpgrade(majorVer, upgradeVersion)) {
         majorVer = upgradeVersion;
@@ -187,5 +186,3 @@ class ReleaseDigest {
 };
 
 }
-
-#endif // GITHUB_RELEASE_H

@@ -1,5 +1,4 @@
-#ifndef TAGEDITOR_H
-#define TAGEDITOR_H
+#pragma once
 
 #include <QCompleter>
 #include <QErrorMessage>
@@ -55,7 +54,7 @@ class TagEditor : public QWidget {
   void tagsLoaded(bool isValid);
 
  private:
-  QString operationSlug = "";
+  QString operationSlug;
   std::vector<model::Tag> initialTags;
 
   QNetworkReply* getTagsReply = nullptr;
@@ -77,5 +76,3 @@ class TagEditor : public QWidget {
   QLabel* errorLabel = nullptr;
   TagView* tagView = nullptr;
 };
-
-#endif  // TAGEDITOR_H

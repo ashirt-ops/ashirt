@@ -116,14 +116,14 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
       {evidenceID});
 
   if (query.first()) {
-    rtn.id = query.value("id").toLongLong();
-    rtn.path = query.value("path").toString();
-    rtn.operationSlug = query.value("operation_slug").toString();
-    rtn.contentType = query.value("content_type").toString();
-    rtn.description = query.value("description").toString();
-    rtn.errorText = query.value("error").toString();
-    rtn.recordedDate = query.value("recorded_date").toDateTime();
-    rtn.uploadDate = query.value("upload_date").toDateTime();
+    rtn.id = query.value(QStringLiteral("id")).toLongLong();
+    rtn.path = query.value(QStringLiteral("path")).toString();
+    rtn.operationSlug = query.value(QStringLiteral("operation_slug")).toString();
+    rtn.contentType = query.value(QStringLiteral("content_type")).toString();
+    rtn.description = query.value(QStringLiteral("description")).toString();
+    rtn.errorText = query.value(QStringLiteral("error")).toString();
+    rtn.recordedDate = query.value(QStringLiteral("recorded_date")).toDateTime();
+    rtn.uploadDate = query.value(QStringLiteral("upload_date")).toDateTime();
 
     rtn.recordedDate.setTimeSpec(Qt::UTC);
     rtn.uploadDate.setTimeSpec(Qt::UTC);
@@ -158,9 +158,9 @@ std::vector<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidence
   auto getTagQuery = executeQuery(getDB(), "SELECT id, tag_id, name FROM tags WHERE evidence_id=?",
                                   {evidenceID});
   while (getTagQuery.next()) {
-    auto tag = model::Tag(getTagQuery.value("id").toLongLong(),
-                          getTagQuery.value("tag_id").toLongLong(),
-                          getTagQuery.value("name").toString());
+    auto tag = model::Tag(getTagQuery.value(QStringLiteral("id")).toLongLong(),
+                          getTagQuery.value(QStringLiteral("tag_id")).toLongLong(),
+                          getTagQuery.value(QStringLiteral("name")).toString());
     tags.emplace_back(tag);
   }
   return tags;
@@ -175,10 +175,10 @@ std::vector<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(
         return QVariantList{evidenceIDs[index]};
       },
       [&tags](const QSqlQuery& resultItem){
-        auto tag = model::Tag(resultItem.value("id").toLongLong(),
-                              resultItem.value("evidence_id").toLongLong(),
-                              resultItem.value("tag_id").toLongLong(),
-                              resultItem.value("name").toString());
+        auto tag = model::Tag(resultItem.value(QStringLiteral("id")).toLongLong(),
+                              resultItem.value(QStringLiteral("evidence_id")).toLongLong(),
+                              resultItem.value(QStringLiteral("tag_id")).toLongLong(),
+                              resultItem.value(QStringLiteral("name")).toString());
         tags.emplace_back(tag);
       });
 
@@ -200,7 +200,7 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
       executeQuery(db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
   QList<qint64> currentTags;
   while (currentTagsResult.next()) {
-    currentTags.push_back(currentTagsResult.value("tag_id").toLongLong());
+    currentTags.push_back(currentTagsResult.value(QStringLiteral("tag_id")).toLongLong());
   }
   struct dataset {
     qint64 evidenceID = 0;
@@ -300,14 +300,14 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
   std::vector<model::Evidence> allEvidence;
   while (resultSet.next()) {
     model::Evidence evi;
-    evi.id = resultSet.value("id").toLongLong();
-    evi.path = resultSet.value("path").toString();
-    evi.operationSlug = resultSet.value("operation_slug").toString();
-    evi.contentType = resultSet.value("content_type").toString();
-    evi.description = resultSet.value("description").toString();
-    evi.errorText = resultSet.value("error").toString();
-    evi.recordedDate = resultSet.value("recorded_date").toDateTime();
-    evi.uploadDate = resultSet.value("upload_date").toDateTime();
+    evi.id = resultSet.value(QStringLiteral("id")).toLongLong();
+    evi.path = resultSet.value(QStringLiteral("path")).toString();
+    evi.operationSlug = resultSet.value(QStringLiteral("operation_slug")).toString();
+    evi.contentType = resultSet.value(QStringLiteral("content_type")).toString();
+    evi.description = resultSet.value(QStringLiteral("description")).toString();
+    evi.errorText = resultSet.value(QStringLiteral("error")).toString();
+    evi.recordedDate = resultSet.value(QStringLiteral("recorded_date")).toDateTime();
+    evi.uploadDate = resultSet.value(QStringLiteral("upload_date")).toDateTime();
 
     evi.recordedDate.setTimeSpec(Qt::UTC);
     evi.uploadDate.setTimeSpec(Qt::UTC);
@@ -334,7 +334,7 @@ std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
     exportDB.batchCopyTags(tags);
   };
 
-  withConnection(pathToExport, "exportDB", exportViewAction);
+  withConnection(pathToExport, QStringLiteral("exportDB"), exportViewAction);
 
   return exportEvidence;
 }
@@ -349,7 +349,7 @@ void DatabaseConnection::migrateDB() {
   auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
 
   for (const QString &newMigration : migrationsToApply) {
-    QFile migrationFile(":/migrations/" + newMigration);
+    QFile migrationFile(QStringLiteral(":/migrations/%1").arg(newMigration));
     auto ok = migrationFile.open(QFile::ReadOnly);
     if (!ok) {
       throw FileError::mkError("Error reading migration file",
@@ -377,7 +377,7 @@ void DatabaseConnection::migrateDB() {
 //   * BadDatabaseStateError if some migrations have been applied that are not known
 //   * QSqlError if database queries fail
 QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
-  QDir migrationsDir(":/migrations");
+  QDir migrationsDir(QStringLiteral(":/migrations"));
 
   auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
   QStringList appliedMigrations;
@@ -386,11 +386,11 @@ QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
   auto queryResult = executeQueryNoThrow(db, "SELECT migration_name FROM migrations");
   QSqlQuery* dbMigrations = &queryResult.query;
   while (queryResult.success && queryResult.query.next()) {
-    appliedMigrations << dbMigrations->value("migration_name").toString();
+    appliedMigrations << dbMigrations->value(QStringLiteral("migration_name")).toString();
   }
   // compare the two list to find gaps
   for (const QString &possibleMigration : allMigrations) {
-    if (possibleMigration.right(4) != ".sql") {
+    if (!possibleMigration.endsWith(QStringLiteral(".sql"))) {
       continue;  // assume non-sql files aren't actual migrations.
     }
     auto foundIndex = appliedMigrations.indexOf(possibleMigration);
@@ -470,7 +470,7 @@ qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
 }
 
 QSqlDatabase DatabaseConnection::getDB() {
-  if (dbName == "") {
+  if (dbName.isEmpty()) {
     return QSqlDatabase::database();
   }
   return QSqlDatabase::database(dbName);
@@ -482,7 +482,7 @@ QString DatabaseConnection::getDatabasePath() {
 
 void DatabaseConnection::batchInsert(const QString& baseQuery, unsigned int varsPerRow, unsigned int numRows,
                                      const FieldEncoderFunc& encodeValues, QString rowInsertTemplate) {
-  if (rowInsertTemplate == "") {
+  if (rowInsertTemplate.isEmpty()) {
     rowInsertTemplate = "(" + QString("?,").repeated(varsPerRow > 0 ? varsPerRow-1 : 0) + "?),";
   }
   auto noop = [](const QSqlQuery&){};
@@ -497,7 +497,7 @@ void DatabaseConnection::batchQuery(const QString &baseQuery, unsigned int varsP
   auto finalRowOffset = numFullFrames * frameSize;
   auto overflow = numRows - finalRowOffset;
 
-  if (variableTemplate == "") {
+  if (variableTemplate.isEmpty()) {
     variableTemplate = QString("?,").repeated(int(varsPerRow));
   }
   int runningRowIndex = 0; // tracks what row is next to be encoded/"inserted"

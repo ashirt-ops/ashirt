@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef SCREENSHOT_H
-#define SCREENSHOT_H
+#pragma once
 
 #include <QObject>
 #include <string>
@@ -25,5 +24,3 @@ class Screenshot : public QObject {
   QString formatScreenshotCmd(QString cmdProto, const QString& filename);
   void basicScreenshot(QString cmdProto);
 };
-
-#endif  // SCREENSHOT_H

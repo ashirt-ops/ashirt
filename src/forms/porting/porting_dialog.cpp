@@ -35,24 +35,24 @@ void PortingDialog::buildUi() {
   portStatusLabel = new QLabel(this);
 
   submitButton = new QPushButton(this);
-  browseButton = new QPushButton("Browse", this);
+  browseButton = new QPushButton(tr("Browse"), this);
   pathTextBox = new QLineEdit(this);
-  portConfigCheckBox = new QCheckBox("Include Config", this);
+  portConfigCheckBox = new QCheckBox(tr("Include Config"), this);
   portConfigCheckBox->setChecked(true);
-  portEvidenceCheckBox = new QCheckBox("Include Evidence", this);
+  portEvidenceCheckBox = new QCheckBox(tr("Include Evidence"), this);
   portEvidenceCheckBox->setChecked(true);
   progressBar = new QProgressBar(this);
 
 
   if (dialogType == Import) {
-    submitButton->setText("Import");
-    _selectFileLabel->setText("Select import file");
-    this->setWindowTitle("Import Data");
+    submitButton->setText(tr("Import"));
+    _selectFileLabel->setText(tr("Select import file"));
+    this->setWindowTitle(tr("Import Data"));
   }
   else {
-    submitButton->setText("Export");
-    _selectFileLabel->setText("Export Directory");
-    this->setWindowTitle("Export Data");
+    submitButton->setText(tr("Export"));
+    _selectFileLabel->setText(tr("Export Directory"));
+    this->setWindowTitle(tr("Export Data"));
   }
 
   // Layout
@@ -129,10 +129,10 @@ void PortingDialog::resetForm() {
     pathTextBox->clear();
     progressBar->setRange(0, 1);
     progressBar->setValue(0);
-    portStatusLabel->setText("");
+    portStatusLabel->clear();
     portConfigCheckBox->setCheckState(Qt::Unchecked);
     portEvidenceCheckBox->setCheckState(Qt::Unchecked);
-    submitButton->setText(dialogType == Import ? "Import" : "Export");
+    submitButton->setText(dialogType == Import ? tr("Import") : tr("Export"));
 }
 
 void PortingDialog::onSubmitPressed() {
@@ -142,7 +142,7 @@ void PortingDialog::onSubmitPressed() {
   }
   auto portingPath = pathTextBox->text().trimmed();
   if (pathTextBox->text().trimmed().isEmpty()) {
-    portStatusLabel->setText("Please set a valid path first");
+    portStatusLabel->setText(tr("Please set a valid path first"));
     return;
   }
 
@@ -151,7 +151,7 @@ void PortingDialog::onSubmitPressed() {
 
   std::function<void()> portAction;
 
-  portStatusLabel->setText("Gathering data...");
+  portStatusLabel->setText(tr("Gathering data..."));
 
   if (dialogType == Import) {
     executedManifest = doPreImport(portingPath);
@@ -177,8 +177,8 @@ void PortingDialog::onSubmitPressed() {
 
 void PortingDialog::onPortComplete(bool success) {
   if(success) {
-    portStatusLabel->setText(dialogType == Import ? "Import Complete" : "Export Complete");
-    submitButton->setText("Close");
+    portStatusLabel->setText(dialogType == Import ? tr("Import Complete") : tr("Export Complete"));
+    submitButton->setText(tr("Close"));
     portDone = true;
   }
   if(executedManifest != nullptr) {
@@ -188,7 +188,7 @@ void PortingDialog::onPortComplete(bool success) {
   progressBar->setRange(0, 1);
   progressBar->setValue(1);
   submitButton->setEnabled(true);
-  emit portCompleted(portPath);
+  Q_EMIT portCompleted(portPath);
 }
 
 QString PortingDialog::getPortPath() {
@@ -210,15 +210,15 @@ void PortingDialog::doExport(porting::SystemManifest* manifest, const QString& e
            manifest->exportManifest(&conn, exportPath, options);
          }
          catch(const FileError &e) {
-           portStatusLabel->setText(QString("Error during export: ") + e.what());
-           emit onWorkComplete(false);
+           portStatusLabel->setText(tr("Error during export: %1").arg(e.what()));
+           Q_EMIT onWorkComplete(false);
          }
          catch(const QSqlError &e) {
-           portStatusLabel->setText("Error during export: " + e.text());
-           emit onWorkComplete(false);
+           portStatusLabel->setText(tr("Error during export: %1").arg(e.text()));
+           Q_EMIT onWorkComplete(false);
          }
   });
-  emit onWorkComplete(true);
+  Q_EMIT onWorkComplete(true);
 }
 
 porting::SystemManifest* PortingDialog::doPreImport(const QString& pathToSystemManifest) {
@@ -227,7 +227,7 @@ porting::SystemManifest* PortingDialog::doPreImport(const QString& pathToSystemM
     manifest = porting::SystemManifest::readManifest(pathToSystemManifest);
   }
   catch(const FileError& e) {
-    portStatusLabel->setText("Unable to parse system file.");
+    portStatusLabel->setText(tr("Unable to parse system file."));
     onPortComplete(false);
   }
   return manifest;
@@ -238,20 +238,20 @@ void PortingDialog::doImport(porting::SystemManifest* manifest) {
   options.importDb = portEvidenceCheckBox->isChecked() ? options.Merge : options.None;
   options.importConfig = portConfigCheckBox->isChecked();
 
-  QString threadedDbName = Constants::defaultDbName() + "_mt_forImport";
+  QString threadedDbName = QStringLiteral("%1_mt_forImport").arg(Constants::defaultDbName());
   DatabaseConnection::withConnection(
       db->getDatabasePath(), threadedDbName, [this, &manifest, options](DatabaseConnection conn){
         try {
           manifest->applyManifest(options, &conn);
         }
         catch(const FileError &e) {
-          portStatusLabel->setText(QString("Error during import: ") + e.what());
-          emit onWorkComplete(false);
+          portStatusLabel->setText(tr("Error during import: %1").arg(e.what()));
+          Q_EMIT onWorkComplete(false);
         }
         catch(const QSqlError &e) {
-          portStatusLabel->setText("Error during import: " + e.text());
-          emit onWorkComplete(false);
+          portStatusLabel->setText(tr("Error during import: ").arg(e.text()));
+          Q_EMIT onWorkComplete(false);
         }
   });
-  emit onWorkComplete(true);
+  Q_EMIT onWorkComplete(true);
 }

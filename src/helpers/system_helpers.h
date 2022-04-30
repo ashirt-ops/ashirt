@@ -1,5 +1,4 @@
-#ifndef SYSTEM_HELPERS_H
-#define SYSTEM_HELPERS_H
+#pragma once
 
 #include <QString>
 #include <QDir>
@@ -16,9 +15,9 @@ class SystemHelpers {
   static QString pathToEvidence() {
     AppConfig &conf = AppConfig::getInstance();
     auto op = AppSettings::getInstance().operationSlug();
-    auto root = conf.evidenceRepo + "/";
-    if (op != "") {
-      root += op + "/";
+    auto root = QStringLiteral("%1/").arg(conf.evidenceRepo);
+    if (!op.isEmpty()) {
+      root.append(QStringLiteral("%1/").arg(op));
     }
 
     QDir().mkpath(root);
@@ -26,5 +25,3 @@ class SystemHelpers {
   }
 
 };
-
-#endif // SYSTEM_HELPERS_H

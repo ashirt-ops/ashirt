@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DTO_OPERATION_H
-#define DTO_OPERATION_H
+#pragma once
 
 #include <QVariant>
 #include <vector>
@@ -43,8 +42,8 @@ class Operation {
 
   static QByteArray createOperationJson(Operation o) {
     QJsonObject obj;
-    obj.insert("slug", o.slug);
-    obj.insert("name", o.name);
+    obj.insert(QStringLiteral("slug"), o.slug);
+    obj.insert(QStringLiteral("name"), o.name);
     return QJsonDocument(obj).toJson();
   }
 
@@ -61,5 +60,3 @@ class Operation {
   }
 };
 }  // namespace dto
-
-#endif  // DTO_OPERATION_H

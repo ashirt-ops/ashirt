@@ -25,15 +25,13 @@ Codeblock::Codeblock() = default;
 Codeblock::Codeblock(QString content) {
   this->filename = SystemHelpers::pathToEvidence() + Codeblock::mkName();
   this->content = std::move(content);
-  this->subtype = "";
-  this->source = "";
 }
 
 QString Codeblock::mkName() {
-  return FileHelpers::randomFilename("ashirt_codeblock_XXXXXX." + extension());
+  return FileHelpers::randomFilename(QStringLiteral("ashirt_codeblock_XXXXXX.%1").arg(extension()));
 }
 QString Codeblock::extension() {
-  return "json";
+  return QStringLiteral("json");
 }
 
 void Codeblock::saveCodeblock(Codeblock codeblock) {
@@ -49,23 +47,23 @@ Codeblock Codeblock::readCodeblock(const QString& filepath) {
 }
 
 QString Codeblock::contentType() {
-  return "codeblock";
+  return QStringLiteral("codeblock");
 }
 
 QByteArray Codeblock::encode() {
   QJsonObject root;
 
-  root.insert("contentSubtype", subtype);
-  root.insert("content", content);
+  root.insert(QStringLiteral("contentSubtype"), subtype);
+  root.insert(QStringLiteral("content"), content);
 
   QJsonObject metadata;
 
-  if (source != "") {
-    metadata.insert("source", source);
+  if (!source.isEmpty()) {
+    metadata.insert(QStringLiteral("source"), source);
   }
 
   if (!metadata.empty()) {
-    root.insert("metadata", metadata);
+    root.insert(QStringLiteral("metadata"), metadata);
   }
   return QJsonDocument(root).toJson();
 }

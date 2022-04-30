@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef JSONHELPERS_H
-#define JSONHELPERS_H
+#pragma once
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -22,7 +21,7 @@ static std::vector<T> parseJSONList(QByteArray data, T (*dataToItem)(QJsonObject
   QJsonArray arr = doc.array();
   std::vector<T> list;
 
-  for (QJsonValue val : arr) {
+  for (const QJsonValue& val : arr) {
     auto item = dataToItem(val.toObject());
     list.push_back(item);
   }
@@ -48,5 +47,3 @@ static T parseJSONItem(QByteArray data, std::function<T(QJsonObject)>dataToItem)
 //    auto obj = itemToData(item);
 //    return QJsonDocument::fromVariant(obj).toJson();
 //}
-
-#endif  // JSONHELPERS_H

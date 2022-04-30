@@ -1,5 +1,4 @@
-#ifndef TAGCACHE_H
-#define TAGCACHE_H
+#pragma once
 
 #include <QString>
 #include <QNetworkReply>
@@ -31,5 +30,3 @@ class TagCache : public QObject {
   std::unordered_map<QString, QNetworkReply*> tagRequests;
   std::unordered_map<QString, TagCacheItem> cache;
 };
-
-#endif // TAGCACHE_H

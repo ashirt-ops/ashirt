@@ -1,5 +1,4 @@
-#ifndef FILE_HELPERS_H
-#define FILE_HELPERS_H
+#pragma once
 
 #include <QDir>
 #include <QFile>
@@ -16,7 +15,7 @@ class FileCopyResult {
  public:
   FileCopyResult(){}
   bool success = false;
-  QFile* file;
+  QFile* file = nullptr;
 };
 
 class FileHelpers {
@@ -31,7 +30,7 @@ class FileHelpers {
       auto base = asciiOffset.at(letter < 26 ? 0 : 1);
       replacement << QString(char(base + (letter % 26)));
     }
-    return replacement.join("");
+    return replacement.join(QString());
   }
 
   /**
@@ -160,5 +159,3 @@ class FileHelpers {
     return QFileInfo(filepath).dir().path();
   }
 };
-
-#endif  // FILE_HELPERS_H

@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DATABASECONNECTION_H
-#define DATABASECONNECTION_H
+#pragma once
 
 #include <QSqlDatabase>
 #include <QSqlDriver>
@@ -93,8 +92,8 @@ class DatabaseConnection {
   const unsigned long SQLITE_MAX_VARS = 999;
 
  private:
-  QString dbName = "";
-  QString _dbPath = "";
+  QString dbName;
+  QString _dbPath;
 
   void migrateDB();
   QSqlDatabase getDB();
@@ -120,7 +119,7 @@ class DatabaseConnection {
    * @param rowInsertTemplate An optional string that can be used to define each row's values. Defaults to (?, ..., ?)
    */
   void batchInsert(const QString& baseQuery, unsigned int varsPerRow, unsigned int numRows,
-                   const FieldEncoderFunc& encodeValues, QString rowInsertTemplate="");
+                   const FieldEncoderFunc& encodeValues, QString rowInsertTemplate = QString());
 
   /**
    * @brief batchQuery batches a query with many variables into as few queries as possible.
@@ -134,7 +133,5 @@ class DatabaseConnection {
    */
   void batchQuery(const QString &baseQuery, unsigned int varsPerRow, unsigned int numRows,
                   const FieldEncoderFunc &encodeValues, const RowDecoderFunc& decodeRows,
-                  QString variableTemplate = "");
+                  QString variableTemplate = QString());
 };
-
-#endif  // DATABASECONNECTION_H

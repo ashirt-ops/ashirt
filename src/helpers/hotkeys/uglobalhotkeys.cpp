@@ -157,7 +157,7 @@ UGlobalHotkeys::~UGlobalHotkeys()
 #if defined(Q_OS_MAC)
 void UGlobalHotkeys::onHotkeyPressed(size_t id)
 {
-    emit activated(id);
+    Q_EMIT activated(id);
 }
 #endif
 
@@ -168,7 +168,7 @@ bool UGlobalHotkeys::winEvent(MSG *message, RESULT_TYPE *result)
     if (message->message == WM_HOTKEY) {
         size_t id = message->wParam;
         Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
-        emit activated(id);
+        Q_EMIT activated(id);
     }
     return false;
 }
@@ -197,7 +197,7 @@ bool UGlobalHotkeys::linuxEvent(xcb_generic_event_t *message)
         if (ind == 0) // this is not hotkeys
             return false;
 
-        emit activated(ind);
+        Q_EMIT activated(ind);
         return true;
     }
     return false;

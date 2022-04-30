@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef GETINFO_H
-#define GETINFO_H
+#pragma once
 
 #include <QGridLayout>
 #include <QAction>
@@ -60,5 +59,3 @@ class GetInfo : public QDialog {
   LoadingButton *submitButton;
 
 };
-
-#endif  // GETINFO_H

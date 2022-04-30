@@ -1,10 +1,8 @@
-#ifndef QUERY_RESULT_H
-#define QUERY_RESULT_H
+#pragma once
 
 #include <QSqlError>
 #include <QSqlQuery>
 
-#endif // QUERY_RESULT_H
 
 /**
  * @brief The QueryResult class is a small container for representing a post "query.exec" state

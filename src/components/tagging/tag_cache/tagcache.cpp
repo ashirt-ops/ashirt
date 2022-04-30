@@ -9,7 +9,7 @@ TagCache::TagCache() {
 }
 
 TagCache::~TagCache() {
-  for (auto entry : tagRequests) {
+  for (auto& entry : tagRequests) {
     stopReply(&(entry.second));
   }
 }
@@ -31,7 +31,7 @@ void TagCache::requestTags(QString operationSlug) {
 
     auto reply = NetMan::getInstance().getOperationTags(operationSlug);
     tagRequests.emplace(operationSlug, reply);
-    connect(reply, &QNetworkReply::finished, [this, reply, operationSlug]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, operationSlug]() {
       onGetTagsComplete(reply, operationSlug);
       tagRequests.erase(operationSlug);
 
@@ -39,19 +39,19 @@ void TagCache::requestTags(QString operationSlug) {
       auto newEntry = cache.find(operationSlug);
       if (newEntry != cache.end()) {
         if (newEntry->second.isStale()) { // lookup failed -- notify with old data
-          emit failedLookup(operationSlug, newEntry->second.getTags());
+          Q_EMIT failedLookup(operationSlug, newEntry->second.getTags());
         }
         else {
-          emit tagResponse(operationSlug, newEntry->second.getTags());
+          Q_EMIT tagResponse(operationSlug, newEntry->second.getTags());
         }
       }
       else { // lookup failed, but no data in this scenario
-        emit failedLookup(operationSlug);
+        Q_EMIT failedLookup(operationSlug);
       }
     });
   }
   else { // we already have valid data
-    emit tagResponse(operationSlug, entry->second.getTags());
+    Q_EMIT tagResponse(operationSlug, entry->second.getTags());
   }
 }
 

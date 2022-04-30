@@ -26,10 +26,10 @@ CreateOperation::~CreateOperation() {
 void CreateOperation::buildUi() {
   gridLayout = new QGridLayout(this);
 
-  submitButton = new LoadingButton("Submit", this);
+  submitButton = new LoadingButton(tr("Submit"), this);
   submitButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  _operationLabel = new QLabel("Operation Name", this);
+  _operationLabel = new QLabel(tr("Operation Name"), this);
   _operationLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   responseLabel = new QLabel(this);
   operationNameTextBox = new QLineEdit(this);
@@ -61,7 +61,7 @@ void CreateOperation::buildUi() {
 
   this->setLayout(gridLayout);
   this->resize(400, 1);
-  this->setWindowTitle("Create Operation");
+  this->setWindowTitle(tr("Create Operation"));
 
   Qt::WindowFlags flags = this->windowFlags();
   flags |= Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowMinMaxButtonsHint |
@@ -74,15 +74,15 @@ void CreateOperation::wireUi() {
 }
 
 void CreateOperation::submitButtonClicked() {
-  responseLabel->setText("");
+  responseLabel->clear();
   auto name = operationNameTextBox->text().trimmed();
   auto slug = makeSlugFromName(name);
 
-  if (slug == "") {
+  if (slug.isEmpty()) {
     responseLabel->setText(
-        (name == "")
-        ? "The Operation Name must not be empty"
-        : "The Operation Name must include letters or numbers"
+        (name.isEmpty())
+        ? tr("The Operation Name must not be empty")
+        : tr("The Operation Name must include letters or numbers")
     );
     return;
   }
@@ -94,10 +94,10 @@ void CreateOperation::submitButtonClicked() {
 }
 
 QString CreateOperation::makeSlugFromName(QString name) {
-  static QRegularExpression invalidCharsRegex("[^A-Za-z0-9]+");
-  static QRegularExpression startOrEndDash("^-|-$");
+  static QRegularExpression invalidCharsRegex(QStringLiteral("[^A-Za-z0-9]+"));
+  static QRegularExpression startOrEndDash(QStringLiteral("^-|-$"));
 
-  return name.toLower().replace(invalidCharsRegex, "-").replace(startOrEndDash, "");
+  return name.toLower().replace(invalidCharsRegex, QStringLiteral("-")).replace(startOrEndDash, QString());
 }
 
 void CreateOperation::onRequestComplete() {
@@ -111,11 +111,11 @@ void CreateOperation::onRequestComplete() {
   }
   else {
     dto::AShirtError err = dto::AShirtError::parseData(data);
-    if (err.error.contains("slug already exists")) {
-      responseLabel->setText("A similar operation name already exists. Please try a new name.");
+    if (err.error.contains(QStringLiteral("slug already exists"))) {
+      responseLabel->setText(tr("A similar operation name already exists. Please try a new name."));
     }
     else {
-      responseLabel->setText("Got an unexpected error: " + err.error);
+      responseLabel->setText(tr("Got an unexpected error: %1").arg(err.error));
     }
   }
 

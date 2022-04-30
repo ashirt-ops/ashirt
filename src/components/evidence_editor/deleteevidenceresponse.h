@@ -1,5 +1,4 @@
-#ifndef DELETEEVIDENCERESPONSE_H
-#define DELETEEVIDENCERESPONSE_H
+#pragma once
 
 #include <QString>
 
@@ -8,7 +7,6 @@
 struct DeleteEvidenceResponse {
   DeleteEvidenceResponse(model::Evidence model) {
     this->model = model;
-    this->errorText = "";
   }
   DeleteEvidenceResponse(bool fileDeleteSuccess, bool dbDeleteSuccess, QString err,
                          model::Evidence model)
@@ -22,5 +20,3 @@ struct DeleteEvidenceResponse {
   QString errorText;
   model::Evidence model;
 };
-
-#endif  // DELETEEVIDENCERESPONSE_H

@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef MODEL_TAG_H
-#define MODEL_TAG_H
+#pragma once
 
 #include <QDataStream>
 #include <QString>
@@ -46,4 +45,3 @@ class Tag {
 
 Q_DECLARE_METATYPE(model::Tag);
 Q_DECLARE_METATYPE(std::vector<model::Tag>);
-#endif  // MODEL_TAG_H

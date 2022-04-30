@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef EVIDENCEEDITOR_H
-#define EVIDENCEEDITOR_H
+#pragma once
 
 #include <QGridLayout>
 #include <QLabel>
@@ -73,5 +72,3 @@ class EvidenceEditor : public QWidget {
   TagEditor* tagEditor;
   EvidencePreview* loadedPreview = nullptr;
 };
-
-#endif  // EVIDENCEEDITOR_H

@@ -11,14 +11,14 @@
 
 static void initializeTriCombobox(QComboBox *box) {
   box->clear();
-  box->addItem("Any");
-  box->addItem("Yes");
-  box->addItem("No");
+  box->addItem(QT_TRANSLATE_NOOP("EvidenceFilter", "Any"));
+  box->addItem(QT_TRANSLATE_NOOP("EvidenceFilter", "Yes"));
+  box->addItem(QT_TRANSLATE_NOOP("EvidenceFilter", "No"));
 }
 
 static void initializeDateEdit(QDateEdit *dateEdit) {
   dateEdit->setDate(QDateTime::currentDateTime().date());
-  dateEdit->setDisplayFormat("MMM dd, yyyy");
+  dateEdit->setDisplayFormat(QStringLiteral("MMM dd, yyyy"));
   dateEdit->setDateRange(QDate(2000, 01, 01), QDateTime::currentDateTime().date());
   dateEdit->setEnabled(false);
 }
@@ -55,17 +55,17 @@ EvidenceFilterForm::~EvidenceFilterForm() {
 void EvidenceFilterForm::buildUi() {
   gridLayout = new QGridLayout(this);
 
-  _operationLabel = new QLabel("Operation", this);
-  _contentTypeLabel = new QLabel("Content Type", this);
-  _hadErrorLabel = new QLabel("Had Error", this);
-  _wasSubmittedLabel = new QLabel("Was Submitted", this);
-  _fromDateLabel = new QLabel("From Date", this);
-  _toDateLabel = new QLabel("To Date", this);
+  _operationLabel = new QLabel(tr("Operation"), this);
+  _contentTypeLabel = new QLabel(tr("Content Type"), this);
+  _hadErrorLabel = new QLabel(tr("Had Error"), this);
+  _wasSubmittedLabel = new QLabel(tr("Was Submitted"), this);
+  _fromDateLabel = new QLabel(tr("From Date"), this);
+  _toDateLabel = new QLabel(tr("To Date"), this);
 
   operationComboBox = new QComboBox(this);
   operationComboBox->setEditable(false);
   operationComboBox->setEnabled(false);
-  operationComboBox->addItem("Loading...", "");
+  operationComboBox->addItem(tr("Loading..."), QVariant());
 
   submittedComboBox = new QComboBox(this);
   submittedComboBox->setEditable(false);
@@ -77,17 +77,17 @@ void EvidenceFilterForm::buildUi() {
 
   contentTypeComboBox = new QComboBox(this);
   contentTypeComboBox->setEditable(false);
-  contentTypeComboBox->addItem("<None>", "");
-  contentTypeComboBox->addItem("Image", "image");
-  contentTypeComboBox->addItem("Codeblock", "codeblock");
+  contentTypeComboBox->addItem(tr("<None>"), QVariant());
+  contentTypeComboBox->addItem(tr("Image"), QStringLiteral("image"));
+  contentTypeComboBox->addItem(tr("Codeblock"), QStringLiteral("codeblock"));
 
   fromDateEdit = new QDateEdit(this);
   initializeDateEdit(fromDateEdit);
   toDateEdit = new QDateEdit(this);
   initializeDateEdit(toDateEdit);
 
-  includeEndDateCheckBox = new QCheckBox("Include", this);
-  includeStartDateCheckBox = new QCheckBox("Include", this);
+  includeEndDateCheckBox = new QCheckBox(tr("Include"), this);
+  includeStartDateCheckBox = new QCheckBox(tr("Include"), this);
 
   buttonBox = new QDialogButtonBox(this);
   buttonBox->addButton(QDialogButtonBox::Ok);
@@ -145,7 +145,7 @@ void EvidenceFilterForm::buildUi() {
   this->addAction(closeWindowAction);
 
   this->setLayout(gridLayout);
-  this->setWindowTitle("Evidence Filters");
+  this->setWindowTitle(tr("Evidence Filters"));
   this->resize(320, 245);
 }
 
@@ -159,9 +159,9 @@ void EvidenceFilterForm::wireUi() {
           &EvidenceFilterForm::onOperationListUpdated);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeAndClose);
 
-  connect(includeStartDateCheckBox, &QCheckBox::stateChanged,
+  connect(includeStartDateCheckBox, &QCheckBox::stateChanged, this,
           [this](bool checked) { fromDateEdit->setEnabled(checked); });
-  connect(includeEndDateCheckBox, &QCheckBox::stateChanged,
+  connect(includeEndDateCheckBox, &QCheckBox::stateChanged, this,
           [this](bool checked) { toDateEdit->setEnabled(checked); });
 
   connect(closeWindowAction, &QAction::triggered, this, &EvidenceFilterForm::writeAndClose);
@@ -174,7 +174,7 @@ void EvidenceFilterForm::writeAndClose() {
 
 void EvidenceFilterForm::writeForm() {
   auto filter = encodeForm();
-  emit evidenceSet(filter);
+  Q_EMIT evidenceSet(filter);
 }
 
 EvidenceFilters EvidenceFilterForm::encodeForm() {
@@ -230,13 +230,13 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
                                                 const std::vector<dto::Operation> &operations) {
   operationComboBox->setEnabled(false);
   if (!success) {
-    operationComboBox->setItemText(0, "Unable to fetch operations");
+    operationComboBox->setItemText(0, tr("Unable to fetch operations"));
     operationComboBox->setCurrentIndex(0);
     return;
   }
 
   operationComboBox->clear();
-  operationComboBox->addItem("<None>", "");
+  operationComboBox->addItem(tr("<None>"), QVariant());
   for (const auto &op : operations) {
     operationComboBox->addItem(op.name, op.slug);
   }

@@ -2,8 +2,7 @@
 // Licensed under the terms of CC BY-SA 3.0.
 // Original Source: https://stackoverflow.com/a/22618496/4262552
 
-#ifndef ASPECTRATIOPIXMAPLABEL_H
-#define ASPECTRATIOPIXMAPLABEL_H
+#pragma once
 
 #include <QLabel>
 #include <QPixmap>
@@ -23,5 +22,3 @@ class AspectRatioPixmapLabel : public QLabel {
  private:
   QPixmap pix;
 };
-
-#endif  // ASPECTRATIOPIXMAPLABEL_H

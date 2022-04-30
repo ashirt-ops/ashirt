@@ -1,8 +1,7 @@
 // Copyright 2020, Verizon Media
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
-#ifndef DTO_TAG_H
-#define DTO_TAG_H
+#pragma once
 
 #include <QVariant>
 #include <vector>
@@ -31,8 +30,8 @@ class Tag {
 
   static QByteArray toJson(Tag t) {
     QJsonObject obj;
-    obj.insert("colorName", t.colorName);
-    obj.insert("name", t.name);
+    obj.insert(QStringLiteral("colorName"), t.colorName);
+    obj.insert(QStringLiteral("name"), t.name);
     return QJsonDocument(obj).toJson();
   }
 
@@ -62,4 +61,3 @@ class Tag {
 };
 }  // namespace dto
 Q_DECLARE_METATYPE(dto::Tag);
-#endif  // DTO_TAG_H
