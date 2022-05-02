@@ -43,12 +43,13 @@ class NetMan : public QObject {
  private:
   QNetworkAccessManager *nam;
 
-  NetMan() { nam = new QNetworkAccessManager; }
-  ~NetMan() {
-    delete nam;
-    stopReply(&allOpsReply);
-    stopReply(&githubReleaseReply);
+  NetMan(QObject * parent = nullptr)
+    : QObject(parent)
+    , nam(new QNetworkAccessManager(this))
+  {
+
   }
+  ~NetMan() = default;
 
   /// ashirtGet generates a basic GET request to the ashirt API server. No authentication is
   /// provided (use addASHIRTAuth to do this)
