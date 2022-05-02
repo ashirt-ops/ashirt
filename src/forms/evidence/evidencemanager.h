@@ -17,6 +17,7 @@
 #include "db/databaseconnection.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 
+//class
 /// EvidenceRow contains the necessary data for a full row in the evidence table.
 /// QTableWidget should memory-manage this data.
 struct EvidenceRow {
@@ -93,9 +94,9 @@ class EvidenceManager : public AShirtDialog {
   /// After saving, the edit/cancel button is reset. Note: this will change the name of the button to "Save"
   void editEvidenceButtonClicked();
 
-  /// cancelEditEvidenceButtonClicked resets the edit/cancel buttons 
+  /// cancelEditEvidenceButtonClicked resets the edit/cancel buttons
   void cancelEditEvidenceButtonClicked();
-  
+
   /// deleteSet is a small helper to iterate through the provided list, delete the ids, and process
   /// the result
   void deleteSet(std::vector<qint64> ids);
@@ -126,12 +127,10 @@ class EvidenceManager : public AShirtDialog {
   QMenu* evidenceTableContextMenu = nullptr;
 
   QAction* submitEvidenceAction = nullptr;
-  QAction* deleteEvidenceAction = nullptr;
   QAction* copyPathToClipboardAction = nullptr;
   QAction* deleteTableContentsAction = nullptr;
 
   // UI Elements
-  QGridLayout* gridLayout = nullptr;
   QPushButton* editFiltersButton = nullptr;
   QPushButton* applyFilterButton = nullptr;
   QPushButton* resetFilterButton = nullptr;
@@ -141,5 +140,15 @@ class EvidenceManager : public AShirtDialog {
   QTableWidget* evidenceTable = nullptr;
   EvidenceEditor* evidenceEditor = nullptr;
   QProgressIndicator* loadingAnimation = nullptr;
-  QSpacerItem* spacer = nullptr;
+  inline static const QStringList columnNames {
+      QStringLiteral("Date Captured")
+      , QStringLiteral("Operation")
+      , QStringLiteral("Path")
+      , QStringLiteral("Content Type")
+      , QStringLiteral("Description")
+      , QStringLiteral("Submitted")
+      , QStringLiteral("Date Submitted")
+      , QStringLiteral("Failed")
+      , QStringLiteral("Error")
+  };
 };

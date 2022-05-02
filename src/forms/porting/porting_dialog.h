@@ -1,18 +1,14 @@
 #pragma once
 
 #include "ashirtdialog/ashirtdialog.h"
-
-#include <QCheckBox>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QProgressBar>
-#include <QPushButton>
-#include <QWidget>
-
-#include "db/databaseconnection.h"
 #include "porting/system_manifest.h"
 
+class DatabaseConnection;
+class QCheckBox;
+class QLabel;
+class QLineEdit;
+class QProgressBar;
+class QPushButton;
 /**
  * @brief The PortingDialog class renders a dialog window allowing a user to import or export content and settings.
  * The UI presented is dependent on the underlying dialogType. Specifying Import will render an import window,
@@ -39,7 +35,7 @@ class PortingDialog : public AShirtDialog {
    * @param parent is used by the underlying QDialog constructor
    */
   explicit PortingDialog(PortType dialogType, DatabaseConnection* db, QWidget *parent = nullptr);
-  ~PortingDialog();
+  ~PortingDialog() = default;
 
  public:
   /// getPortPath retrieves the path used to import or export (note: this is always directory, even
@@ -52,11 +48,6 @@ class PortingDialog : public AShirtDialog {
   void portCompleted(QString path);
 
  private:
-  /// buildUi creates the window structure.
-  void buildUi();
-  /// wireUi connects the components to each other.
-  void wireUi();
-
   /// onSubmitPressed preps an import/export and routes the action to doImport or doExport
   void onSubmitPressed();
   /// onBrowsePressed renders a QFileDialog window (for opening). The behavior is specific for
@@ -95,12 +86,8 @@ class PortingDialog : public AShirtDialog {
   porting::SystemManifest* executedManifest = nullptr;
 
   // UI Components
-  QGridLayout* gridLayout = nullptr;
-  QLabel* _selectFileLabel = nullptr;
   QLabel* portStatusLabel = nullptr;
-
   QPushButton* submitButton = nullptr;
-  QPushButton* browseButton = nullptr;
   QLineEdit* pathTextBox = nullptr;
   QProgressBar* progressBar = nullptr;
   QCheckBox* portConfigCheckBox = nullptr;

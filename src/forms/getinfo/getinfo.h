@@ -5,18 +5,11 @@
 
 #include "ashirtdialog/ashirtdialog.h"
 
-#include <QGridLayout>
 #include <QNetworkReply>
-
 #include "components/evidence_editor/evidenceeditor.h"
-#include "components/loading/qprogressindicator.h"
-#include "components/loading_button/loadingbutton.h"
-#include "db/databaseconnection.h"
-#include "dtos/tag.h"
 
-namespace Ui {
-class GetInfo;
-}
+class DatabaseConnection;
+class LoadingButton;
 
 class GetInfo : public AShirtDialog {
   Q_OBJECT
@@ -29,14 +22,13 @@ class GetInfo : public AShirtDialog {
   void buildUi();
   void wireUi();
   bool saveData();
-  void setActionButtonsEnabled(bool enabled);
-
   void showEvent(QShowEvent *evt) override;
 
+ signals:
+  void setActionButtonsEnabled(bool enabled);
  private slots:
   void submitButtonClicked();
   void deleteButtonClicked();
-
   void onUploadComplete();
 
  public:
@@ -46,13 +38,9 @@ class GetInfo : public AShirtDialog {
  private:
   DatabaseConnection *db;
   qint64 evidenceID;
-
   QNetworkReply *uploadAssetReply = nullptr;
 
   // Ui Components
-  QGridLayout* gridLayout;
-  QPushButton* deleteButton;
-  EvidenceEditor *evidenceEditor;
-  LoadingButton *submitButton;
-
+  EvidenceEditor *evidenceEditor = nullptr;
+  LoadingButton *submitButton = nullptr;
 };

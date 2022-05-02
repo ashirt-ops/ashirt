@@ -5,22 +5,21 @@
 
 #include "ashirtdialog/ashirtdialog.h"
 
-#include <QGridLayout>
-#include <QLabel>
-#include <QComboBox>
-#include <QDateEdit>
-#include <QCheckBox>
-#include <QDialogButtonBox>
-
-#include "db/databaseconnection.h"
 #include "dtos/operation.h"
+#include "evidencefilter.h"
+
+class QComboBox;
+class QLabel;
+class QDateEdit;
+class QCheckBox;
+class QDialogButtonBox;
 
 class EvidenceFilterForm : public AShirtDialog {
   Q_OBJECT
 
  public:
   explicit EvidenceFilterForm(QWidget *parent = nullptr);
-  ~EvidenceFilterForm();
+  ~EvidenceFilterForm() = default;
 
  private:
   /// buildUi creates the window structure.
@@ -49,14 +48,6 @@ class EvidenceFilterForm : public AShirtDialog {
 
  private:
   // UI Components
-  QGridLayout* gridLayout = nullptr;
-  QLabel* _operationLabel = nullptr;
-  QLabel* _contentTypeLabel = nullptr;
-  QLabel* _hadErrorLabel = nullptr;
-  QLabel* _wasSubmittedLabel = nullptr;
-  QLabel* _fromDateLabel = nullptr;
-  QLabel* _toDateLabel = nullptr;
-
   QComboBox* operationComboBox = nullptr;
   QComboBox* submittedComboBox = nullptr;
   QComboBox* erroredComboBox = nullptr;
@@ -66,4 +57,7 @@ class EvidenceFilterForm : public AShirtDialog {
   QCheckBox* includeEndDateCheckBox = nullptr;
   QCheckBox* includeStartDateCheckBox = nullptr;
   QDialogButtonBox* buttonBox = nullptr;
+  void initializeTriCombobox(QComboBox *box);
+  void initializeDateEdit(QDateEdit *dateEdit);
+  void dateNormalize(bool isCondition = false);
 };
