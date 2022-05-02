@@ -17,7 +17,7 @@ class AShirtDialog : public QDialog {
 
   ///Commonly used windowFlags
   inline static const Qt::WindowFlags commonWindowFlags =
-              Qt::WindowFlags()
+              Qt::WindowTitleHint
               | Qt::CustomizeWindowHint
               | Qt::WindowStaysOnTopHint
               | Qt::WindowMinMaxButtonsHint
