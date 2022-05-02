@@ -56,7 +56,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
     }
 #endif
 #if defined(Q_OS_WIN)
-    size_t winMod = 0;
+    size_t winMod = MOD_NOREPEAT;
     size_t key = VK_F2;
     for (size_t i = 0; i != keySeq.size(); i++) {
         if (keySeq[i] == Qt::Key_Control) {
@@ -72,7 +72,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
         }
     }
 
-    if (!RegisterHotKey((HWND)winId(), id, winMod + MOD_NOREPEAT, key)) {
+    if (!RegisterHotKey((HWND)winId(), id, winMod, key)) {
         return false;
     } else {
         Registered.insert(id);
@@ -164,8 +164,7 @@ void UGlobalHotkeys::onHotkeyPressed(size_t id)
 #if defined(Q_OS_WIN)
 bool UGlobalHotkeys::winEvent(MSG *message, RESULT_TYPE *result)
 {
-    Q_UNUSED(result);
-    if (message->message == WM_HOTKEY) {
+    if (message->message == WM_HOTKEY && result == nullptr) {
         size_t id = message->wParam;
         Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
         Q_EMIT activated(id);
