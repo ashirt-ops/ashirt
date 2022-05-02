@@ -66,7 +66,7 @@ class TrayManager : public QDialog {
   /// providing a mechanism to smartly route the click to an action.
   void setTrayMessage(MessageType type, const QString& title, const QString& message,
                       QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
-
+  QIcon getTrayIcon();
  private slots:
   void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
   void onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases);
@@ -82,6 +82,7 @@ class TrayManager : public QDialog {
 
  protected:
   void closeEvent(QCloseEvent *event) override;
+  void changeEvent(QEvent *event) override;
 
  private:
   DatabaseConnection *db = nullptr;

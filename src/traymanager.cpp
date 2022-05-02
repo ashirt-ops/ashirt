@@ -14,7 +14,6 @@
 #include <QTimer>
 #include <QDesktopServices>
 #include <iostream>
-
 #include "appconfig.h"
 #include "appsettings.h"
 #include "db/databaseconnection.h"
@@ -27,23 +26,13 @@
 #include "models/codeblock.h"
 #include "porting/system_manifest.h"
 
-// Tray icons are handled differently between different OS and desktop
-// environments. MacOS uses a monochrome mask to render a light or dark icon
-// depending on which appearance is used. Gnome does not seam to be aware of a
-// light/dark theme within it's tray to be able to automatically take advantage
-// of this. Desktop environments and themes in Linux don't appear to be
-// consistent so we will default to a light icon given that the default bars
-// appear to be dark until we know more. Who knows about windows?
-#ifdef Q_OS_MACOS
-#define ICON ":/icons/shirt-dark.svg"
-#else
-#define ICON ":/icons/shirt-light.svg"
+#if defined(Q_OS_WIN)
+#include <QSettings>
 #endif
 
 
 TrayManager::TrayManager(DatabaseConnection* db) {
   this->db = db;
-
   screenshotTool = new Screenshot();
   hotkeyManager = new HotkeyManager();
   hotkeyManager->updateHotkeys();
@@ -143,15 +132,8 @@ void TrayManager::buildUi() {
 
   setActiveOperationLabel();
 
-  QIcon icon = QIcon(ICON);
-  // TODO: figure out if any other environments support masking
-#ifdef Q_OS_MACOS
-  icon.setIsMask(true);
-#endif
-
-  trayIcon = new QSystemTrayIcon(this);
+  trayIcon = new QSystemTrayIcon(getTrayIcon(), this);
   trayIcon->setContextMenu(trayIconMenu);
-  trayIcon->setIcon(icon);
   trayIcon->show();
 }
 
@@ -230,6 +212,17 @@ void TrayManager::closeEvent(QCloseEvent* event) {
     hide();
     event->ignore();
   }
+}
+
+void TrayManager::changeEvent(QEvent *event)
+{
+    qDebug() <<"EVENT" <<  event->type() << " " << event->spontaneous();
+    if (event->type() == QEvent::ApplicationPaletteChange) {
+        trayIcon->setIcon(getTrayIcon());
+        QWidget::event(event);
+        event->accept();
+    }
+    event->ignore();
 }
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
@@ -371,6 +364,24 @@ void TrayManager::setTrayMessage(MessageType type, const QString& title, const Q
                                  QSystemTrayIcon::MessageIcon icon, int millisecondsTimeoutHint) {
   trayIcon->showMessage(title, message, icon, millisecondsTimeoutHint);
   this->currentTrayMessage = type;
+}
+
+QIcon TrayManager::getTrayIcon()
+{
+#if defined(Q_OS_LINUX)
+  QIcon icon = QIcon(palette().text().color().value() >= QColor(Qt::lightGray).value()
+                     ? QStringLiteral(":/icons/shirt-light.svg")
+                     : QStringLiteral(":/icons/shirt-dark.svg"));
+#elif defined(Q_OS_MACOS)
+  QIcon icon = QIcon(QStringLiteral(":/icons/shirt-dark.svg"));
+  icon.setIsMask(true);
+#elif defined(Q_OS_WIN)
+  QSettings settings(QStringLiteral("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"), QSettings::NativeFormat);
+  QIcon icon = QIcon(settings.value(QStringLiteral("SystemUsesLightTheme")).toInt() == 0
+                     ? QStringLiteral(":/icons/shirt-light.svg")
+                     : QStringLiteral(":/icons/shirt-dark.svg"));
+#endif
+  return icon;
 }
 
 void TrayManager::onTrayMessageClicked() {
