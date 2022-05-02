@@ -42,6 +42,7 @@ endif()
 #WIN32 Its a "GUI" app on win32
 add_executable(ashirt MACOSX_BUNDLE WIN32 ${ASHIRT_SOURCES} ${ASHIRT_PLATFORM_EX_SRC})
 set_target_properties(ashirt PROPERTIES
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/deploy/ashirt.plist.in
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.theparanoids.ashirt"
     MACOSX_BUNDLE_BUNDLE_NAME "ashirt"
     MACOSX_BUNDLE_ICON_FILE ashirt.icns
