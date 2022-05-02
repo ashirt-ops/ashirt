@@ -1,30 +1,34 @@
 #include "components/tagging/tageditor.h"
 
 #include <QAbstractItemView>
+#include <QCompleter>
+#include <QLabel>
+#include <QNetworkReply>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QStringListModel>
 #include <QTimer>
 #include <algorithm>
 
+#include "components/loading/qprogressindicator.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
+#include "tag_cache/tagcache.h"
 
-TagEditor::TagEditor(QWidget *parent) : QWidget(parent) {
+TagEditor::TagEditor(QWidget *parent)
+  : QWidget(parent)
+  , tagView(new TagView(this))
+  , errorLabel(new QLabel(this))
+  , loading(new QProgressIndicator(this))
+  , completer(new QCompleter(this))
+  , tagCompleteTextBox(new QLineEdit(this))
+  , tagCache(new TagCache())
+{
   buildUi();
-  tagCache = new TagCache();
   wireUi();
 }
 
 TagEditor::~TagEditor() {
-  delete couldNotCreateTagMsg;
-  delete loading;
-  delete tagCompleteTextBox;
-  delete errorLabel;
-  delete tagView;
-  delete gridLayout;
-  delete completer;
-
-  delete tagCache;
   for (auto& entry : activeRequests) {
     stopReply(&(entry.second));
   }
@@ -32,21 +36,10 @@ TagEditor::~TagEditor() {
 }
 
 void TagEditor::buildUi() {
-  gridLayout = new QGridLayout(this);
-  gridLayout->setContentsMargins(0, 0, 0, 0);
-
-  couldNotCreateTagMsg = new QErrorMessage(this);
-
-  tagView = new TagView(this);
-  errorLabel = new QLabel(this);
-  loading = new QProgressIndicator(this);
-
-  completer = new QCompleter(this);
   completer->setCompletionMode(QCompleter::PopupCompletion);
   completer->setFilterMode(Qt::MatchContains);
   completer->setCaseSensitivity(Qt::CaseInsensitive);
 
-  tagCompleteTextBox = new QLineEdit(this);
   tagCompleteTextBox->setPlaceholderText("Add Tags...");
   tagCompleteTextBox->installEventFilter(&filter);
   tagCompleteTextBox->setCompleter(completer);
@@ -63,15 +56,13 @@ void TagEditor::buildUi() {
        +----------------+-------------+--------------+
   */
 
-  // row 0
+  auto gridLayout = new QGridLayout(this);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
   gridLayout->addWidget(tagView, 0, 0, 1, 3);
-
-  // row 1
   gridLayout->addWidget(errorLabel, 1, 0);
   gridLayout->addWidget(loading, 1, 0);
   gridLayout->addWidget(tagCompleteTextBox, 1, 2);
-
-  this->setLayout(gridLayout);
+  setLayout(gridLayout);
 }
 
 void TagEditor::wireUi() {
@@ -203,9 +194,7 @@ void TagEditor::onCreateTagComplete() {
     updateCompleterModel();
   }
   else {
-    couldNotCreateTagMsg->showMessage(
-        "Could not create tag."
-        " Please check your connection and try again.");
+    QMessageBox::warning(this, tr("Tag Error"),tr("Could not create tag\n Please check your connection and try again."));
   }
   disconnect(createTagReply, &QNetworkReply::finished, this, &TagEditor::onCreateTagComplete);
   tidyReply(&createTagReply);

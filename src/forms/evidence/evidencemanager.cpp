@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QRandomGenerator>
 #include <QStandardPaths>
 #include <QTableWidgetItem>
