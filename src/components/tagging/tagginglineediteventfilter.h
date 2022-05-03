@@ -21,18 +21,13 @@ class TaggingLineEditEventFilter : public QObject {
   bool matchesKey(QKeyEvent *ke, QKeySequence keyCombo) {
     // with help from https://forum.qt.io/topic/73408/qt-reading-key-sequences-from-key-event/3
 
-    QString modifier;
-    QString key;
+    QString combo = QKeySequence(ke->key()).toString();
+    if (ke->modifiers() & Qt::ShiftModifier) combo.prepend(QStringLiteral("Shift+"));
+    if (ke->modifiers() & Qt::ControlModifier) combo.prepend(QStringLiteral("Ctrl+"));
+    if (ke->modifiers() & Qt::AltModifier) combo.prepend(QStringLiteral("Alt+"));
+    if (ke->modifiers() & Qt::MetaModifier) combo.prepend(QStringLiteral("Meta+"));
 
-    if (ke->modifiers() & Qt::ShiftModifier) modifier += "Shift+";
-    if (ke->modifiers() & Qt::ControlModifier) modifier += "Ctrl+";
-    if (ke->modifiers() & Qt::AltModifier) modifier += "Alt+";
-    if (ke->modifiers() & Qt::MetaModifier) modifier += "Meta+";
-
-    key = QKeySequence(ke->key()).toString();
-
-    QKeySequence ks(modifier + key);
-    return ks[0] == keyCombo[0];
+    return (QKeySequence(combo) == keyCombo);
   }
 
  protected:
