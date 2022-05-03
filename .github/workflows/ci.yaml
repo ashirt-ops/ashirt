@@ -19,26 +19,33 @@ jobs:
     outputs:
       sha8: ${{ steps.calc-info.outputs.sha8 }}
       isRelease: ${{ steps.calc-info.outputs.isRelease }}
-      signRelease: ${{ steps.calc-info.outputs.signRelease }}
+      signMacRelease: ${{ steps.calc-info.outputs.signMacRelease }}
+      signWinRelease: ${{ steps.calc-info.outputs.signWinRelease }}
     steps:
       - name: CheckRun Info
         env:
-          CERT: ${{secrets.MACOS_CERT}}
+          MCERT: ${{secrets.MACOS_CERT}}
+          WCERT: ${{ secrets.WINDOWS_CERT }}
         id: calc-info
         run: |
-          SIGN="false"
+          MSIGN="false"
+          WSIGN="false"
           RELEASE="false"
           if [[ "$GITHUB_REF" == *"tags/v" || "$GITHUB_REF" == *"refs/heads/release" ]]; then
               RELEASE="true"
               NAME="$GITHUB_REF_NAME"
           fi
-          if [[ "$CERT" != "" ]]; then
-              SIGN="true"
+          if [[ "$MCERT" != "" ]]; then
+              MSIGN="true"
+          fi
+          if [[ "$WCERT" != "" ]]; then
+              WSIGN="true"
           fi
           if [[ "$NAME" == "" ]]; then
               NAME="continuous"
           fi
-          echo "::set-output name=signRelease::$SIGN"
+          echo "::set-output name=signMacRelease::$MSIGN"
+          echo "::set-output name=signWinRelease::$WSIGN"
           echo "::set-output name=sha8::$NAME"
 
   build:
@@ -76,7 +83,8 @@ jobs:
       run: |
         echo "name=ashirt-${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
         echo "githash=${{ needs.run-info.outputs.sha8 }}" >> $GITHUB_ENV
-        echo "signRelease=${{ needs.run-info.outputs.signRelease }}" >> $GITHUB_ENV
+        echo "signMacRelease=${{ needs.run-info.outputs.signMacRelease }}" >> $GITHUB_ENV
+        echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
 
     - name: Check out code
       uses: actions/checkout@v3
@@ -99,7 +107,7 @@ jobs:
         arch: ${{matrix.config.WIN_ARCH}}
 
     - name: Import Code-Signing Certificates
-      if: runner.os == 'macOS' && env.signRelease == 'true'
+      if: runner.os == 'macOS' && env.signMacRelease == 'true'
       uses: Apple-Actions/import-codesign-certs@v1.0.4
       with:
         p12-file-base64: ${{ secrets.MACOS_CERT }}
@@ -127,7 +135,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        if [[ "${{ env.signRelease }}" == "true" ]]; then
+        if [[ "${{ env.signMacRelease }}" == "true" ]]; then
             cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
             cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
@@ -146,7 +154,7 @@ jobs:
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
-        elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signRelease }}" == "true" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             brew tap mitchellh/gon
             brew install mitchellh/gon/gon jq
             export ID=${{ env.name }}.dmg
@@ -154,6 +162,16 @@ jobs:
             gon notarize.json
         fi
         mv ashirt-*.* dist/
+
+    - name: Sign Windows Binary
+      if: runner.os == 'Windows' && env.signWinRelease == 'true'
+      uses: jonfriesen/windows-signer-action@v0.0.1
+      env:
+        NAME: "John Kennedy"
+        DOMAIN: theparanoids.com
+        BINARY: dist/ashirt-*.exe
+        WINDOWS_CERT: ${{ secrets.WINDOWS_CERT }}
+        WINDOWS_KEY: ${{ secrets.WINDOWS_KEY }}
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
