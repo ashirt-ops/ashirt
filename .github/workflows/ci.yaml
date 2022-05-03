@@ -54,7 +54,6 @@ jobs:
             , os: ubuntu-20.04
             , QT_INST_DIR: /opt
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr"
-            , linuxDeployQtPath:
           }
         - {
             name: "Mac"
@@ -128,7 +127,6 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        echo CMAKE_OPTIONS=
         if [[ "${{ env.signRelease }}" == "true" ]]; then
             cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
