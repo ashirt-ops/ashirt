@@ -1,17 +1,11 @@
 #pragma once
 
-#include <QComboBox>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QString>
-#include <QWidget>
-#include <vector>
-
-#include "codeeditor.h"
 #include "components/evidencepreview.h"
 #include "models/codeblock.h"
 
+class CodeEditor;
+class QComboBox;
+class QLineEdit;
 /**
  * @brief The CodeBlockView class provides a wrapped code editor, along with editable
  * areas for source and language. Note that even though this is a "view" it's fully editable.
@@ -21,7 +15,7 @@ class CodeBlockView : public EvidencePreview {
   Q_OBJECT
  public:
   explicit CodeBlockView(QWidget* parent = nullptr);
-  ~CodeBlockView();
+  ~CodeBlockView() = default;
 
  private:
   /// buildUi constructs the UI, without wiring any connections
@@ -53,63 +47,59 @@ class CodeBlockView : public EvidencePreview {
   Codeblock loadedCodeblock;
 
   // UI components
-  QGridLayout* gridLayout;
-  QLabel* _languageLabel;
-  QLabel* _sourceLabel;
-
-  CodeEditor* codeEditor;
-  QLineEdit* sourceTextBox;
-  QComboBox* languageComboBox;
+  CodeEditor* codeEditor = nullptr;
+  QLineEdit* sourceTextBox = nullptr;
+  QComboBox* languageComboBox = nullptr;
 
   // matches supported languages on the front end
-  inline static const std::vector<std::pair<QString, QString>> SUPPORTED_LANGUAGES = {
-      std::pair<QString, QString>(QStringLiteral("Plain Text"), QString()),
-      std::pair<QString, QString>(QStringLiteral("ABAP"), QStringLiteral("abap")),
-      std::pair<QString, QString>(QStringLiteral("ActionScript"), QStringLiteral("actionscript")),
-      std::pair<QString, QString>(QStringLiteral("Ada"), QStringLiteral("ada")),
-      std::pair<QString, QString>(QStringLiteral("C / C++"), QStringLiteral("c_cpp")),
-      std::pair<QString, QString>(QStringLiteral("C#"), QStringLiteral("csharp")),
-      std::pair<QString, QString>(QStringLiteral("COBOL"), QStringLiteral("cobol")),
-      std::pair<QString, QString>(QStringLiteral("D"), QStringLiteral("d")),
-      std::pair<QString, QString>(QStringLiteral("Dart"), QStringLiteral("dart")),
-      std::pair<QString, QString>(QStringLiteral("Delphi/Object Pascal"), QStringLiteral("pascal")),
-      std::pair<QString, QString>(QStringLiteral("Dockerfile"), QStringLiteral("dockerfile")),
-      std::pair<QString, QString>(QStringLiteral("Elixir"), QStringLiteral("elixir")),
-      std::pair<QString, QString>(QStringLiteral("Elm"), QStringLiteral("elm")),
-      std::pair<QString, QString>(QStringLiteral("Erlang"), QStringLiteral("erlang")),
-      std::pair<QString, QString>(QStringLiteral("F#"), QStringLiteral("fsharp")),
-      std::pair<QString, QString>(QStringLiteral("Fortran"), QStringLiteral("fortran")),
-      std::pair<QString, QString>(QStringLiteral("Go"), QStringLiteral("golang")),
-      std::pair<QString, QString>(QStringLiteral("Groovy"), QStringLiteral("groovy")),
-      std::pair<QString, QString>(QStringLiteral("Haskell"), QStringLiteral("haskell")),
-      std::pair<QString, QString>(QStringLiteral("Java"), QStringLiteral("java")),
-      std::pair<QString, QString>(QStringLiteral("JavaScript"), QStringLiteral("javascript")),
-      std::pair<QString, QString>(QStringLiteral("Julia"), QStringLiteral("julia")),
-      std::pair<QString, QString>(QStringLiteral("Kotlin"), QStringLiteral("kotlin")),
-      std::pair<QString, QString>(QStringLiteral("Lisp"), QStringLiteral("lisp")),
-      std::pair<QString, QString>(QStringLiteral("Lua"), QStringLiteral("lua")),
-      std::pair<QString, QString>(QStringLiteral("MATLAB"), QStringLiteral("matlab")),
-      std::pair<QString, QString>(QStringLiteral("Markdown"), QStringLiteral("markdown")),
-      std::pair<QString, QString>(QStringLiteral("Objective-C"), QStringLiteral("objectivec")),
-      std::pair<QString, QString>(QStringLiteral("PHP"), QStringLiteral("php")),
-      std::pair<QString, QString>(QStringLiteral("Perl"), QStringLiteral("perl")),
-      std::pair<QString, QString>(QStringLiteral("Prolog"), QStringLiteral("prolog")),
-      std::pair<QString, QString>(QStringLiteral("Properties"), QStringLiteral("properties")),
-      std::pair<QString, QString>(QStringLiteral("Python"), QStringLiteral("python")),
-      std::pair<QString, QString>(QStringLiteral("R"), QStringLiteral("r")),
-      std::pair<QString, QString>(QStringLiteral("Ruby"), QStringLiteral("ruby")),
-      std::pair<QString, QString>(QStringLiteral("Rust"), QStringLiteral("rust")),
-      std::pair<QString, QString>(QStringLiteral("SQL"), QStringLiteral("sql")),
-      std::pair<QString, QString>(QStringLiteral("Sass"), QStringLiteral("sass")),
-      std::pair<QString, QString>(QStringLiteral("Scala"), QStringLiteral("scala")),
-      std::pair<QString, QString>(QStringLiteral("Scheme"), QStringLiteral("scheme")),
-      std::pair<QString, QString>(QStringLiteral("Shell/Bash"), QStringLiteral("sh")),
-      std::pair<QString, QString>(QStringLiteral("Swift"), QStringLiteral("swift")),
-      std::pair<QString, QString>(QStringLiteral("Tcl"), QStringLiteral("tcl")),
-      std::pair<QString, QString>(QStringLiteral("Terraform"), QStringLiteral("terraform")),
-      std::pair<QString, QString>(QStringLiteral("Toml"), QStringLiteral("toml")),
-      std::pair<QString, QString>(QStringLiteral("TypeScript"), QStringLiteral("typescript")),
-      std::pair<QString, QString>(QStringLiteral("VBScript"), QStringLiteral("vbscript")),
-      std::pair<QString, QString>(QStringLiteral("XML"), QStringLiteral("xml")),
+  inline static const QList<QPair<QString, QString>> SUPPORTED_LANGUAGES = {
+      QPair<QString, QString>(QStringLiteral("Plain Text"), QString()),
+      QPair<QString, QString>(QStringLiteral("ABAP"), QStringLiteral("abap")),
+      QPair<QString, QString>(QStringLiteral("ActionScript"), QStringLiteral("actionscript")),
+      QPair<QString, QString>(QStringLiteral("Ada"), QStringLiteral("ada")),
+      QPair<QString, QString>(QStringLiteral("C / C++"), QStringLiteral("c_cpp")),
+      QPair<QString, QString>(QStringLiteral("C#"), QStringLiteral("csharp")),
+      QPair<QString, QString>(QStringLiteral("COBOL"), QStringLiteral("cobol")),
+      QPair<QString, QString>(QStringLiteral("D"), QStringLiteral("d")),
+      QPair<QString, QString>(QStringLiteral("Dart"), QStringLiteral("dart")),
+      QPair<QString, QString>(QStringLiteral("Delphi/Object Pascal"), QStringLiteral("pascal")),
+      QPair<QString, QString>(QStringLiteral("Dockerfile"), QStringLiteral("dockerfile")),
+      QPair<QString, QString>(QStringLiteral("Elixir"), QStringLiteral("elixir")),
+      QPair<QString, QString>(QStringLiteral("Elm"), QStringLiteral("elm")),
+      QPair<QString, QString>(QStringLiteral("Erlang"), QStringLiteral("erlang")),
+      QPair<QString, QString>(QStringLiteral("F#"), QStringLiteral("fsharp")),
+      QPair<QString, QString>(QStringLiteral("Fortran"), QStringLiteral("fortran")),
+      QPair<QString, QString>(QStringLiteral("Go"), QStringLiteral("golang")),
+      QPair<QString, QString>(QStringLiteral("Groovy"), QStringLiteral("groovy")),
+      QPair<QString, QString>(QStringLiteral("Haskell"), QStringLiteral("haskell")),
+      QPair<QString, QString>(QStringLiteral("Java"), QStringLiteral("java")),
+      QPair<QString, QString>(QStringLiteral("JavaScript"), QStringLiteral("javascript")),
+      QPair<QString, QString>(QStringLiteral("Julia"), QStringLiteral("julia")),
+      QPair<QString, QString>(QStringLiteral("Kotlin"), QStringLiteral("kotlin")),
+      QPair<QString, QString>(QStringLiteral("Lisp"), QStringLiteral("lisp")),
+      QPair<QString, QString>(QStringLiteral("Lua"), QStringLiteral("lua")),
+      QPair<QString, QString>(QStringLiteral("MATLAB"), QStringLiteral("matlab")),
+      QPair<QString, QString>(QStringLiteral("Markdown"), QStringLiteral("markdown")),
+      QPair<QString, QString>(QStringLiteral("Objective-C"), QStringLiteral("objectivec")),
+      QPair<QString, QString>(QStringLiteral("PHP"), QStringLiteral("php")),
+      QPair<QString, QString>(QStringLiteral("Perl"), QStringLiteral("perl")),
+      QPair<QString, QString>(QStringLiteral("Prolog"), QStringLiteral("prolog")),
+      QPair<QString, QString>(QStringLiteral("Properties"), QStringLiteral("properties")),
+      QPair<QString, QString>(QStringLiteral("Python"), QStringLiteral("python")),
+      QPair<QString, QString>(QStringLiteral("R"), QStringLiteral("r")),
+      QPair<QString, QString>(QStringLiteral("Ruby"), QStringLiteral("ruby")),
+      QPair<QString, QString>(QStringLiteral("Rust"), QStringLiteral("rust")),
+      QPair<QString, QString>(QStringLiteral("SQL"), QStringLiteral("sql")),
+      QPair<QString, QString>(QStringLiteral("Sass"), QStringLiteral("sass")),
+      QPair<QString, QString>(QStringLiteral("Scala"), QStringLiteral("scala")),
+      QPair<QString, QString>(QStringLiteral("Scheme"), QStringLiteral("scheme")),
+      QPair<QString, QString>(QStringLiteral("Shell/Bash"), QStringLiteral("sh")),
+      QPair<QString, QString>(QStringLiteral("Swift"), QStringLiteral("swift")),
+      QPair<QString, QString>(QStringLiteral("Tcl"), QStringLiteral("tcl")),
+      QPair<QString, QString>(QStringLiteral("Terraform"), QStringLiteral("terraform")),
+      QPair<QString, QString>(QStringLiteral("Toml"), QStringLiteral("toml")),
+      QPair<QString, QString>(QStringLiteral("TypeScript"), QStringLiteral("typescript")),
+      QPair<QString, QString>(QStringLiteral("VBScript"), QStringLiteral("vbscript")),
+      QPair<QString, QString>(QStringLiteral("XML"), QStringLiteral("xml")),
   };
 };

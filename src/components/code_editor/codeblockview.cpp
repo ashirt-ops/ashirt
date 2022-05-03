@@ -1,33 +1,24 @@
 #include "codeblockview.h"
 
+#include <QComboBox>
+#include <QLineEdit>
+
+#include "codeeditor.h"
 #include "exceptions/fileerror.h"
 #include "helpers/ui_helpers.h"
 
-CodeBlockView::CodeBlockView(QWidget* parent) : EvidencePreview(parent) {
+CodeBlockView::CodeBlockView(QWidget* parent)
+  : EvidencePreview(parent)
+  , codeEditor(new CodeEditor(this))
+  , sourceTextBox(new QLineEdit(this))
+  , languageComboBox(new QComboBox(this))
+{
   buildUi();
-  wireUi();
-}
-
-CodeBlockView::~CodeBlockView() {
-  delete _languageLabel;
-  delete _sourceLabel;
-  delete codeEditor;
-  delete sourceTextBox;
-  delete languageComboBox;
-  delete gridLayout;
 }
 
 void CodeBlockView::buildUi() {
-  gridLayout = new QGridLayout(this);
-  gridLayout->setContentsMargins(0, 0, 0, 0);
 
-  _languageLabel = new QLabel(tr("Language"), this);
-  _sourceLabel = new QLabel(tr("Source"), this);
-  sourceTextBox = new QLineEdit(this);
-  languageComboBox = new QComboBox(this);
-  codeEditor = new CodeEditor(this);
-
-  for (const std::pair<QString, QString>& lang : SUPPORTED_LANGUAGES) {
+  for (auto & lang : SUPPORTED_LANGUAGES) {
     languageComboBox->addItem(lang.first, lang.second);
   }
 
@@ -41,20 +32,16 @@ void CodeBlockView::buildUi() {
        |                                                      |
        +------------+-------------+----------+----------------+
   */
-
+  auto gridLayout = new QGridLayout(this);
+  gridLayout->setContentsMargins(0, 0, 0, 0);
   // row 0
-  gridLayout->addWidget(_languageLabel, 0, 0);
+  gridLayout->addWidget(new QLabel(tr("Language"), this), 0, 0);
   gridLayout->addWidget(languageComboBox, 0, 1);
-  gridLayout->addWidget(_sourceLabel, 0, 2);
+  gridLayout->addWidget(new QLabel(tr("Source"), this), 0, 2);
   gridLayout->addWidget(sourceTextBox, 0, 3);
-
   // row 1
   gridLayout->addWidget(codeEditor, 1, 0, 1, gridLayout->columnCount());
 }
-
-void CodeBlockView::wireUi() {}
-
-// ------- Parent Overrides
 
 void CodeBlockView::loadFromFile(QString filepath) {
   try {
@@ -65,9 +52,8 @@ void CodeBlockView::loadFromFile(QString filepath) {
     UiHelpers::setComboBoxValue(languageComboBox, loadedCodeblock.subtype);
   }
   catch (std::exception& e) {
-    std::string msg = "Unable to load codeblock. Error: ";
-    msg += e.what();
-    codeEditor->setPlainText(QString(msg.c_str()));
+    QString msg = tr("Unable to load codeblock. Error: %1").arg(e.what());
+    codeEditor->setPlainText(msg);
     setReadonly(true);
   }
 }
