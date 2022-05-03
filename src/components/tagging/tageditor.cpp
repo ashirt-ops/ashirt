@@ -22,7 +22,7 @@ TagEditor::TagEditor(QWidget *parent)
   , loading(new QProgressIndicator(this))
   , completer(new QCompleter(this))
   , tagCompleteTextBox(new QLineEdit(this))
-  , tagCache(new TagCache())
+  , tagCache(new TagCache(this))
 {
   buildUi();
   wireUi();

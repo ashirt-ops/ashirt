@@ -17,7 +17,7 @@ class TagCacheItem
   qint64 now();
 
  private:
-  static const qint64 defaultExpiryDeltaMs = 60*1000;
+  inline static const qint64 defaultExpiryDeltaMs = 60000;
   qint64 expiry;
   std::vector<dto::Tag> tags;
 };

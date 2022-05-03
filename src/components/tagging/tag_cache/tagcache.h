@@ -1,17 +1,17 @@
 #pragma once
 
-#include <QString>
-#include <QNetworkReply>
-#include <unordered_map>
+#include <QObject>
+#include <QMap>
 
 #include "tagcacheitem.h"
 #include "dtos/tag.h"
 
+class QNetworkReply;
 
 class TagCache : public QObject {
   Q_OBJECT
  public:
-  TagCache();
+  TagCache(QObject *parent =nullptr);
   ~TagCache();
 
  public:
@@ -27,6 +27,6 @@ class TagCache : public QObject {
   void requestExpiry(QString operationSlug);
 
  private:
-  std::unordered_map<QString, QNetworkReply*> tagRequests;
-  std::unordered_map<QString, TagCacheItem> cache;
+  QMap<QString , QNetworkReply*> tagRequests;
+  QMap<QString, TagCacheItem> cache;
 };

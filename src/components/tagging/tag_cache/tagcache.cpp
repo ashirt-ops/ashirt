@@ -1,48 +1,50 @@
 #include "tagcache.h"
 
+#include <QNetworkReply>
+
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 
 
-TagCache::TagCache() {
+TagCache::TagCache(QObject *parent): QObject(parent) {
 
 }
 
 TagCache::~TagCache() {
-  for (auto& entry : tagRequests) {
-    stopReply(&(entry.second));
+  for (auto entry : qAsConst(tagRequests)) {
+    stopReply(&(entry));
   }
 }
 
 void TagCache::requestExpiry(QString operationSlug) {
   auto entry = cache.find(operationSlug);
   if (entry != cache.end()) {
-    entry->second.expire();
+    entry.value().expire();
   }
 }
 
 void TagCache::requestTags(QString operationSlug) {
   auto entry = cache.find(operationSlug);
 
-  if (entry == cache.end() || entry->second.isStale()) { // not found/expired
+  if (entry == cache.end() || entry->isStale()) { // not found/expired
     if (tagRequests.find(operationSlug) != tagRequests.end()) { // message is in progress -- ignore this request
       return;
     }
 
     auto reply = NetMan::getInstance().getOperationTags(operationSlug);
-    tagRequests.emplace(operationSlug, reply);
+    tagRequests.insert(operationSlug, reply);
     connect(reply, &QNetworkReply::finished, this, [this, reply, operationSlug]() {
       onGetTagsComplete(reply, operationSlug);
-      tagRequests.erase(operationSlug);
+      tagRequests.remove(operationSlug);
 
       // if successful, alert that new tags are ready!
       auto newEntry = cache.find(operationSlug);
       if (newEntry != cache.end()) {
-        if (newEntry->second.isStale()) { // lookup failed -- notify with old data
-          Q_EMIT failedLookup(operationSlug, newEntry->second.getTags());
+        if (newEntry->isStale()) { // lookup failed -- notify with old data
+          Q_EMIT failedLookup(operationSlug, newEntry->getTags());
         }
         else {
-          Q_EMIT tagResponse(operationSlug, newEntry->second.getTags());
+          Q_EMIT tagResponse(operationSlug, newEntry->getTags());
         }
       }
       else { // lookup failed, but no data in this scenario
@@ -51,7 +53,7 @@ void TagCache::requestTags(QString operationSlug) {
     });
   }
   else { // we already have valid data
-    Q_EMIT tagResponse(operationSlug, entry->second.getTags());
+    Q_EMIT tagResponse(operationSlug, entry->getTags());
   }
 }
 
