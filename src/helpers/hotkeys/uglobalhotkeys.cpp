@@ -10,8 +10,8 @@
 #include "hotkeymap.h"
 #include "uglobalhotkeys.h"
 
-UGlobalHotkeys::UGlobalHotkeys(QWidget *parent)
-    : QWidget(parent)
+UGlobalHotkeys::UGlobalHotkeys(QObject *parent)
+    : QObject(parent)
 {
 #if defined(Q_OS_LINUX)
     qApp->installNativeEventFilter(this);
@@ -72,7 +72,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
         }
     }
 
-    if (!RegisterHotKey((HWND)winId(), id, winMod, key)) {
+    if (!RegisterHotKey(nullptr, id, winMod, key)) {
         return false;
     } else {
         Registered.insert(id);
@@ -110,7 +110,7 @@ void UGlobalHotkeys::unregisterHotkey(size_t id)
     Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
 #endif
 #if defined(Q_OS_WIN)
-    UnregisterHotKey((HWND)winId(), id);
+    UnregisterHotKey(nullptr, id);
 #elif defined(Q_OS_LINUX)
     unregLinuxHotkey(id);
 #endif
@@ -147,7 +147,7 @@ UGlobalHotkeys::~UGlobalHotkeys()
 {
 #if defined(Q_OS_WIN)
     for (auto hotKey : qAsConst(Registered)) {
-        UnregisterHotKey((HWND)winId(), hotKey);
+        UnregisterHotKey(nullptr, hotKey);
     }
 #elif defined(Q_OS_LINUX)
     xcb_key_symbols_free(X11KeySymbs);

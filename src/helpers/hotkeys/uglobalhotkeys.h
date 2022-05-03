@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QWidget>
+#include <QObject>
 #include <QAbstractNativeEventFilter>
 #include <QSet>
 
@@ -24,7 +24,7 @@ struct UHotkeyData {
 };
 #endif
 
-class UGlobalHotkeys : public QWidget
+class UGlobalHotkeys : public QObject
 #if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
     , public QAbstractNativeEventFilter
 #endif
@@ -32,7 +32,7 @@ class UGlobalHotkeys : public QWidget
     Q_OBJECT
 
 public:
-    explicit UGlobalHotkeys(QWidget *parent = 0);
+    explicit UGlobalHotkeys(QObject *parent = 0);
     bool registerHotkey(const QString &keySeq, size_t id = 1);
     bool registerHotkey(const UKeySequence &keySeq, size_t id = 1);
     void unregisterHotkey(size_t id = 1);

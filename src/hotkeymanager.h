@@ -16,7 +16,7 @@ class HotkeyManager : public QObject {
   Q_OBJECT
 
  public:
-  HotkeyManager();
+  HotkeyManager(QObject *parent = nullptr);
   ~HotkeyManager();
 
   /// GlobalHotkeyEvent provides names for all possible application-global hotkeys

@@ -34,7 +34,7 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     : QDialog(parent)
     , db(db)
     , screenshotTool(new Screenshot(this))
-    , hotkeyManager(new HotkeyManager())
+    , hotkeyManager(new HotkeyManager(this))
     , updateCheckTimer(new QTimer(this))
     , settingsWindow(new Settings(hotkeyManager, this))
     , evidenceManagerWindow(new EvidenceManager(this->db, this))
@@ -262,6 +262,7 @@ void TrayManager::onOperationListUpdated(bool success,
       auto newAction = std::make_shared<QAction>(new QAction(this));
       newAction->setText(op.name);
       newAction->setCheckable(true);
+
       if (currentOp == op.slug) {
         newAction->setChecked(true);
         selectedAction = newAction.get();
