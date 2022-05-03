@@ -17,7 +17,6 @@ class TagView : public QWidget
 
  private:
   void buildUi();
-  void wireUi();
 
  private slots:
   void removeWidget(TagWidget* tag);
@@ -34,8 +33,6 @@ class TagView : public QWidget
   bool readonly = false;
 
   // UI Components
-  QHBoxLayout* mainLayout = nullptr;
   FlowLayout* layout = nullptr;
-  QGroupBox* tagGroupBox = nullptr;
   std::vector<TagWidget*> includedTags;
 };

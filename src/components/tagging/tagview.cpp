@@ -2,33 +2,25 @@
 
 #include <iostream>
 
-TagView::TagView(QWidget *parent) : QWidget(parent) {
+TagView::TagView(QWidget *parent)
+  : QWidget(parent)
+{
   buildUi();
-  wireUi();
 }
 
 TagView::~TagView() {
   clear();
-  delete layout;
-  delete tagGroupBox;
-  delete mainLayout;
 }
 
 void TagView::buildUi() {
-  mainLayout = new QHBoxLayout(this);
-  mainLayout->setContentsMargins(0, 0, 0, 0);
 
-  tagGroupBox = new QGroupBox("Tags", this);
+  auto tagGroupBox = new QGroupBox("Tags", this);
   layout = new FlowLayout();
   tagGroupBox->setLayout(layout);
 
+  auto mainLayout = new QHBoxLayout(this);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
   mainLayout->addWidget(tagGroupBox);
-
-  setLayout(mainLayout);
-}
-
-void TagView::wireUi() {
-
 }
 
 void TagView::addTag(dto::Tag tag) {
@@ -61,7 +53,7 @@ void TagView::removeWidget(TagWidget* tagWidget) {
     std::iter_swap(itr, last);
     includedTags.pop_back();
   }
-  delete tagWidget;
+  tagWidget->deleteLater();
 }
 
 void TagView::remove(dto::Tag tag) {
@@ -74,7 +66,7 @@ void TagView::remove(dto::Tag tag) {
 void TagView::clear() {
   for(auto widget : includedTags) {
     layout->removeWidget(widget);
-    delete widget;
+    widget->deleteLater();
   }
   includedTags.clear();
 }
