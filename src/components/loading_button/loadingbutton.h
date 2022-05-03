@@ -5,8 +5,9 @@
 
 #include <QPushButton>
 
-#include "components/loading/qprogressindicator.h"
 
+
+class QProgressIndicator;
 class LoadingButton : public QPushButton {
   Q_OBJECT
 
@@ -15,7 +16,7 @@ class LoadingButton : public QPushButton {
   explicit LoadingButton(const QString& text, QWidget* parent = nullptr,
                          QPushButton* model = nullptr);
 
-  ~LoadingButton();
+  ~LoadingButton() = default;
 
   void startAnimation();
   void stopAnimation();
@@ -28,8 +29,7 @@ class LoadingButton : public QPushButton {
   void resizeEvent(QResizeEvent* evt) override;
 
  private:
-  QProgressIndicator* loading;
-
+  QProgressIndicator* loading = nullptr;
   QString label;
   bool showingLabel;
 };

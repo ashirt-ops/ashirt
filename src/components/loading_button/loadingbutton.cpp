@@ -5,39 +5,41 @@
 
 #include <QResizeEvent>
 
+#include "components/loading/qprogressindicator.h"
+
 LoadingButton::LoadingButton(QWidget* parent, QPushButton* model)
-    : LoadingButton(QString(), parent, model) {}
+  : LoadingButton(QString(), parent, model) {}
+
 LoadingButton::LoadingButton(const QString& text, QWidget* parent, QPushButton* model)
-    : QPushButton(text, parent) {
+  : QPushButton(text, parent)
+  , loading(new QProgressIndicator(this))
+  , showingLabel(true)
+{
   if (model == nullptr) {
     model = this;
   }
-  this->setMinimumSize(model->width(), model->minimumHeight());
-  this->resize(model->width(), model->height());
-  this->showingLabel = true;
+  setMinimumSize(model->width(), model->minimumHeight());
+  resize(model->width(), model->height());
 
-  loading = new QProgressIndicator(this);
   loading->setMinimumSize(this->minimumSize());
   loading->resize(this->width(), this->height());
 }
 
-LoadingButton::~LoadingButton() { delete loading; }
-
 void LoadingButton::startAnimation() {
-  label = this->text();
+  label = text();
   showLabel(false);
 }
 
 void LoadingButton::stopAnimation() { showLabel(true); }
 
 void LoadingButton::showLabel(bool show) {
-  this->showingLabel = show;
+  showingLabel = show;
   if (show) {
     loading->stopAnimation();
-    this->setText(this->label);
+    setText(label);
   }
   else {
-    this->setText(QString());
+    setText(QString());
     loading->startAnimation();
   }
 }
