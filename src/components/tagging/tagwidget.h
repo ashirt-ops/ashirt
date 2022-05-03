@@ -15,10 +15,8 @@ class TagWidget : public QLabel {
   ~TagWidget() = default;
 
  private:
-  void buildUi();
-  void wireUi();
   void buildTag();
-  void setImage(QImage img);
+  //void setImage(QImage img);
 
  protected:
   void mouseReleaseEvent(QMouseEvent* ev) override;

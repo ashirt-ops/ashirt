@@ -4,18 +4,12 @@
 #include <QMouseEvent>
 #include <iostream>
 
-TagWidget::TagWidget(dto::Tag tag, bool readonly, QWidget *parent) : QLabel(parent) {
-  this->tag = tag;
-  this->readonly = readonly;
-  buildUi();
-}
-
-void TagWidget::buildUi() {
+TagWidget::TagWidget(dto::Tag tag, bool readonly, QWidget *parent)
+  : QLabel(parent)
+  , tag(tag)
+  , readonly(readonly)
+{
   buildTag();
-}
-
-void TagWidget::wireUi(){
-
 }
 
 void TagWidget::setReadOnly(bool readonly) {
