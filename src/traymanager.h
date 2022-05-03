@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QActionGroup>
 #include <QSystemTrayIcon>
 #include <QTimer>
 
@@ -51,7 +52,7 @@ class TrayManager : public QDialog {
   Q_OBJECT
 
  public:
-  TrayManager(DatabaseConnection *);
+  TrayManager(QWidget* parent = nullptr, DatabaseConnection *db = nullptr);
   ~TrayManager();
 
  private:
@@ -67,6 +68,7 @@ class TrayManager : public QDialog {
   void setTrayMessage(MessageType type, const QString& title, const QString& message,
                       QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
   QIcon getTrayIcon();
+
  private slots:
   void onOperationListUpdated(bool success, const QList<dto::Operation> &operations);
   void onReleaseCheck(bool success, const QList<dto::GithubRelease>& releases);
@@ -85,6 +87,7 @@ class TrayManager : public QDialog {
   void changeEvent(QEvent *event) override;
 
  private:
+  inline static const int MS_IN_DAY = 86400000;
   DatabaseConnection *db = nullptr;
   HotkeyManager *hotkeyManager = nullptr;
   Screenshot *screenshotTool = nullptr;
@@ -104,25 +107,11 @@ class TrayManager : public QDialog {
 
   // UI Elements
   QSystemTrayIcon *trayIcon = nullptr;
-  QMenu *trayIconMenu = nullptr;
-
-  QAction *quitAction = nullptr;
   QAction *currentOperationMenuAction = nullptr;
-  QAction *captureScreenAreaAction = nullptr;
-  QAction *captureWindowAction = nullptr;
-  QAction *showEvidenceManagerAction = nullptr;
-  QAction *showCreditsAction = nullptr;
-  QAction *addCodeblockAction = nullptr;
-
-  QMenu *importExportSubmenu = nullptr;
-  QAction *exportAction = nullptr;
-  QAction *importAction = nullptr;
-  QAction *showSettingsAction = nullptr;
-
   QMenu *chooseOpSubmenu = nullptr;
   QAction *chooseOpStatusAction = nullptr;
   QAction *newOperationAction = nullptr;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
-  QList<QAction *> allOperationActions;
+  QActionGroup allOperationActions;
 };
 #endif  // QT_NO_SYSTEMTRAYICON
