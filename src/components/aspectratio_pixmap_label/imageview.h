@@ -1,11 +1,10 @@
 #pragma once
 
-#include <QGridLayout>
 #include <QWidget>
 
-#include "aspectratiopixmaplabel.h"
 #include "components/evidencepreview.h"
 
+class AspectRatioPixmapLabel;
 /**
  * @brief The ImageView class is a thinly wrapped AspectRatioPixmapLabel to meet the EvidencePreview
  * interface requirements.
@@ -14,14 +13,11 @@ class ImageView : public EvidencePreview {
   Q_OBJECT
  public:
   explicit ImageView(QWidget* parent = nullptr);
-  ~ImageView();
+  ~ImageView() = default;
 
  private:
   /// buildUi constructs the UI, without wiring any connections
   void buildUi();
-
-  /// wireUi connects UI elements together (currently a no-op)
-  void wireUi();
 
  public:
   /// loadFromFile attempts to load the indicated image from disk.
@@ -32,6 +28,5 @@ class ImageView : public EvidencePreview {
   virtual void clearPreview() override;
 
  private:
-  QGridLayout* gridLayout;
   AspectRatioPixmapLabel* previewImage;
 };
