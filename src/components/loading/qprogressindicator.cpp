@@ -48,8 +48,9 @@ QProgressIndicator::isAnimated() const
 void
 QProgressIndicator::setDisplayedWhenStopped(bool state)
 {
+    if(m_displayedWhenStopped == state)
+        return;
     m_displayedWhenStopped = state;
-
     update();
 }
 
@@ -63,7 +64,6 @@ void
 QProgressIndicator::startAnimation()
 {
     m_angle = 0;
-
     if (m_timerId == -1)
         m_timerId = startTimer(m_delay);
 }
@@ -73,29 +73,29 @@ QProgressIndicator::stopAnimation()
 {
     if (m_timerId != -1)
         killTimer(m_timerId);
-
     m_timerId = -1;
-
     update();
 }
 
 void
 QProgressIndicator::setAnimationDelay(int delay)
 {
-    if (m_timerId != -1)
+    if (m_delay == delay)
+        return;
+    if (m_timerId != -1) {
         killTimer(m_timerId);
-
+        m_timerId = startTimer(delay);
+    }
     m_delay = delay;
 
-    if (m_timerId != -1)
-        m_timerId = startTimer(m_delay);
 }
 
 void
 QProgressIndicator::setColor(const QColor& color)
 {
+    if(m_color == color)
+        return;
     m_color = color;
-
     update();
 }
 
@@ -115,7 +115,6 @@ void
 QProgressIndicator::timerEvent(QTimerEvent* /*event*/)
 {
     m_angle = (m_angle + 30) % 360;
-
     update();
 }
 
