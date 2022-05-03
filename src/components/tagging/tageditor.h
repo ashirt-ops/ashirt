@@ -1,22 +1,18 @@
 #pragma once
 
 #include <QCompleter>
-#include <QErrorMessage>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QNetworkReply>
-#include <QPushButton>
 #include <QWidget>
 
-#include "components/loading/qprogressindicator.h"
-#include "components/loading_button/loadingbutton.h"
 #include "components/tagging/tagview.h"
 #include "components/tagging/tagwidget.h"
 #include "components/tagging/tagginglineediteventfilter.h"
 #include "models/tag.h"
 
-#include "tag_cache/tagcache.h"
+
+class QNetworkReply;
+class QProgressIndicator;
+class QLineEdit;
+class TagCache;
 
 class TagEditor : public QWidget {
   Q_OBJECT
@@ -57,12 +53,9 @@ class TagEditor : public QWidget {
   QString operationSlug;
   std::vector<model::Tag> initialTags;
 
-  QNetworkReply* getTagsReply = nullptr;
   QNetworkReply* createTagReply = nullptr;
   std::unordered_map<QString, QNetworkReply*> activeRequests;
   TagCache* tagCache = nullptr;
-
-  QErrorMessage* couldNotCreateTagMsg = nullptr;
 
   TaggingLineEditEventFilter filter;
   QCompleter* completer;
@@ -70,7 +63,6 @@ class TagEditor : public QWidget {
   std::unordered_map<QString, dto::Tag> tagMap;
 
   // Ui Elements
-  QGridLayout* gridLayout = nullptr;
   QLineEdit* tagCompleteTextBox = nullptr;
   QProgressIndicator* loading = nullptr;
   QLabel* errorLabel = nullptr;
