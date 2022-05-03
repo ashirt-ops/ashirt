@@ -3,20 +3,16 @@
 
 #pragma once
 
-#include <QGridLayout>
-#include <QLabel>
-#include <QString>
-#include <QTextEdit>
 #include <QWidget>
-#include <QSplitter>
 
-#include "components/evidencepreview.h"
-#include "db/databaseconnection.h"
 #include "deleteevidenceresponse.h"
 #include "saveevidenceresponse.h"
 
-#include "components/tagging/tageditor.h"
-
+class QSplitter;
+class QTextEdit;
+class TagEditor;
+class EvidencePreview;
+class DatabaseConnection;
 
 class EvidenceEditor : public QWidget {
   Q_OBJECT
@@ -24,11 +20,10 @@ class EvidenceEditor : public QWidget {
  public:
   explicit EvidenceEditor(qint64 evidenceID, DatabaseConnection* db, QWidget* parent = nullptr);
   explicit EvidenceEditor(DatabaseConnection* db, QWidget* parent = nullptr);
-  ~EvidenceEditor();
+  ~EvidenceEditor() = default;
 
  private:
   void buildUi();
-  void wireUi();
   void loadData();
   void clearEditor();
 
@@ -55,7 +50,7 @@ class EvidenceEditor : public QWidget {
   void onTagsLoaded(bool success);
 
  private:
-  DatabaseConnection* db;
+  DatabaseConnection* db = nullptr;
   qint64 evidenceID = 0;
   QString operationSlug;
   bool readonly = false;
@@ -63,12 +58,8 @@ class EvidenceEditor : public QWidget {
   model::Evidence originalEvidenceData;
 
   // UI components
-  QGridLayout* gridLayout;
-  QWidget* descriptionArea;
-  QVBoxLayout* descriptionAreaLayout;
-  QSplitter* splitter;
-  QLabel* _descriptionLabel;
-  QTextEdit* descriptionTextBox;
-  TagEditor* tagEditor;
+  QSplitter* splitter = nullptr;
+  QTextEdit* descriptionTextBox = nullptr;
+  TagEditor* tagEditor = nullptr;
   EvidencePreview* loadedPreview = nullptr;
 };
