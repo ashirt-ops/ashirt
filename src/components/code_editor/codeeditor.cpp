@@ -60,11 +60,10 @@
 
 #include "helpers/constants.h"
 
-QColor currentLineHighlightColor = QColor(115, 191, 255);
-
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
-  lineNumberArea = new LineNumberArea(this);
-
+CodeEditor::CodeEditor(QWidget *parent)
+  : QPlainTextEdit(parent)
+  , lineNumberArea(new LineNumberArea(this))
+{
   connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
   connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
   connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::highlightCurrentLine);
@@ -95,7 +94,7 @@ int CodeEditor::lineNumberAreaWidth() {
   return space;
 }
 
-void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */) {
+void CodeEditor::updateLineNumberAreaWidth(int) {
   setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
