@@ -47,6 +47,7 @@ jobs:
           echo "::set-output name=signMacRelease::$MSIGN"
           echo "::set-output name=signWinRelease::$WSIGN"
           echo "::set-output name=sha8::$NAME"
+          echo "::set-output name=isRelease::$RELEASE"
 
   build:
     name: ${{ matrix.config.name }}
@@ -171,14 +172,20 @@ jobs:
 
   release:
     name: Release
-    needs: build
+    needs: [run-info, build]
     runs-on: ubuntu-latest
     steps:
+    - name: Setup env
+      shell: bash
+      run: |
+        echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
+        echo "isRelease=${{ needs.run-info.outputs.isRelease }}" >> $GITHUB_ENV
+
     - name: Download Files
       uses: actions/download-artifact@v3
 
     - name: Sign Windows Binary
-      if: needs.run-info.outputs.signWinRelease == 'true'
+      if: env.signWinRelease == 'true'
       uses: jonfriesen/windows-signer-action@v0.0.1
       env:
         NAME: "John Kennedy"
@@ -188,7 +195,7 @@ jobs:
         WINDOWS_KEY: ${{ secrets.WINDOWS_KEY }}
 
     - name: Deploy Continuous
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/main'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -198,7 +205,7 @@ jobs:
        files: build/dist/ashirt-*.*
 
     - name: Deploy Tag
-      if: needs.run-info.outputs.isRelease == 'true'
+      if: env.isRelease == 'true'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
