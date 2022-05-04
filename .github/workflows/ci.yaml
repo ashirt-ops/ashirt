@@ -163,16 +163,6 @@ jobs:
         fi
         mv ashirt-*.* dist/
 
-    - name: Sign Windows Binary
-      if: runner.os == 'Windows' && env.signWinRelease == 'true'
-      uses: jonfriesen/windows-signer-action@v0.0.1
-      env:
-        NAME: "John Kennedy"
-        DOMAIN: theparanoids.com
-        BINARY: dist/ashirt-*.exe
-        WINDOWS_CERT: ${{ secrets.WINDOWS_CERT }}
-        WINDOWS_KEY: ${{ secrets.WINDOWS_KEY }}
-
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -186,6 +176,16 @@ jobs:
     steps:
     - name: Download Files
       uses: actions/download-artifact@v3
+
+    - name: Sign Windows Binary
+      if: needs.steps.run-info.outputs.signWinRelease == 'true'
+      uses: jonfriesen/windows-signer-action@v0.0.1
+      env:
+        NAME: "John Kennedy"
+        DOMAIN: theparanoids.com
+        BINARY: build/dist/ashirt-*.exe
+        WINDOWS_CERT: ${{ secrets.WINDOWS_CERT }}
+        WINDOWS_KEY: ${{ secrets.WINDOWS_KEY }}
 
     - name: Deploy Continuous
       if: github.ref == 'refs/heads/master'
