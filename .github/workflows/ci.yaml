@@ -188,7 +188,7 @@ jobs:
       if: env.signWinRelease == 'true'
       uses: jonfriesen/windows-signer-action@v0.0.1
       env:
-        NAME: "John Kennedy"
+        NAME: JohnKennedy
         DOMAIN: theparanoids.com
         BINARY: build/dist/ashirt-*.exe
         WINDOWS_CERT: ${{ secrets.WINDOWS_CERT }}
