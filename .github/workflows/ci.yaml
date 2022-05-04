@@ -178,7 +178,7 @@ jobs:
       uses: actions/download-artifact@v3
 
     - name: Sign Windows Binary
-      if: needs.steps.run-info.outputs.signWinRelease == 'true'
+      if: needs.run-info.outputs.signWinRelease == 'true'
       uses: jonfriesen/windows-signer-action@v0.0.1
       env:
         NAME: "John Kennedy"
