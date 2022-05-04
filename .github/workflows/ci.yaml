@@ -107,7 +107,14 @@ jobs:
       with:
         arch: ${{matrix.config.WIN_ARCH}}
 
-    - name: Import Code-Signing Certificates
+    - name: Import Signing Certificate ( windows )
+      if: runner.os == 'Windows' && env.signWinRelease == 'true'
+      run: |
+        New-Item -ItemType directory -Path build\certificate
+        Set-Content -Path build\certificate\certificate.txt -Value '${{ secrets.WINDOWS_CERT }}'
+        certutil -decode build\certificate\certificate.txt build\certificate\certificate.pfx
+
+    - name: Import Signing Certificate ( macos )
       if: runner.os == 'macOS' && env.signMacRelease == 'true'
       uses: Apple-Actions/import-codesign-certs@v1.0.4
       with:
@@ -161,6 +168,8 @@ jobs:
             export ID=${{ env.name }}.dmg
             echo "${{ secrets.GON_CONF }}" | base64 -D -i - | jq '.notarize[0].path = env.ID' > notarize.json
             gon notarize.json
+        elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
+            signtool sign /f build\certificate\certificate.pfx /p '${{ secrets.WIN_CERT_PASS }}' /t http://timestamp.comodoca.com/authenticode ashirt-*.exe
         fi
         mv ashirt-*.* dist/
 
@@ -175,24 +184,8 @@ jobs:
     needs: [run-info, build]
     runs-on: ubuntu-latest
     steps:
-    - name: Setup env
-      shell: bash
-      run: |
-        echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
-        echo "isRelease=${{ needs.run-info.outputs.isRelease }}" >> $GITHUB_ENV
-
     - name: Download Files
       uses: actions/download-artifact@v3
-
-    - name: Sign Windows Binary
-      if: env.signWinRelease == 'true'
-      uses: jonfriesen/windows-signer-action@v0.0.1
-      env:
-        NAME: JohnKennedy
-        DOMAIN: theparanoids.com
-        BINARY: build/dist/ashirt-*.exe
-        WINDOWS_CERT: ${{ secrets.WINDOWS_CERT }}
-        WINDOWS_KEY: ${{ secrets.WINDOWS_KEY }}
 
     - name: Deploy Continuous
       if: github.ref == 'refs/heads/main'
@@ -205,7 +198,7 @@ jobs:
        files: build/dist/ashirt-*.*
 
     - name: Deploy Tag
-      if: env.isRelease == 'true'
+      if: needs.run-info.outputs.isRelease == 'true'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
