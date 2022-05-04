@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QGridLayout>
 #include <QLabel>
 #include <QString>
 #include <QWidget>
@@ -15,26 +14,10 @@
 class ErrorView : public EvidencePreview {
   Q_OBJECT
  public:
-  explicit ErrorView(QString errorText, QWidget* parent = nullptr);
-  ~ErrorView();
-
+  explicit ErrorView(QString errorText = QString(), QWidget* parent = nullptr);
+  ~ErrorView() = default;
+  virtual void loadFromFile(QString filepath) {Q_UNUSED(filepath)};
+  virtual void clearPreview() {};
  private:
-  /// buildUi constructs the UI, without wiring any connections
-  void buildUi();
-
-  /// wireUi connects UI elements together (currently a no-op)
-  void wireUi();
-
- public:
-  /// loadFromFile is a no-op. No files are loaded. Inherited from EvidencePreview
-  virtual void loadFromFile(QString filepath) override;
-
-  /// clearPreview is a no-op. The initial text is always displayed. Inherited from EvidencePreview.
-  virtual void clearPreview() override;
-
- private:
-  QGridLayout* gridLayout;
-  QLabel* errorLabel;
-
-  QString errorText;
+  QLabel* errorLabel = nullptr;
 };

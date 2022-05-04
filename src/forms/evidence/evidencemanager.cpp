@@ -4,6 +4,7 @@
 #include "evidencemanager.h"
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPushButton>

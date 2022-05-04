@@ -66,32 +66,34 @@ class CodeEditor : public QPlainTextEdit {
 
  public:
   CodeEditor(QWidget *parent = nullptr);
+  ~CodeEditor() = default;
 
   void lineNumberAreaPaintEvent(QPaintEvent *event);
   int lineNumberAreaWidth();
 
  protected:
-  void resizeEvent(QResizeEvent *event) override;
-  void keyReleaseEvent(QKeyEvent *e) override;
+  virtual void resizeEvent(QResizeEvent *event) override;
+  virtual void keyReleaseEvent(QKeyEvent *e) override;
 
  private slots:
-  void updateLineNumberAreaWidth(int newBlockCount);
+  void updateLineNumberAreaWidth(int);
   void highlightCurrentLine();
   void updateLineNumberArea(const QRect &rect, int dy);
 
  private:
-  QWidget *lineNumberArea;
+  QWidget *lineNumberArea = nullptr;
+  inline static const QColor currentLineHighlightColor = QColor(115, 191, 255);
 };
 
 class LineNumberArea : public QWidget {
  public:
   LineNumberArea(CodeEditor *editor) : QWidget(editor), codeEditor(editor) {}
-
   QSize sizeHint() const override { return QSize(codeEditor->lineNumberAreaWidth(), 0); }
 
  protected:
   void paintEvent(QPaintEvent *event) override { codeEditor->lineNumberAreaPaintEvent(event); }
 
  private:
-  CodeEditor *codeEditor;
+  CodeEditor *codeEditor = nullptr;
+
 };

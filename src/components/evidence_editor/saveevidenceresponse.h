@@ -5,14 +5,14 @@
 #include "models/evidence.h"
 
 struct SaveEvidenceResponse {
-  SaveEvidenceResponse(model::Evidence model) {
-    this->model = model;
-  }
+  SaveEvidenceResponse(model::Evidence model)
+    : model(model) { }
+
   SaveEvidenceResponse(bool success, QString err, model::Evidence model)
-      : SaveEvidenceResponse(model) {
-    this->actionSucceeded = success;
-    this->errorText = err;
-  }
+    : model(model)
+    , actionSucceeded(success)
+    , errorText(err) { }
+
   bool actionSucceeded;
   QString errorText;
   model::Evidence model;

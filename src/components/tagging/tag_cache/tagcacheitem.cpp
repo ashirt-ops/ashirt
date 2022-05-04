@@ -2,10 +2,7 @@
 
 #include <QDateTime>
 
-TagCacheItem::TagCacheItem()
-{
-
-}
+TagCacheItem::TagCacheItem() { }
 
 void TagCacheItem::expire() {
   expiry = 0;
@@ -24,7 +21,7 @@ qint64 TagCacheItem::now() {
 
 void TagCacheItem::setTags(std::vector<dto::Tag> tags) {
   this->tags = tags;
-  this->expiry = now() + defaultExpiryDeltaMs;
+  expiry = now() + defaultExpiryDeltaMs;
 }
 
 std::vector<dto::Tag> TagCacheItem::getTags() {

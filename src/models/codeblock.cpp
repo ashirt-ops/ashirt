@@ -23,7 +23,7 @@ static Codeblock fromJson(QJsonObject obj) {
 Codeblock::Codeblock() = default;
 
 Codeblock::Codeblock(QString content) {
-  this->filename = SystemHelpers::pathToEvidence() + Codeblock::mkName();
+  filename = SystemHelpers::pathToEvidence() + Codeblock::mkName();
   this->content = std::move(content);
 }
 

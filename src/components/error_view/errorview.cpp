@@ -1,39 +1,11 @@
 #include "errorview.h"
- #include <utility> 
-ErrorView::ErrorView(QString errorText, QWidget* parent) : EvidencePreview(parent) {
-  this->errorText = std::move(errorText);
-  buildUi();
-  wireUi();
+#include <QVBoxLayout>
+ #include <utility>
+ErrorView::ErrorView(QString errorText, QWidget* parent)
+    : EvidencePreview(parent)
+    , errorLabel(new QLabel(errorText, this))
+{
+  auto layout = new QVBoxLayout(this);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->addWidget(errorLabel);
 }
-
-ErrorView::~ErrorView() {
-  delete errorLabel;
-  delete gridLayout;
-}
-
-void ErrorView::buildUi() {
-  gridLayout = new QGridLayout(this);
-  gridLayout->setContentsMargins(0, 0, 0, 0);
-
-  errorLabel = new QLabel(errorText, this);
-
-  // Layout
-  /*        0
-       +------------+
-    0  |            |
-       | Err Label  |
-       |            |
-       +------------+
-  */
-
-  // row 0
-  gridLayout->addWidget(errorLabel, 0, 0);
-}
-
-void ErrorView::wireUi() {}
-
-// ---- Parent Overrides
-
-void ErrorView::clearPreview() {}
-
-void ErrorView::loadFromFile(QString filepath) { Q_UNUSED(filepath); }

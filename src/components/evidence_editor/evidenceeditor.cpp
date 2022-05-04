@@ -4,63 +4,54 @@
 #include "evidenceeditor.h"
 
 #include <QFile>
-#include <vector>
-
+#include <QTextEdit>
+#include <QSplitter>
+#include "components/evidencepreview.h"
+#include "db/databaseconnection.h"
 #include "components/aspectratio_pixmap_label/imageview.h"
 #include "components/code_editor/codeblockview.h"
 #include "components/error_view/errorview.h"
 #include "components/evidence_editor/evidenceeditor.h"
+#include "components/tagging/tageditor.h"
 #include "models/codeblock.h"
 #include "models/evidence.h"
+#include <vector>
 
 EvidenceEditor::EvidenceEditor(qint64 evidenceID, DatabaseConnection *db, QWidget *parent)
-    : EvidenceEditor(db, parent) {
+    : EvidenceEditor(db, parent)
+{
   this->evidenceID = evidenceID;
   loadData();
 }
 
-EvidenceEditor::EvidenceEditor(DatabaseConnection *db, QWidget *parent) : QWidget(parent) {
+EvidenceEditor::EvidenceEditor(DatabaseConnection *db, QWidget *parent)
+  : QWidget(parent)
+  , db(db)
+  , splitter(new QSplitter(this))
+  , tagEditor(new TagEditor(this))
+  , descriptionTextBox(new QTextEdit(this))
+{
   buildUi();
-  this->db = db;
-
-  wireUi();
   setEnabled(false);
 }
 
-EvidenceEditor::~EvidenceEditor() {
-  delete _descriptionLabel;
-  delete descriptionTextBox;
-  delete descriptionAreaLayout;
-  delete descriptionArea;
-
-  delete loadedPreview;
-  delete splitter;
-  delete tagEditor;
-
-  delete gridLayout;
-}
-
 void EvidenceEditor::buildUi() {
-  gridLayout = new QGridLayout(this);
-  gridLayout->setContentsMargins(0, 0, 0, 0);
 
-  splitter = new QSplitter(this);
+  connect(tagEditor, &TagEditor::tagsLoaded, this, &EvidenceEditor::onTagsLoaded);
+
   splitter->setOrientation(Qt::Vertical);
   splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  _descriptionLabel = new QLabel(tr("Description"), this);
-  tagEditor = new TagEditor(this);
-  descriptionTextBox = new QTextEdit(this);
-
-  descriptionAreaLayout = new QVBoxLayout();
-  descriptionArea = new QWidget(this);
-  descriptionArea->setLayout(descriptionAreaLayout);
-  descriptionAreaLayout->addWidget(_descriptionLabel);
+  auto descriptionAreaLayout = new QVBoxLayout();
+  descriptionAreaLayout->addWidget(new QLabel(tr("Description"), this));
   descriptionAreaLayout->addWidget(descriptionTextBox);
   descriptionAreaLayout->setContentsMargins(0, 0, 0, 0);
 
-  // Layout
-  /*        0
+  auto descriptionArea = new QWidget(this);
+  splitter->addWidget(descriptionArea);
+  descriptionArea->setLayout(descriptionAreaLayout);
+
+  /* mainLayout
        +----------------------------------------+
     0  | +------------Vert. Splitter---------+  |
        | |                                   |  |
@@ -79,15 +70,11 @@ void EvidenceEditor::buildUi() {
        |                                        |
        +----------------------------------------+
   */
-
-  // row 0
-  gridLayout->addWidget(splitter, 0, 0);
-  splitter->addWidget(descriptionArea);
-
-  // row 1
-  gridLayout->addWidget(tagEditor, 1, 0);
-
-  this->setLayout(gridLayout);
+  auto mainLayout = new QVBoxLayout(this);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
+  mainLayout->addWidget(splitter);
+  mainLayout->addWidget(tagEditor);
+  setLayout(mainLayout);
 }
 
 model::Evidence EvidenceEditor::encodeEvidence() {
@@ -107,10 +94,6 @@ void EvidenceEditor::setEnabled(bool enable) {
   if (loadedPreview != nullptr) {
     loadedPreview->setReadonly(!enable);
   }
-}
-
-void EvidenceEditor::wireUi() {
-  connect(tagEditor, &TagEditor::tagsLoaded, this, &EvidenceEditor::onTagsLoaded);
 }
 
 void EvidenceEditor::loadData() {
@@ -223,6 +206,6 @@ std::vector<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(std::vector<q
     resp.errorText = resp.errorText.trimmed();
     responses.push_back(resp);
   }
-  
+
   return responses;
 }
