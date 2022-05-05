@@ -34,7 +34,7 @@ class EvidenceEditor : public QWidget {
 
   /// deleteEvidence is a helper method to delete both the database record and
   /// file location of the provided evidence IDs
-  std::vector<DeleteEvidenceResponse> deleteEvidence(std::vector<qint64> evidenceIDs);
+  QList<DeleteEvidenceResponse> deleteEvidence(QList<qint64> evidenceIDs);
 
   /// revert re-loads the evidence to restore the content to the saved version.
   /// Only useful when used in the evidence manager.

@@ -12,18 +12,18 @@
 // parseJSONList parses a JSON list into a vector of concrete types from a byte[]. If any error
 // occurs during parsing, an empty vector is returned
 template <typename T>
-static std::vector<T> parseJSONList(QByteArray data, T (*dataToItem)(QJsonObject)) {
+static QList<T> parseJSONList(QByteArray data, T (*dataToItem)(QJsonObject)) {
   QJsonParseError err;
   QJsonDocument doc = QJsonDocument::fromJson(data, &err);
   if (err.error != QJsonParseError::NoError) {
-    return std::vector<T>();
+    return QList<T>();
   }
   QJsonArray arr = doc.array();
-  std::vector<T> list;
+  QList<T> list;
 
   for (const QJsonValue& val : arr) {
     auto item = dataToItem(val.toObject());
-    list.push_back(item);
+    list.append(item);
   }
 
   return list;

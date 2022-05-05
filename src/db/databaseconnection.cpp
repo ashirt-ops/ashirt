@@ -79,7 +79,7 @@ qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {
                    evidence.errorText, evidence.recordedDate, evidence.uploadDate});
 }
 
-void DatabaseConnection::batchCopyFullEvidence(const std::vector<model::Evidence> &evidence) {
+void DatabaseConnection::batchCopyFullEvidence(const QList<model::Evidence> &evidence) {
   QString baseQuery = "INSERT INTO evidence"
       " (id, path, operation_slug, content_type, description, error, recorded_date, upload_date)"
       " VALUES %1";
@@ -153,22 +153,22 @@ void DatabaseConnection::updateEvidenceSubmitted(qint64 evidenceID) {
   executeQuery(getDB(), "UPDATE evidence SET upload_date=datetime('now') WHERE id=?", {evidenceID});
 }
 
-std::vector<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidenceID) {
-  std::vector<model::Tag> tags;
+QList<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidenceID) {
+  QList<model::Tag> tags;
   auto getTagQuery = executeQuery(getDB(), "SELECT id, tag_id, name FROM tags WHERE evidence_id=?",
                                   {evidenceID});
   while (getTagQuery.next()) {
     auto tag = model::Tag(getTagQuery.value(QStringLiteral("id")).toLongLong(),
                           getTagQuery.value(QStringLiteral("tag_id")).toLongLong(),
                           getTagQuery.value(QStringLiteral("name")).toString());
-    tags.emplace_back(tag);
+    tags.append(tag);
   }
   return tags;
 }
 
-std::vector<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(
-    const std::vector<qint64>& evidenceIDs) {
-  std::vector<model::Tag> tags;
+QList<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(
+    const QList<qint64>& evidenceIDs) {
+  QList<model::Tag> tags;
 
   batchQuery("SELECT id, evidence_id, tag_id, name FROM tags WHERE evidence_id IN (%1)", 1, evidenceIDs.size(),
       [evidenceIDs](unsigned int index){
@@ -179,19 +179,19 @@ std::vector<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(
                               resultItem.value(QStringLiteral("evidence_id")).toLongLong(),
                               resultItem.value(QStringLiteral("tag_id")).toLongLong(),
                               resultItem.value(QStringLiteral("name")).toString());
-        tags.emplace_back(tag);
+        tags.append(tag);
       });
 
   return tags;
 }
 
-void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
+void DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags,
                                          qint64 evidenceID) {
   // todo: this this actually work?
   auto db = getDB();
   QVariantList newTagIds;
   for (const auto &tag : newTags) {
-    newTagIds.push_back(tag.serverTagId);
+    newTagIds.append(tag.serverTagId);
   }
   executeQuery(db, "DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?",
                {newTagIds, evidenceID});
@@ -200,14 +200,14 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
       executeQuery(db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
   QList<qint64> currentTags;
   while (currentTagsResult.next()) {
-    currentTags.push_back(currentTagsResult.value(QStringLiteral("tag_id")).toLongLong());
+    currentTags.append(currentTagsResult.value(QStringLiteral("tag_id")).toLongLong());
   }
   struct dataset {
     qint64 evidenceID = 0;
     qint64 tagID = 0;
     QString name;
   };
-  std::vector<dataset> tagDataToInsert;
+  QList<dataset> tagDataToInsert;
   QString baseQuery = "INSERT INTO tags (evidence_id, tag_id, name) VALUES ";
   for (const auto &newTag : newTags) {
     if (currentTags.count(newTag.serverTagId) == 0) {
@@ -215,26 +215,26 @@ void DatabaseConnection::setEvidenceTags(const std::vector<model::Tag> &newTags,
       item.evidenceID = evidenceID;
       item.tagID = newTag.serverTagId;
       item.name = newTag.tagName;
-      tagDataToInsert.push_back(item);
+      tagDataToInsert.append(item);
     }
   }
 
   // one possible concern: we are going to be passing a lot of parameters
   // sqlite indicates it's default is 100 passed parameter, but it can "handle thousands"
   if (!tagDataToInsert.empty()) {
-    std::vector<QVariant> args;
+    QVariantList args;
     baseQuery += "(?,?,?)";
     baseQuery += QString(", (?,?,?)").repeated(int(tagDataToInsert.size() - 1));
     for (const auto &item : tagDataToInsert) {
-      args.emplace_back(item.evidenceID);
-      args.emplace_back(item.tagID);
-      args.emplace_back(item.name);
+      args.append(item.evidenceID);
+      args.append(item.tagID);
+      args.append(item.name);
     }
     executeQuery(db, baseQuery, args);
   }
 }
 
-void DatabaseConnection::batchCopyTags(const std::vector<model::Tag> &allTags) {
+void DatabaseConnection::batchCopyTags(const QList<model::Tag> &allTags) {
   QString baseQuery = "INSERT INTO tags (id, evidence_id, tag_id, name) VALUES %1";
   int varsPerRow = 4;
   std::function<QVariantList(int)> getItemValues = [allTags](int i){
@@ -249,34 +249,34 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
       "SELECT"
       " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
       " FROM evidence";
-  std::vector<QVariant> values;
-  std::vector<QString> parts;
+  QVariantList values;
+  QStringList parts;
 
   if (filters.hasError != Tri::Any) {
-    parts.emplace_back(" error LIKE ? ");
+    parts.append(" error LIKE ? ");
     // _% will ensure at least one character exists in the error column, ensuring it's populated
-    values.emplace_back(filters.hasError == Tri::Yes ? "_%" : "");
+    values.append(filters.hasError == Tri::Yes ? "_%" : "");
   }
   if (filters.submitted != Tri::Any) {
-    parts.emplace_back((filters.submitted == Tri::Yes) ? " upload_date IS NOT NULL "
+    parts.append((filters.submitted == Tri::Yes) ? " upload_date IS NOT NULL "
                                                        : " upload_date IS NULL ");
   }
   if (!filters.operationSlug.isEmpty()) {
-    parts.emplace_back(" operation_slug = ? ");
-    values.emplace_back(filters.operationSlug);
+    parts.append(" operation_slug = ? ");
+    values.append(filters.operationSlug);
   }
   if (!filters.contentType.isEmpty()) {
-    parts.emplace_back(" content_type = ? ");
-    values.emplace_back(filters.contentType);
+    parts.append(" content_type = ? ");
+    values.append(filters.contentType);
   }
   if (filters.startDate.isValid()) {
-    parts.emplace_back(" recorded_date >= ? ");
-    values.emplace_back(filters.startDate);
+    parts.append(" recorded_date >= ? ");
+    values.append(filters.startDate);
   }
   if (filters.endDate.isValid()) {
     auto realEndDate = filters.endDate.addDays(1);
-    parts.emplace_back(" recorded_date < ? ");
-    values.emplace_back(realEndDate);
+    parts.append(" recorded_date < ? ");
+    values.append(realEndDate);
   }
 
   if (!parts.empty()) {
@@ -292,12 +292,12 @@ void DatabaseConnection::updateEvidencePath(const QString& newPath, qint64 evide
   executeQuery(getDB(), "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
 }
 
-std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
+QList<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     const EvidenceFilters &filters) {
   auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
   auto resultSet = executeQuery(getDB(), dbQuery.query(), dbQuery.values());
 
-  std::vector<model::Evidence> allEvidence;
+  QList<model::Evidence> allEvidence;
   while (resultSet.next()) {
     model::Evidence evi;
     evi.id = resultSet.value(QStringLiteral("id")).toLongLong();
@@ -312,25 +312,25 @@ std::vector<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     evi.recordedDate.setTimeSpec(Qt::UTC);
     evi.uploadDate.setTimeSpec(Qt::UTC);
 
-    allEvidence.push_back(evi);
+    allEvidence.append(evi);
   }
 
   return allEvidence;
 }
 
-std::vector<model::Evidence> DatabaseConnection::createEvidenceExportView(
+QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
     const QString& pathToExport, const EvidenceFilters& filters, DatabaseConnection *runningDB) {
-  std::vector<model::Evidence> exportEvidence;
+  QList<model::Evidence> exportEvidence;
 
   auto exportViewAction = [runningDB, filters, &exportEvidence](DatabaseConnection exportDB) {
     exportEvidence = runningDB->getEvidenceWithFilters(filters);
 
     exportDB.batchCopyFullEvidence(exportEvidence);
-    std::vector<qint64> evidenceIds;
+    QList<qint64> evidenceIds;
     evidenceIds.resize(exportEvidence.size());
     std::transform(exportEvidence.begin(), exportEvidence.end(), evidenceIds.begin(),
                    [](const model::Evidence& e) { return e.id; });
-    std::vector<model::Tag> tags = runningDB->getFullTagsForEvidenceIDs(evidenceIds);
+    QList<model::Tag> tags = runningDB->getFullTagsForEvidenceIDs(evidenceIds);
     exportDB.batchCopyTags(tags);
   };
 
@@ -434,7 +434,7 @@ QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) n
 //
 // Throws: QSqlError when a query error occurs
 QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString &stmt,
-                                           const std::vector<QVariant> &args) {
+                                           const QVariantList &args) {
   auto result = executeQueryNoThrow(db, stmt, args);
   if (!result.success) {
     throw result.err;
@@ -443,7 +443,7 @@ QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString
 }
 
 QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
-                                                  const std::vector<QVariant> &args) noexcept {
+                                                  const QVariantList &args) noexcept {
   QSqlQuery query(db);
 
   bool prepared = query.prepare(stmt);
@@ -463,7 +463,7 @@ QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, cons
 //
 // Throws: QSqlError when a query error occurs
 qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
-                                    const std::vector<QVariant> &args) {
+                                    const QVariantList &args) {
   auto query = executeQuery(db, stmt, args);
 
   return query.lastInsertId().toLongLong();
@@ -510,15 +510,15 @@ void DatabaseConnection::batchQuery(const QString &baseQuery, unsigned int varsP
   };
   /// encodeRowValues generates a vector of QVariants to provide to executeQuery
   auto encodeRowValues = [&runningRowIndex, encodeValues](unsigned int numRows){
-    std::vector<QVariant> values;
+    QVariantList values;
     for (unsigned int i = 0; i < numRows; i++) {
       auto itemValues = encodeValues(runningRowIndex++); // increment happens after encoding
-      values.insert(std::end(values), std::begin(itemValues), std::end(itemValues));
+      values.append(itemValues);
     }
     return values;
   };
   /// runQuery executes the given query, and iterates over the result set
-  auto runQuery = [db, decodeRows](const QString &query, const std::vector<QVariant>& values) {
+  auto runQuery = [db, decodeRows](const QString &query, const QVariantList& values) {
     auto completedQuery = executeQuery(db, query, values);
     while (completedQuery.next()) {
       decodeRows(completedQuery);
@@ -528,14 +528,14 @@ void DatabaseConnection::batchQuery(const QString &baseQuery, unsigned int varsP
   // do full frames
   QString fullFrameQuery = baseQuery.arg(prepArgString(frameSize));
   for(unsigned long frameIndex = 0; frameIndex < numFullFrames; frameIndex++) {
-    std::vector<QVariant> values = encodeRowValues(frameSize);
+    QVariantList values = encodeRowValues(frameSize);
     runQuery(fullFrameQuery, values); // an alternative here: use execBatch, which might slightly hasten results
   }
 
   // do the remainder
   if (overflow > 0) {
     QString overflowQuery = baseQuery.arg(prepArgString(overflow));
-    std::vector<QVariant> overflowValues = encodeRowValues(overflow);
+    QVariantList overflowValues = encodeRowValues(overflow);
     runQuery(overflowQuery, overflowValues);
   }
 }

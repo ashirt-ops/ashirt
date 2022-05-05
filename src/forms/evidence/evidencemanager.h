@@ -70,7 +70,7 @@ class EvidenceManager : public AShirtDialog {
   /// selectedRowEvidenceID is a small helper to get the evidence id for the currently selected row.
   qint64 selectedRowEvidenceID();
   /// selectedRowEvidenceIDs is a small helper to retrieve the id for all the selected rows
-  std::vector<qint64> selectedRowEvidenceIDs();
+  QList<qint64> selectedRowEvidenceIDs();
 
  signals:
   /**
@@ -99,7 +99,7 @@ class EvidenceManager : public AShirtDialog {
 
   /// deleteSet is a small helper to iterate through the provided list, delete the ids, and process
   /// the result
-  void deleteSet(std::vector<qint64> ids);
+  void deleteSet(QList<qint64> ids);
 
   /// applyFilterForm updates the filter textbox to reflect the filter options chosen in the filter
   /// menu

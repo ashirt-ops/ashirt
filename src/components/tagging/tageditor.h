@@ -37,30 +37,30 @@ class TagEditor : public QWidget {
   void tagEditReturnPressed();
   void completerActivated(const QString& text);
 
-  void tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags);
-  void tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdatedTags);
+  void tagsUpdated(QString operationSlug, QList<dto::Tag> tags);
+  void tagsNotFound(QString operationSlug, QList<dto::Tag> outdatedTags);
 
  public:
   void clear();
   void setReadonly(bool readonly);
-  void loadTags(const QString& operationSlug, std::vector<model::Tag> initialTagIDs);
-  inline std::vector<model::Tag> getIncludedTags() { return tagView->getIncludedTags(); }
+  void loadTags(const QString& operationSlug, QList<model::Tag> initialTagIDs);
+  inline QList<model::Tag> getIncludedTags() { return tagView->getIncludedTags(); }
 
  signals:
   void tagsLoaded(bool isValid);
 
  private:
   QString operationSlug;
-  std::vector<model::Tag> initialTags;
+  QList<model::Tag> initialTags;
 
   QNetworkReply* createTagReply = nullptr;
-  std::unordered_map<QString, QNetworkReply*> activeRequests;
+  QMap<QString, QNetworkReply*> activeRequests;
   TagCache* tagCache = nullptr;
 
   TaggingLineEditEventFilter filter;
   QCompleter* completer;
   QStringList tagNames;
-  std::unordered_map<QString, dto::Tag> tagMap;
+  QMap<QString, dto::Tag> tagMap;
 
   // Ui Elements
   QLineEdit* tagCompleteTextBox = nullptr;

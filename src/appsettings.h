@@ -55,7 +55,7 @@ class AppSettings : public QObject {
   QString operationSlug() { return settings.value(opSlugSetting).toString(); }
   QString operationName() { return settings.value(opNameSetting).toString(); }
 
-  void setLastUsedTags(std::vector<model::Tag> lastTags) {
+  void setLastUsedTags(QList<model::Tag> lastTags) {
     QVariantList writeTags;
     
     for (const auto &tag : lastTags) {
@@ -65,15 +65,15 @@ class AppSettings : public QObject {
     settings.setValue(lastUsedTagsSetting, QVariant::fromValue(writeTags));
   }
 
-  std::vector<model::Tag> getLastUsedTags() {
-    std::vector<model::Tag> rtn;
+  QList<model::Tag> getLastUsedTags() {
+    QList<model::Tag> rtn;
 
     auto val = settings.value(lastUsedTagsSetting);
 
     if (val.canConvert<QVariantList>()) {
       QSequentialIterable iter = val.value<QSequentialIterable>();
       for (const QVariant& item : iter) {
-        rtn.push_back(qvariant_cast<model::Tag>(item));
+        rtn.append(qvariant_cast<model::Tag>(item));
       }
     }
 

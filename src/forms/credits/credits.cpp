@@ -35,7 +35,7 @@ static std::string hyperlinkMd(std::string label, std::string url) {
 }
 
 static std::string attributionMarkdown() {
-  std::vector<Attribution> attribs = {
+  QList<Attribution> attribs = {
       Attribution("Qt", "http://qt.io", "The Qt Company", "LGPLv3",
                   "https://www.gnu.org/licenses/lgpl-3.0.html"),
       Attribution("QProgressIndicator", "https://github.com/mojocorp/QProgressIndicator",
@@ -165,7 +165,7 @@ void Credits::wireUi() {
   connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
 }
 
-void Credits::onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases) {
+void Credits::onReleasesUpdate(bool success, QList<dto::GithubRelease> releases) {
   if (!success) {
     return; //doesn't matter if this fails
   }

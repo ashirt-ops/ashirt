@@ -68,8 +68,8 @@ class TrayManager : public QDialog {
                       QSystemTrayIcon::MessageIcon icon=QSystemTrayIcon::Information, int millisecondsTimeoutHint = 10000);
   QIcon getTrayIcon();
  private slots:
-  void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
-  void onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases);
+  void onOperationListUpdated(bool success, const QList<dto::Operation> &operations);
+  void onReleaseCheck(bool success, const QList<dto::GithubRelease>& releases);
   void onTrayMessageClicked();
 
  public slots:
@@ -123,6 +123,6 @@ class TrayManager : public QDialog {
   QAction *chooseOpStatusAction = nullptr;
   QAction *newOperationAction = nullptr;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
-  std::vector<QAction *> allOperationActions;
+  QList<QAction *> allOperationActions;
 };
 #endif  // QT_NO_SYSTEMTRAYICON

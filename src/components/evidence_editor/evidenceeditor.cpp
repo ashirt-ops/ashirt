@@ -180,8 +180,8 @@ SaveEvidenceResponse EvidenceEditor::saveEvidence() {
   return resp;
 }
 
-std::vector<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(std::vector<qint64> evidenceIDs) {
-  std::vector<DeleteEvidenceResponse> responses;
+QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evidenceIDs) {
+  QList<DeleteEvidenceResponse> responses;
 
   for (qint64 id : evidenceIDs) {
     model::Evidence evi = db->getEvidenceDetails(id);
@@ -204,7 +204,7 @@ std::vector<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(std::vector<q
     }
     localFile->deleteLater(); // deletes the pointer, not the file
     resp.errorText = resp.errorText.trimmed();
-    responses.push_back(resp);
+    responses.append(resp);
   }
 
   return responses;

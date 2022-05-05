@@ -26,10 +26,10 @@ QString UKeySequence::toString()
     const QVector<Qt::Key> modifiers = getModifiers();
     QStringList result;
     for (auto mod : modifiers)
-        result.push_back(keyToStr(mod));
+        result.append(keyToStr(mod));
 
     for (auto key : simpleKeys)
-        result.push_back(keyToStr(key));
+        result.append(keyToStr(key));
 
     return result.join('+');
 }
@@ -39,7 +39,7 @@ QVector<Qt::Key> UKeySequence::getSimpleKeys() const
     QVector<Qt::Key> result;
     for (auto key : qAsConst(mKeys)) {
         if (!isModifier(key)) {
-            result.push_back(key);
+            result.append(key);
         }
     }
     return result;
@@ -50,7 +50,7 @@ QVector<Qt::Key> UKeySequence::getModifiers() const
     QVector<Qt::Key> result;
     for (auto key : qAsConst(mKeys)) {
         if (isModifier(key)) {
-            result.push_back(key);
+            result.append(key);
         }
     }
     return result;
@@ -119,7 +119,7 @@ void UKeySequence::addKey(Qt::Key key)
         }
     }
 
-    mKeys.push_back(key);
+    mKeys.append(key);
 }
 
 void UKeySequence::addKey(const QKeyEvent *event)

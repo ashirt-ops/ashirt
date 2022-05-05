@@ -22,16 +22,16 @@ using RowDecoderFunc = std::function<void(const QSqlQuery&)>;
 class DBQuery {
  private:
   QString _query;
-  std::vector<QVariant> _values;
+  QVariantList _values;
 
  public:
   DBQuery(QString query) : DBQuery(query, {}) {}
-  DBQuery(QString query, std::vector<QVariant> values) {
+  DBQuery(QString query, QVariantList values) {
     this->_query = query;
     this->_values = values;
   }
   inline QString query() { return _query; }
-  inline std::vector<QVariant> values() { return _values; }
+  inline QVariantList values() { return _values; }
 };
 
 class DatabaseConnection {
@@ -57,21 +57,21 @@ class DatabaseConnection {
   static DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
 
   model::Evidence getEvidenceDetails(qint64 evidenceID);
-  std::vector<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
+  QList<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
 
   qint64 createEvidence(const QString &filepath, const QString &operationSlug,
                         const QString &contentType);
   qint64 createFullEvidence(const model::Evidence &evidence);
-  void batchCopyFullEvidence(const std::vector<model::Evidence> &evidence);
+  void batchCopyFullEvidence(const QList<model::Evidence> &evidence);
   qint64 copyFullEvidence(const model::Evidence &evidence);
 
   void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
   void updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
   void updateEvidencePath(const QString& newPath, qint64 evidenceID);
-  void setEvidenceTags(const std::vector<model::Tag> &newTags, qint64 evidenceID);
-  void batchCopyTags(const std::vector<model::Tag> &allTags);
-  std::vector<model::Tag> getFullTagsForEvidenceIDs(const std::vector<qint64>& evidenceIDs);
+  void setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID);
+  void batchCopyTags(const QList<model::Tag> &allTags);
+  QList<model::Tag> getFullTagsForEvidenceIDs(const QList<qint64>& evidenceIDs);
 
   void deleteEvidence(qint64 evidenceID);
 
@@ -80,10 +80,10 @@ class DatabaseConnection {
   ///
   /// Note that currently, this simply exports everything. This is included as a way to limit
   /// sharing in the future.
-  static std::vector<model::Evidence> createEvidenceExportView(const QString& pathToExport,
+  static QList<model::Evidence> createEvidenceExportView(const QString& pathToExport,
                                                                const EvidenceFilters& filters,
                                                                DatabaseConnection *runningDB);
-  std::vector<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
+  QList<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
   /// getDatabasePath returns the filepath associated with the loaded database
   QString getDatabasePath();
@@ -101,14 +101,14 @@ class DatabaseConnection {
   static QStringList getUnappliedMigrations(const QSqlDatabase &db);
   static QString extractMigrateUpContent(const QString &allContent) noexcept;
   static QSqlQuery executeQuery(const QSqlDatabase& db, const QString &stmt,
-                                const std::vector<QVariant> &args = {});
+                                const QVariantList &args = {});
 
   /// executeQueryNoThrow provides a safe mechanism to execute a query on the database. (Safe in the
   /// sense that no exception is thrown). It is incumbent on the caller to inspect the
   /// QueryResult.sucess/QueryResult.err fields to determine the actual result.
   static QueryResult executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
-                                const std::vector<QVariant> &args = {}) noexcept;
-  static qint64 doInsert(const QSqlDatabase &db, const QString &stmt, const std::vector<QVariant> &args);
+                                const QVariantList &args = {}) noexcept;
+  static qint64 doInsert(const QSqlDatabase &db, const QString &stmt, const QVariantList &args);
 
   /**
    * @brief batchInsert batches multiple inserts over as few requests as possible.

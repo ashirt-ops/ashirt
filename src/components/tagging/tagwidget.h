@@ -29,8 +29,8 @@ class TagWidget : public QLabel {
 
   static QString randomColor() {
     // Note: this should match the frontend's color palette (naming)
-    auto index = QRandomGenerator::global()->bounded(int(allColorsNames.size()));
-    return allColorsNames.at(index);
+    auto index = QRandomGenerator::global()->bounded(int(allColorNames.size()));
+    return allColorNames.at(index);
   }
 
   static QColor fontColorForBgColor(QColor bg) {
@@ -52,7 +52,7 @@ class TagWidget : public QLabel {
   QRectF removeArea;
   int tagWidth;
   int tagHeight;
-  inline static const std::unordered_map<QString, QColor> colorMap{
+  inline static const QMap<QString, QColor> colorMap{
       // matches colors defined on front end
       {QStringLiteral("blue"),           QColor(0x0E5A8A)},
       {QStringLiteral("yellow"),         QColor(0xA67908)},
@@ -75,13 +75,5 @@ class TagWidget : public QLabel {
       {QStringLiteral("lightVermilion"), QColor(0xFF6E4A)},
       {QStringLiteral("lightViolet"),    QColor(0xC274C2)},
   };
-
-  inline static std::vector<QString> allColorsNames = []()->std::vector<QString>{
-    std::vector<QString> colors;
-    for (const auto& kv : colorMap) {
-      colors.push_back(kv.first);
-    }
-    return colors;
-  }();
-
+  inline static QStringList allColorNames = colorMap.keys();
 };

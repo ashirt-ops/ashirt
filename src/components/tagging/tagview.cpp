@@ -25,7 +25,7 @@ void TagView::buildUi() {
 
 void TagView::addTag(dto::Tag tag) {
   TagWidget* widget = new TagWidget(tag, readonly, this);
-  includedTags.push_back(widget);
+  includedTags.append(widget);
   layout->addWidget(widget);
   connect(widget, &TagWidget::removePressed, this, [this, widget](){
     removeWidget(widget);
@@ -71,12 +71,12 @@ void TagView::clear() {
   includedTags.clear();
 }
 
-std::vector<model::Tag> TagView::getIncludedTags() {
-  std::vector<model::Tag> rtn;
+QList<model::Tag> TagView::getIncludedTags() {
+  QList<model::Tag> rtn;
 
   for (const auto &widget : includedTags) {
     dto::Tag tag = widget->getTag();
-    rtn.push_back(model::Tag(tag.id, tag.name));
+    rtn.append(model::Tag(tag.id, tag.name));
   }
 
   return rtn;

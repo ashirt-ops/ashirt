@@ -118,7 +118,7 @@ class SystemManifest : public QObject {
    * @return an EvidenceManifest listing all of the files copied, and their new names.
    */
   porting::EvidenceManifest copyEvidence(const QString& baseExportPath,
-                                         std::vector<model::Evidence> allEvidence);
+                                         QList<model::Evidence> allEvidence);
 
  public:
   /// os is the operating system associated with the originating export

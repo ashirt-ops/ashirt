@@ -44,4 +44,4 @@ class Tag {
 }  // namespace model
 
 Q_DECLARE_METATYPE(model::Tag);
-Q_DECLARE_METATYPE(std::vector<model::Tag>);
+Q_DECLARE_METATYPE(QList<model::Tag>);

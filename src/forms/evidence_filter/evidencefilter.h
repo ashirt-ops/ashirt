@@ -32,7 +32,7 @@ class EvidenceFilters {
   static QString triToString(const Tri &tri);
 
  private:
-  static std::vector<std::pair<QString, QString>> tokenizeFilterText(const QString &text);
+  static QList<QPair<QString, QString>> tokenizeFilterText(const QString &text);
   static QDate parseDateString(QString text);
   static Tri parseTriFilterValue(const QString &text, bool strict = false);
 

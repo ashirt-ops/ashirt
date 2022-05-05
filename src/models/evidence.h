@@ -19,6 +19,6 @@ class Evidence {
   QString contentType;
   QDateTime recordedDate;
   QDateTime uploadDate;
-  std::vector<Tag> tags;
+  QList<Tag> tags;
 };
 }  // namespace model
