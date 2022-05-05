@@ -176,7 +176,7 @@ jobs:
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ashirt-${{env.githash}}
+        name: ${{env.name}}
         path: build/dist/ashirt-*.*
 
   release:
@@ -195,14 +195,14 @@ jobs:
        automatic_release_tag: "continuous"
        prerelease: false
        title: "Continuous Build"
-       files: build/dist/ashirt-*.*
+       files: ${{env.name}}/ashirt-*.*
 
     - name: Deploy Tag
-      if: needs.run-info.outputs.isRelease == 'true'
+      if: env.isRelease == 'true'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
        automatic_release_tag: ${{ github.ref }}
        prerelease: false
        title: ${{ github.ref }}
-       files: build/dist/ashirt-*.*
+       files: ${{env.name}}/ashirt-*.*
