@@ -115,7 +115,7 @@ class NetMan : public QObject {
     }
 
     QMessageAuthenticationCode code(QCryptographicHash::Sha256);
-    QByteArray key = QByteArray::fromBase64(FileHelpers::qstringToByteArray(secretKeyCopy));
+    QByteArray key = QByteArray::fromBase64(secretKeyCopy.toUtf8());
 
     code.setKey(key);
     code.addData(FileHelpers::stdStringToByteArray(msg));
