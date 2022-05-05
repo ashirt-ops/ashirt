@@ -169,7 +169,7 @@ jobs:
             echo "${{ secrets.GON_CONF }}" | base64 -D -i - | jq '.notarize[0].path = env.ID' > notarize.json
             gon notarize.json
         elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
-            signtool sign /f build\certificate\certificate.pfx /p '${{ secrets.WIN_CERT_PASS }}' /t http://timestamp.comodoca.com/authenticode ashirt-*.exe
+            signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
         fi
         mv ashirt-*.* dist/
 
