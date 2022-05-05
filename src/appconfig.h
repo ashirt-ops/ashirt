@@ -62,12 +62,7 @@ class AppConfig {
         throw FileError::mkError("Error reading config file", location.toStdString(),
                                  configFile.error());
       }
-      try {
-        writeDefaultConfig();
-      }
-      catch (...) {
-        // ignoring -- just trying to generate an empty config
-      }
+      writeDefaultConfig();
       return;
     }
 
@@ -96,12 +91,7 @@ class AppConfig {
     captureWindowExec = "screencapture -w %file";
 #endif
 
-    try {
-      writeConfig();
-    }
-    catch (...) {
-      // ignoring error -- best effort approach
-    }
+    writeConfig();
   }
 
  public:
@@ -118,7 +108,7 @@ class AppConfig {
         QPair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
         QPair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
         QPair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
-        };
+    };
 
     for (auto fieldPair : fields) {
       QJsonValue val = src.value(fieldPair.first);
