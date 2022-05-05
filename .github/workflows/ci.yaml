@@ -101,7 +101,7 @@ jobs:
         path: ${{matrix.config.QT_INST_DIR}}/Qt
         key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ env.QT_VERSION }}
 
-    - name: Env Script (Windows)
+    - name: Env Script (windows)
       uses: ilammy/msvc-dev-cmd@v1
       if: runner.os == 'Windows'
       with:
@@ -171,13 +171,13 @@ jobs:
         elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
             signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
         fi
-        mv ashirt-*.* dist/
+        mv ashirt*.* dist/
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
       with:
         name: ${{env.name}}
-        path: build/dist/ashirt-*.*
+        path: build/dist/ashirt*.*
 
   release:
     name: Release
@@ -195,14 +195,14 @@ jobs:
        automatic_release_tag: "continuous"
        prerelease: false
        title: "Continuous Build"
-       files: ${{env.name}}/ashirt-*.*
+       files: ashirt-*/ashirt-*.*
 
     - name: Deploy Tag
-      if: env.isRelease == 'true'
+      if: needs.run-info.outputs.isRelease == 'true'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
        automatic_release_tag: ${{ github.ref }}
        prerelease: false
        title: ${{ github.ref }}
-       files: ${{env.name}}/ashirt-*.*
+       files: ashirt-*/ashirt-*.*
