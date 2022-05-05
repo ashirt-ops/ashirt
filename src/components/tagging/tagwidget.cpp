@@ -46,26 +46,19 @@ void TagWidget::buildTag() {
 
   int labelWidth = labelSize.width();
   int innerTagHeight = std::max(labelSize.height(), removeSize.height()); //tag height without the buffer
+  int labelTopOffset = ((innerTagHeight - labelSize.height())/2) + smBuffer;
+  int removeLeftOffset = lgBuffer + labelWidth;
+  int removeTopOffset = ((innerTagHeight - removeSize.height())/2) + smBuffer;
 
-  int tagHeightBuffer = 12; // space around the top/bottom (real size is half as much)
-  int tagWidthBuffer = 12; // space around the outer left/right edges (real size is half as much)
-  int innerBuffer = 6;  // space between each segment
-
-  int labelLeftOffset = tagWidthBuffer/2;
-  int labelTopOffset = ((innerTagHeight - labelSize.height())/2) + (tagHeightBuffer/2);
-
-  int removeLeftOffset = labelLeftOffset + labelWidth + innerBuffer;
-  int removeTopOffset = ((innerTagHeight - removeSize.height())/2) + (tagHeightBuffer/2);
-
-  int fullTagWidth = labelWidth + tagWidthBuffer;
-  int fullTagHeight = innerTagHeight + tagHeightBuffer;
+  int fullTagWidth = labelWidth + lgBuffer;
+  int fullTagHeight = innerTagHeight + lgBuffer;
 
   // set bounds for mouse release event
   labelArea = QRectF(0, 0, removeLeftOffset, fullTagHeight);
   removeArea = QRectF(-1, -1, 0, 0); // set to dummy value in case we don't have a remove area
 
   if (!readonly) {
-    fullTagWidth += removeSize.width() + innerBuffer;
+    fullTagWidth += removeSize.width() + smBuffer;
     removeArea = QRectF(removeLeftOffset, 0, fullTagWidth - removeLeftOffset, fullTagHeight);
   }
 
@@ -92,7 +85,7 @@ void TagWidget::buildTag() {
   painter.setPen(fontColor);
 
   // draw label
-  painter.drawText(QRectF(QPointF(labelLeftOffset, labelTopOffset), labelSize), Qt::AlignCenter, tag.name);
+  painter.drawText(QRectF(QPointF(smBuffer, labelTopOffset), labelSize), Qt::AlignCenter, tag.name);
 
   // draw remove (if needed)
   if(!readonly) {
