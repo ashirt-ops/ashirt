@@ -137,7 +137,7 @@ Tri EvidenceFilters::parseTriFilterValue(const QString& text, bool strict) {
   return Tri::No;
 }
 
-std::vector<std::pair<QString, QString>> EvidenceFilters::tokenizeFilterText(const QString& text) {
+QList<QPair<QString, QString>> EvidenceFilters::tokenizeFilterText(const QString& text) {
   QStringList list = text.split(QStringLiteral(":"), Qt::SkipEmptyParts);
   // now in: [Key][value key]...[value] format
   QStringList keys;
@@ -152,11 +152,11 @@ std::vector<std::pair<QString, QString>> EvidenceFilters::tokenizeFilterText(con
   }
   values.append(list.last());
 
-  std::vector<std::pair<QString, QString>> rtn;
+  QList<QPair<QString, QString>> rtn;
 
   for (int i = 0; i < keys.length(); i++) {
-    auto keyvalue = std::pair<QString, QString>(keys.at(i), values.at(i));
-    rtn.emplace_back(keyvalue);
+    auto keyvalue = QPair<QString, QString>(keys.at(i), values.at(i));
+    rtn.append(keyvalue);
   }
   return rtn;
 }

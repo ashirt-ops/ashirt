@@ -32,12 +32,12 @@ class NetMan : public QObject {
   }
   NetMan(NetMan const &) = delete;
   void operator=(NetMan const &) = delete;
-  // type alias std::vector<dto::Operation> to provide shorter lines
-  using OperationVector = std::vector<dto::Operation>;
+  // type alias QList<dto::Operation> to provide shorter lines
+  using OperationVector = QList<dto::Operation>;
 
  signals:
   void operationListUpdated(bool success, NetMan::OperationVector  operations = NetMan::OperationVector());
-  void releasesChecked(bool success, std::vector<dto::GithubRelease> releases = std::vector<dto::GithubRelease>());
+  void releasesChecked(bool success, QList<dto::GithubRelease> releases = QList<dto::GithubRelease>());
   void testConnectionComplete(bool connected, int statusCode);
 
  private:

@@ -23,7 +23,7 @@ class TagView : public QWidget
 
  public:
   void addTag(dto::Tag tag);
-  std::vector<model::Tag> getIncludedTags();
+  QList<model::Tag> getIncludedTags();
   void setReadonly(bool readonly);
   bool contains(dto::Tag tag);
   void remove(dto::Tag tag);
@@ -34,5 +34,5 @@ class TagView : public QWidget
 
   // UI Components
   FlowLayout* layout = nullptr;
-  std::vector<TagWidget*> includedTags;
+  QList<TagWidget*> includedTags;
 };

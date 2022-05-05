@@ -108,16 +108,16 @@ class AppConfig {
 
   /// applyConfig takes a parsed json configuration, and applies it to the current running app instance
   void applyConfig(QJsonObject src) {
-    std::vector<std::pair<QString, QString*>> fields = {
-        std::pair<QString, QString*>(QStringLiteral("evidenceRepo"), &evidenceRepo),
-        std::pair<QString, QString*>(QStringLiteral("accessKey"), &accessKey),
-        std::pair<QString, QString*>(QStringLiteral("secretKey"), &secretKey),
-        std::pair<QString, QString*>(QStringLiteral("apiURL"), &apiURL),
-        std::pair<QString, QString*>(QStringLiteral("screenshotCommand"), &screenshotExec),
-        std::pair<QString, QString*>(QStringLiteral("screenshotShortcut"), &screenshotShortcutCombo),
-        std::pair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
-        std::pair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
-        std::pair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
+    QList<QPair<QString, QString*>> fields = {
+        QPair<QString, QString*>(QStringLiteral("evidenceRepo"), &evidenceRepo),
+        QPair<QString, QString*>(QStringLiteral("accessKey"), &accessKey),
+        QPair<QString, QString*>(QStringLiteral("secretKey"), &secretKey),
+        QPair<QString, QString*>(QStringLiteral("apiURL"), &apiURL),
+        QPair<QString, QString*>(QStringLiteral("screenshotCommand"), &screenshotExec),
+        QPair<QString, QString*>(QStringLiteral("screenshotShortcut"), &screenshotShortcutCombo),
+        QPair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
+        QPair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
+        QPair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
         };
 
     for (auto fieldPair : fields) {

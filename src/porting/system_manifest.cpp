@@ -144,7 +144,7 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
 }
 
 porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExportPath,
-                                                       std::vector<model::Evidence> allEvidence) {
+                                                       QList<model::Evidence> allEvidence) {
   QString relativeEvidenceDir = QStringLiteral("evidence");
   FileHelpers::mkdirs(QStringLiteral("%1/%2").arg(baseExportPath, relativeEvidenceDir));
 
@@ -164,7 +164,7 @@ porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExport
                            FileError::mkError(copyResult.file->errorString(), dstPath, copyResult.file->error()));
     }
     else {
-      evidenceManifest.entries.push_back(item);
+      evidenceManifest.entries.append(item);
     }
     Q_EMIT onFileProcessed(evidenceIndex + 1);
   }

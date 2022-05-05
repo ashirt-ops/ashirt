@@ -48,8 +48,8 @@ class RequestBuilder {
 
   QString contentType;
 
-  std::vector<std::pair<QString, QString>> rawHeaders;
-  std::vector<std::pair<QNetworkRequest::KnownHeaders, QVariant>> knownHeaders;
+  QList<QPair<QString, QString>> rawHeaders;
+  QList<QPair<QNetworkRequest::KnownHeaders, QVariant>> knownHeaders;
 
   // creators (constructors + Psuedo constructors)
  public:
@@ -106,14 +106,14 @@ class RequestBuilder {
   /// addKnownHeader adds a new header to the list of headers. Known headers are simply headers with
   /// a predefined name.
   RequestBuilder* addKnownHeader(QNetworkRequest::KnownHeaders headerName, QVariant value) {
-    this->knownHeaders.emplace_back(std::pair<QNetworkRequest::KnownHeaders, QVariant>(headerName, value));
+    knownHeaders.append(QPair<QNetworkRequest::KnownHeaders, QVariant>(headerName, value));
     return this;
   }
 
   /// addRawHeader adds a new header to the list of headers. Raw headers are simply headers without
   /// predefined names.
   RequestBuilder* addRawHeader(QString headerName, QString value) {
-    rawHeaders.emplace_back(headerName, value);
+    rawHeaders.append(QPair<QString, QString>(headerName, value));
     return this;
   }
 

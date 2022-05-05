@@ -41,7 +41,7 @@ class EvidenceFilterForm : public AShirtDialog {
 
  public slots:
   /// onOperationListUpdated listens for events to know when to update the operations checkbox
-  void onOperationListUpdated(bool success, const std::vector<dto::Operation> &operations);
+  void onOperationListUpdated(bool success, const QList<dto::Operation> &operations);
 
   /// encodeForm converts the current form into a EvidenceFilter model
   EvidenceFilters encodeForm();

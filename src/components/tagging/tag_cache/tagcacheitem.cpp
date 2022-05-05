@@ -19,11 +19,11 @@ qint64 TagCacheItem::now() {
   return QDateTime::currentMSecsSinceEpoch();
 }
 
-void TagCacheItem::setTags(std::vector<dto::Tag> tags) {
+void TagCacheItem::setTags(QList<dto::Tag> tags) {
   this->tags = tags;
   expiry = now() + defaultExpiryDeltaMs;
 }
 
-std::vector<dto::Tag> TagCacheItem::getTags() {
+QList<dto::Tag> TagCacheItem::getTags() {
   return tags;
 }

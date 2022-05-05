@@ -304,7 +304,7 @@ void TrayManager::setActiveOperationLabel() {
 }
 
 void TrayManager::onOperationListUpdated(bool success,
-                                         const std::vector<dto::Operation>& operations) {
+                                         const QList<dto::Operation>& operations) {
   auto currentOp = AppSettings::getInstance().operationSlug();
 
   if (success) {
@@ -322,7 +322,7 @@ void TrayManager::onOperationListUpdated(bool success,
       }
 
       connect(newAction, &QAction::triggered, this, [this, newAction, op] {
-        AppSettings::getInstance().setLastUsedTags(std::vector<model::Tag>{}); // clear last used tags
+        AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
         AppSettings::getInstance().setOperationDetails(op.slug, op.name);
         if (selectedAction != nullptr) {
           selectedAction->setChecked(false);
@@ -332,7 +332,7 @@ void TrayManager::onOperationListUpdated(bool success,
         newAction->setChecked(true);
         selectedAction = newAction;
       });
-      allOperationActions.push_back(newAction);
+      allOperationActions.append(newAction);
       chooseOpSubmenu->addAction(newAction);
     }
     if (selectedAction == nullptr) {
@@ -348,7 +348,7 @@ void TrayManager::checkForUpdate() {
   NetMan::getInstance().checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
 }
 
-void TrayManager::onReleaseCheck(bool success, const std::vector<dto::GithubRelease>& releases) {
+void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& releases) {
   if (!success) {
     return;  // doesn't matter if this fails -- another request will be made later.
   }

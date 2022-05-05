@@ -61,7 +61,7 @@ class EvidenceManifest {
   }
 
  public:
-  std::vector<EvidenceItem> entries;
+  QList<EvidenceItem> entries;
 };
 
 }

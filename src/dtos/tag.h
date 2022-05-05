@@ -24,7 +24,7 @@ class Tag {
  public:
   static Tag parseData(QByteArray data) { return parseJSONItem<Tag>(data, Tag::fromJson); }
 
-  static std::vector<Tag> parseDataAsList(QByteArray data) {
+  static QList<Tag> parseDataAsList(QByteArray data) {
     return parseJSONList<Tag>(data, Tag::fromJson);
   }
 

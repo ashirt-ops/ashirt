@@ -214,7 +214,7 @@ void EvidenceManager::submitEvidenceTriggered() {
 }
 
 void EvidenceManager::deleteEvidenceTriggered() {
-  std::vector<qint64> ids = selectedRowEvidenceIDs();
+  QList<qint64> ids = selectedRowEvidenceIDs();
   QString thisMuch = ids.size() > 1 ? QString("these %1 pieces of").arg(ids.size()) : "this";
   auto reply = QMessageBox::question(this, tr("Discard Evidence"),
                             tr("Are you sure you want to discard %1 "
@@ -232,9 +232,9 @@ void EvidenceManager::deleteAllTriggered() {
                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
   if (reply == QMessageBox::Yes) {
-    std::vector<qint64> ids;
+    QList<qint64> ids;
     for(int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
-      ids.push_back(evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong());
+      ids.append(evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong());
     }
     deleteSet(ids);
   }
@@ -247,8 +247,8 @@ static QString parentDir(QString path) {
   return path.left(lastSlash);
 }
 
-void EvidenceManager::deleteSet(std::vector<qint64> ids) {
-  std::vector<DeleteEvidenceResponse> responses = evidenceEditor->deleteEvidence(ids);
+void EvidenceManager::deleteSet(QList<qint64> ids) {
+  QList<DeleteEvidenceResponse> responses = evidenceEditor->deleteEvidence(ids);
   QStringList undeletedFiles;
   bool removedAllDbRecords = true;
   QStringList paths;
@@ -341,7 +341,7 @@ void EvidenceManager::loadEvidence() {
 
   try {
     auto filter = EvidenceFilters::parseFilter(filterTextBox->text());
-    std::vector<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
+    QList<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
     evidenceTable->setRowCount(operationEvidence.size());
 
     // removing sorting temporarily to solve a bug (per qt: not a bug)
@@ -537,13 +537,13 @@ qint64 EvidenceManager::selectedRowEvidenceID() {
   return evidenceTable->currentItem()->data(Qt::UserRole).toLongLong();
 }
 
-std::vector<qint64> EvidenceManager::selectedRowEvidenceIDs() {
-  std::vector<qint64> rtn;
+QList<qint64> EvidenceManager::selectedRowEvidenceIDs() {
+  QList<qint64> rtn;
 
   // relies on the fact that entire rows are selected
   auto itemList = evidenceTable->selectionModel()->selectedRows();
   for (auto item : itemList) {
-    rtn.push_back(item.data(Qt::UserRole).toLongLong());
+    rtn.append(item.data(Qt::UserRole).toLongLong());
   }
   return  rtn;
 }

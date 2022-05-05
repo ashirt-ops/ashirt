@@ -16,7 +16,7 @@ class Credits : public AShirtDialog {
   ~Credits() = default;
 
  public slots:
-  void onReleasesUpdate(bool success, std::vector<dto::GithubRelease> releases);
+  void onReleasesUpdate(bool success, QList<dto::GithubRelease> releases);
 
  private:
   /// buildUi creates the window structure.

@@ -93,7 +93,7 @@ class GithubRelease {
     return parseJSONItem<GithubRelease>(data, GithubRelease::fromJson);
   }
 
-  static std::vector<GithubRelease> parseDataAsList(QByteArray data) {
+  static QList<GithubRelease> parseDataAsList(QByteArray data) {
     return parseJSONList<GithubRelease>(data, GithubRelease::fromJson);
   }
 
@@ -131,14 +131,14 @@ class ReleaseDigest {
   ReleaseDigest(){}
 
  public:
-  static ReleaseDigest fromReleases(QString curVersion, const std::vector<GithubRelease> &borrowedReleases) {
+  static ReleaseDigest fromReleases(QString curVersion, const QList<GithubRelease> &borrowedReleases) {
 
     if (curVersion.contains(QStringLiteral("v0.0.0"))) {
       std::cerr << "skipping unversioned/development release check" << std::endl;
       return ReleaseDigest();
     }
 
-    std::vector<GithubRelease> upgrades;
+    QList<GithubRelease> upgrades;
     SemVer currentVersion = SemVer::parse(curVersion);
 
     SemVer majorVer = SemVer(currentVersion);
@@ -147,7 +147,7 @@ class ReleaseDigest {
 
     for (const auto& release : borrowedReleases) {
       if (SemVer::isUpgrade(currentVersion, SemVer::parse(release.tagName))) {
-        upgrades.push_back(release);
+        upgrades.append(release);
       }
     }
 

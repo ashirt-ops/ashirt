@@ -178,7 +178,7 @@ void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
 }
 
 void EvidenceFilterForm::onOperationListUpdated(bool success,
-                                                const std::vector<dto::Operation> &operations) {
+                                                const QList<dto::Operation> &operations) {
   operationComboBox->setEnabled(false);
   if (!success) {
     operationComboBox->setItemText(0, tr("Unable to fetch operations"));

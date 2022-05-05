@@ -32,7 +32,7 @@ class Operation {
     return parseJSONItem<Operation>(data, Operation::fromJson);
   }
 
-  static std::vector<Operation> parseDataAsList(QByteArray data) {
+  static QList<Operation> parseDataAsList(QByteArray data) {
     return parseJSONList<Operation>(data, Operation::fromJson);
   }
 

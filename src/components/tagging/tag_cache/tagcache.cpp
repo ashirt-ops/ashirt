@@ -62,7 +62,7 @@ void TagCache::onGetTagsComplete(QNetworkReply* reply, QString operationSlug) {
   auto data = NetMan::extractResponse(reply, isValid);
 
   if (isValid) {
-    std::vector<dto::Tag> tags = dto::Tag::parseDataAsList(data);
+    QList<dto::Tag> tags = dto::Tag::parseDataAsList(data);
     auto item = TagCacheItem();
     item.setTags(tags);
     cache[operationSlug] = item;

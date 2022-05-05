@@ -16,8 +16,8 @@ class TagCache : public QObject {
 
  public:
  signals:
-  void tagResponse(QString operationSlug, std::vector<dto::Tag> tags);
-  void failedLookup(QString operationSlug, std::vector<dto::Tag> oldTags=std::vector<dto::Tag>());
+  void tagResponse(QString operationSlug, QList<dto::Tag> tags);
+  void failedLookup(QString operationSlug, QList<dto::Tag> oldTags=QList<dto::Tag>());
 
  private slots:
   void onGetTagsComplete(QNetworkReply* reply, QString operationSlug);

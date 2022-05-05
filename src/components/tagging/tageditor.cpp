@@ -30,7 +30,7 @@ TagEditor::TagEditor(QWidget *parent)
 
 TagEditor::~TagEditor() {
   for (auto& entry : activeRequests) {
-    stopReply(&(entry.second));
+    stopReply(&(entry));
   }
   stopReply(&createTagReply);
 }
@@ -107,7 +107,7 @@ void TagEditor::tagTextEntered(QString text) {
     createTag(text);
   }
   else {
-    dto::Tag data = foundTag->second;
+    dto::Tag data = foundTag.value();
     tagView->contains(data) ? tagView->remove(data) : tagView->addTag(data);
   }
 
@@ -129,14 +129,14 @@ void TagEditor::clear() {
   tagView->clear();
 }
 
-void TagEditor::loadTags(const QString &operationSlug, std::vector<model::Tag> initialTags) {
+void TagEditor::loadTags(const QString &operationSlug, QList<model::Tag> initialTags) {
   this->operationSlug = operationSlug;
   this->initialTags = initialTags;
 
   tagCache->requestTags(operationSlug);
 }
 
-void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
+void TagEditor::tagsUpdated(QString operationSlug, QList<dto::Tag> tags) {
   if (this->operationSlug == operationSlug) {
     clearTags();
     for (const auto& tag : tags) {
@@ -154,7 +154,7 @@ void TagEditor::tagsUpdated(QString operationSlug, std::vector<dto::Tag> tags) {
   }
 }
 
-void TagEditor::tagsNotFound(QString operationSlug, std::vector<dto::Tag> outdatedTags) {
+void TagEditor::tagsNotFound(QString operationSlug, QList<dto::Tag> outdatedTags) {
   if (this->operationSlug == operationSlug) {
     errorLabel->setText(
         tr("Unable to fetch tags."
@@ -205,7 +205,7 @@ void TagEditor::onCreateTagComplete() {
 
 void TagEditor::addTag(dto::Tag tag) {
   tagNames << tag.name;
-  tagMap.emplace(standardizeTagKey(tag.name), tag);
+  tagMap.insert(standardizeTagKey(tag.name), tag);
 }
 
 void TagEditor::clearTags() {

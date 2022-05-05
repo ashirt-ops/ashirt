@@ -10,8 +10,8 @@ class TagCacheItem
  public:
   void expire();
   bool isStale();
-  void setTags(std::vector<dto::Tag> tags);
-  std::vector<dto::Tag> getTags();
+  void setTags(QList<dto::Tag> tags);
+  QList<dto::Tag> getTags();
 
  private:
   qint64 now();
@@ -19,5 +19,5 @@ class TagCacheItem
  private:
   inline static const qint64 defaultExpiryDeltaMs = 60000;
   qint64 expiry;
-  std::vector<dto::Tag> tags;
+  QList<dto::Tag> tags;
 };
