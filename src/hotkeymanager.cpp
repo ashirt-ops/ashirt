@@ -10,8 +10,10 @@
 #include "appsettings.h"
 #include "helpers/hotkeys/uglobalhotkeys.h"
 
-HotkeyManager::HotkeyManager() {
-  hotkeyManager = new UGlobalHotkeys();
+HotkeyManager::HotkeyManager(QObject *parent)
+  : QObject (parent)
+  , hotkeyManager(new UGlobalHotkeys(this))
+{
   connect(hotkeyManager, &UGlobalHotkeys::activated, this, &HotkeyManager::hotkeyTriggered);
 }
 

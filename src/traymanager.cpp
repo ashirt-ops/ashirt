@@ -30,14 +30,25 @@
 #include <QSettings>
 #endif
 
+TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
+    : QDialog(parent)
+    , db(db)
+    , screenshotTool(new Screenshot(this))
+    , hotkeyManager(new HotkeyManager(this))
+    , updateCheckTimer(new QTimer(this))
+    , settingsWindow(new Settings(hotkeyManager, this))
+    , evidenceManagerWindow(new EvidenceManager(this->db, this))
+    , creditsWindow(new Credits(this))
+    , importWindow(new PortingDialog(PortingDialog::Import, this->db, this))
+    , exportWindow(new PortingDialog(PortingDialog::Export, this->db, this))
+    , createOperationWindow(new CreateOperation(this))
+    , newOperationAction(new QAction(tr("Connect to server first"), this))
+    , trayIcon(new QSystemTrayIcon(getTrayIcon(),this))
+    , allOperationActions(this)
 
-TrayManager::TrayManager(DatabaseConnection* db) {
-  this->db = db;
-  screenshotTool = new Screenshot();
-  hotkeyManager = new HotkeyManager();
+{
   hotkeyManager->updateHotkeys();
-  updateCheckTimer = new QTimer(this);
-  updateCheckTimer->start(24*60*60*1000); // every day
+  updateCheckTimer->start(MS_IN_DAY); // every day
 
   buildUi();
   wireUi();
@@ -49,112 +60,43 @@ TrayManager::TrayManager(DatabaseConnection* db) {
 
 TrayManager::~TrayManager() {
   setVisible(false);
-
-  delete exportAction;
-  delete importAction;
-
-  delete quitAction;
-  delete showSettingsAction;
-  delete currentOperationMenuAction;
-  delete captureScreenAreaAction;
-  delete captureWindowAction;
-  delete showEvidenceManagerAction;
-  delete showCreditsAction;
-  delete addCodeblockAction;
-  cleanChooseOpSubmenu();  // must be done before deleting chooseOpSubmenu/action
-
-  delete chooseOpStatusAction;
-  delete chooseOpSubmenu;
-  delete importExportSubmenu;
-
-  delete updateCheckTimer;
-  delete trayIconMenu;
-  delete trayIcon;
-
-  delete screenshotTool;
-  delete hotkeyManager;
-  delete settingsWindow;
-  delete evidenceManagerWindow;
-  delete importWindow;
-  delete exportWindow;
-  delete creditsWindow;
+  cleanChooseOpSubmenu();
 }
 
 void TrayManager::buildUi() {
-  // create subwindows
-  settingsWindow = new Settings(hotkeyManager, this);
-  evidenceManagerWindow = new EvidenceManager(db, this);
-  creditsWindow = new Credits(this);
-  importWindow = new PortingDialog(PortingDialog::Import, db, this);
-  exportWindow = new PortingDialog(PortingDialog::Export, db, this);
-  createOperationWindow = new CreateOperation(this);
+  //Disable Actions
+  newOperationAction->setEnabled(false);  // only enable when we have an internet connection
 
-  trayIconMenu = new QMenu(this);
-
-  auto addMenuToMenu = [this](const QString& text, QMenu** submenu, QMenu** parent) {
-    *submenu = new QMenu(text, this);
-    (*parent)->addMenu(*submenu);
-  };
-
-  // small helper to create an action and assign it to a menu
-  auto addToMenu = [this](const QString& text, QAction** act, QMenu** menu) {
-    *act = new QAction(text, this);
-    (*menu)->addAction(*act);
-  };
-
-  // Tray menu
-  addToMenu(tr("Add Codeblock from Clipboard"), &addCodeblockAction, &trayIconMenu);
-  addToMenu(tr("Capture Screen Area"), &captureScreenAreaAction, &trayIconMenu);
-  addToMenu(tr("Capture Window"), &captureWindowAction, &trayIconMenu);
-  addToMenu(tr("View Accumulated Evidence"), &showEvidenceManagerAction, &trayIconMenu);
+  // Build Tray menu
+  auto trayIconMenu = new QMenu(this);
+  trayIconMenu->addAction(tr("Add Codeblock from Clipboard"), this, &TrayManager::captureCodeblockActionTriggered);
+  trayIconMenu->addAction(tr("Capture Screen Area"), this, &TrayManager::captureAreaActionTriggered);
+  trayIconMenu->addAction(tr("Capture Window"), this, &TrayManager::captureWindowActionTriggered);
+  trayIconMenu->addAction(tr("View Accumulated Evidence"), evidenceManagerWindow, &EvidenceManager::show);
   trayIconMenu->addSeparator();
-  addToMenu(QString(), &currentOperationMenuAction, &trayIconMenu);
-  addMenuToMenu(tr("Select Operation"), &chooseOpSubmenu, &trayIconMenu);
+  chooseOpSubmenu = trayIconMenu->addMenu(tr("Select Operation"));
   trayIconMenu->addSeparator();
-  addMenuToMenu(tr("Import/Export"), &importExportSubmenu, &trayIconMenu);
-  addToMenu(tr("Settings"), &showSettingsAction, &trayIconMenu);
-  addToMenu(tr("About"), &showCreditsAction, &trayIconMenu);
-  addToMenu(tr("Quit"), &quitAction, &trayIconMenu);
+  auto importExportSubmenu = trayIconMenu->addMenu(tr("Import/Export"));
+  trayIconMenu->addAction(tr("Settings"), settingsWindow, &Settings::show);
+  trayIconMenu->addAction(tr("About"), creditsWindow, &Credits::show);
+  trayIconMenu->addAction(tr("Quit"), qApp, &QCoreApplication::quit);
 
   // Operations Submenu
-  currentOperationMenuAction->setEnabled(false);
-  addToMenu(tr("Loading operations..."), &chooseOpStatusAction, &chooseOpSubmenu);
-  addToMenu(tr("New Operation"), &newOperationAction, &chooseOpSubmenu);
-
-  chooseOpStatusAction->setEnabled(false);
-  newOperationAction->setEnabled(false);  // only enable when we have an internet connection
+  chooseOpSubmenu->addAction(newOperationAction);
   chooseOpSubmenu->addSeparator();
 
   // settings submenu
-
-  addToMenu(tr("Export Data"), &exportAction, &importExportSubmenu);
-  addToMenu(tr("Import Data"), &importAction, &importExportSubmenu);
+  importExportSubmenu->addAction(tr("Export Data"), exportWindow, &PortingDialog::show);
+  importExportSubmenu->addAction(tr("Import Data"), importWindow, &PortingDialog::show);
 
   setActiveOperationLabel();
 
-  trayIcon = new QSystemTrayIcon(getTrayIcon(), this);
   trayIcon->setContextMenu(trayIconMenu);
   trayIcon->show();
 }
 
 void TrayManager::wireUi() {
-  auto toTop = [](QDialog* window) {
-    window->show(); // display the window
-    window->raise(); // bring to the top (mac)
-    window->activateWindow(); // alternate bring to the top (windows)
-  };
-  auto actTriggered = &QAction::triggered;
-  // connect actions
-  connect(quitAction, actTriggered, qApp, &QCoreApplication::quit);
-  connect(exportAction, actTriggered, this, [this, toTop](){toTop(exportWindow);});
-  connect(importAction, actTriggered, this, [this, toTop](){toTop(importWindow);});
-  connect(showSettingsAction, actTriggered, this, [this, toTop](){toTop(settingsWindow);});
-  connect(captureScreenAreaAction, actTriggered, this, &TrayManager::captureAreaActionTriggered);
-  connect(captureWindowAction, actTriggered, this, &TrayManager::captureWindowActionTriggered);
-  connect(showEvidenceManagerAction, actTriggered, this, [this, toTop](){toTop(evidenceManagerWindow);});
-  connect(showCreditsAction, actTriggered, this, [this, toTop](){toTop(creditsWindow);});
-  connect(addCodeblockAction, actTriggered, this, &TrayManager::captureCodeblockActionTriggered);
-  connect(newOperationAction, actTriggered, this, [this, toTop](){toTop(createOperationWindow);});
+  connect(newOperationAction, &QAction::triggered, createOperationWindow, &CreateOperation::show);
 
   connect(exportWindow, &PortingDialog::portCompleted, this, [this](const QString& path) {
     openServicesPath = path;
@@ -184,7 +126,6 @@ void TrayManager::wireUi() {
   
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, this, [this] {
-    chooseOpStatusAction->setText(tr("Loading operations..."));
     newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
   });
@@ -194,11 +135,10 @@ void TrayManager::wireUi() {
 
 void TrayManager::cleanChooseOpSubmenu() {
   // delete all of the existing events
-  for (QAction* act : allOperationActions) {
+  for (auto act : allOperationActions.actions()) {
     chooseOpSubmenu->removeAction(act);
-    delete act;
+    allOperationActions.removeAction(act);
   }
-  allOperationActions.clear();
   selectedAction = nullptr; // clear the selected action to ensure no funny business
 }
 
@@ -216,7 +156,6 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 
 void TrayManager::changeEvent(QEvent *event)
 {
-    qDebug() <<"EVENT" <<  event->type() << " " << event->spontaneous();
     if (event->type() == QEvent::ApplicationPaletteChange) {
         trayIcon->setIcon(getTrayIcon());
         QWidget::event(event);
@@ -300,47 +239,38 @@ void TrayManager::showNoOperationSetTrayMessage() {
 
 void TrayManager::setActiveOperationLabel() {
   const auto& opName = AppSettings::getInstance().operationName();
-  currentOperationMenuAction->setText(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
+  chooseOpSubmenu->setTitle(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
 }
 
 void TrayManager::onOperationListUpdated(bool success,
                                          const QList<dto::Operation>& operations) {
+
+  if (!success)
+      return;
+
   auto currentOp = AppSettings::getInstance().operationSlug();
-
-  if (success) {
-    chooseOpStatusAction->setText(tr("Operations loaded"));
-    newOperationAction->setEnabled(true);
-    cleanChooseOpSubmenu();
-
-    for (const auto& op : operations) {
-      auto newAction = new QAction(op.name, chooseOpSubmenu);
-
-      if (currentOp == op.slug) {
-        newAction->setCheckable(true);
-        newAction->setChecked(true);
-        selectedAction = newAction;
-      }
-
-      connect(newAction, &QAction::triggered, this, [this, newAction, op] {
-        AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
-        AppSettings::getInstance().setOperationDetails(op.slug, op.name);
-        if (selectedAction != nullptr) {
-          selectedAction->setChecked(false);
-          selectedAction->setCheckable(false);
-        }
-        newAction->setCheckable(true);
-        newAction->setChecked(true);
-        selectedAction = newAction;
-      });
-      allOperationActions.append(newAction);
-      chooseOpSubmenu->addAction(newAction);
+  newOperationAction->setEnabled(true);
+  newOperationAction->setText(tr("New Operation"));
+  cleanChooseOpSubmenu();
+  for (const auto& op : operations) {
+    auto newAction = std::make_shared<QAction>(new QAction(this));
+    newAction->setText(op.name);
+    newAction->setCheckable(true);
+    if (currentOp == op.slug) {
+      newAction->setChecked(true);
+      selectedAction = newAction.get();
     }
-    if (selectedAction == nullptr) {
-      AppSettings::getInstance().setOperationDetails(QString(), QString());
-    }
+    allOperationActions.addAction(newAction.get());
+    connect(newAction.get(), &QAction::triggered, this, [this, newAction, op] {
+      AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
+      AppSettings::getInstance().setOperationDetails(op.slug, op.name);
+      selectedAction = newAction.get();
+    });
+    chooseOpSubmenu->addAction(newAction.get());
   }
-  else {
-    chooseOpStatusAction->setText(tr("Unable to load operations"));
+
+  if (!selectedAction) {
+    AppSettings::getInstance().setOperationDetails(QString(), QString());
   }
 }
 
@@ -363,7 +293,7 @@ void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& 
 void TrayManager::setTrayMessage(MessageType type, const QString& title, const QString& message,
                                  QSystemTrayIcon::MessageIcon icon, int millisecondsTimeoutHint) {
   trayIcon->showMessage(title, message, icon, millisecondsTimeoutHint);
-  this->currentTrayMessage = type;
+  currentTrayMessage = type;
 }
 
 QIcon TrayManager::getTrayIcon()
