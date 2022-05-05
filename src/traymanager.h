@@ -107,9 +107,7 @@ class TrayManager : public QDialog {
 
   // UI Elements
   QSystemTrayIcon *trayIcon = nullptr;
-  QAction *currentOperationMenuAction = nullptr;
   QMenu *chooseOpSubmenu = nullptr;
-  QAction *chooseOpStatusAction = nullptr;
   QAction *newOperationAction = nullptr;
   QAction *selectedAction = nullptr;  // note: do not delete; for reference only
   QActionGroup allOperationActions;

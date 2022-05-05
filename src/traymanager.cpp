@@ -42,9 +42,7 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     , importWindow(new PortingDialog(PortingDialog::Import, this->db, this))
     , exportWindow(new PortingDialog(PortingDialog::Export, this->db, this))
     , createOperationWindow(new CreateOperation(this))
-    , currentOperationMenuAction(new QAction(QString(), this))
-    , chooseOpStatusAction(new QAction(tr("Loading operations..."), this))
-    , newOperationAction(new QAction(tr("New Operation"), this))
+    , newOperationAction(new QAction(tr("Connect to server first"), this))
     , trayIcon(new QSystemTrayIcon(getTrayIcon(),this))
     , allOperationActions(this)
 
@@ -67,8 +65,6 @@ TrayManager::~TrayManager() {
 
 void TrayManager::buildUi() {
   //Disable Actions
-  currentOperationMenuAction->setEnabled(false);
-  chooseOpStatusAction->setEnabled(false);
   newOperationAction->setEnabled(false);  // only enable when we have an internet connection
 
   // Build Tray menu
@@ -78,7 +74,6 @@ void TrayManager::buildUi() {
   trayIconMenu->addAction(tr("Capture Window"), this, &TrayManager::captureWindowActionTriggered);
   trayIconMenu->addAction(tr("View Accumulated Evidence"), evidenceManagerWindow, &EvidenceManager::show);
   trayIconMenu->addSeparator();
-  trayIconMenu->addAction(currentOperationMenuAction);
   chooseOpSubmenu = trayIconMenu->addMenu(tr("Select Operation"));
   trayIconMenu->addSeparator();
   auto importExportSubmenu = trayIconMenu->addMenu(tr("Import/Export"));
@@ -87,7 +82,6 @@ void TrayManager::buildUi() {
   trayIconMenu->addAction(tr("Quit"), qApp, &QCoreApplication::quit);
 
   // Operations Submenu
-  chooseOpSubmenu->addAction(chooseOpStatusAction);
   chooseOpSubmenu->addAction(newOperationAction);
   chooseOpSubmenu->addSeparator();
 
@@ -132,7 +126,6 @@ void TrayManager::wireUi() {
   
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, this, [this] {
-    chooseOpStatusAction->setText(tr("Loading operations..."));
     newOperationAction->setEnabled(false);
     NetMan::getInstance().refreshOperationsList();
   });
@@ -246,42 +239,38 @@ void TrayManager::showNoOperationSetTrayMessage() {
 
 void TrayManager::setActiveOperationLabel() {
   const auto& opName = AppSettings::getInstance().operationName();
-  currentOperationMenuAction->setText(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
+  chooseOpSubmenu->setTitle(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
 }
 
 void TrayManager::onOperationListUpdated(bool success,
                                          const QList<dto::Operation>& operations) {
+
+  if (!success)
+      return;
+
   auto currentOp = AppSettings::getInstance().operationSlug();
-
-  if (success) {
-    chooseOpStatusAction->setText(tr("Operations loaded"));
-    newOperationAction->setEnabled(true);
-    cleanChooseOpSubmenu();
-
-    for (const auto& op : operations) {
-      auto newAction = std::make_shared<QAction>(new QAction(this));
-      newAction->setText(op.name);
-      newAction->setCheckable(true);
-
-      if (currentOp == op.slug) {
-        newAction->setChecked(true);
-        selectedAction = newAction.get();
-      }
-      allOperationActions.addAction(newAction.get());
-
-      connect(newAction.get(), &QAction::triggered, this, [this, newAction, op] {
-        AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
-        AppSettings::getInstance().setOperationDetails(op.slug, op.name);
-        selectedAction = newAction.get();
-      });
-      chooseOpSubmenu->addAction(newAction.get());
+  newOperationAction->setEnabled(true);
+  newOperationAction->setText(tr("New Operation"));
+  cleanChooseOpSubmenu();
+  for (const auto& op : operations) {
+    auto newAction = std::make_shared<QAction>(new QAction(this));
+    newAction->setText(op.name);
+    newAction->setCheckable(true);
+    if (currentOp == op.slug) {
+      newAction->setChecked(true);
+      selectedAction = newAction.get();
     }
-    if (!selectedAction) {
-      AppSettings::getInstance().setOperationDetails(QString(), QString());
-    }
+    allOperationActions.addAction(newAction.get());
+    connect(newAction.get(), &QAction::triggered, this, [this, newAction, op] {
+      AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
+      AppSettings::getInstance().setOperationDetails(op.slug, op.name);
+      selectedAction = newAction.get();
+    });
+    chooseOpSubmenu->addAction(newAction.get());
   }
-  else {
-    chooseOpStatusAction->setText(tr("Unable to load operations"));
+
+  if (!selectedAction) {
+    AppSettings::getInstance().setOperationDetails(QString(), QString());
   }
 }
 
