@@ -55,11 +55,6 @@ class FileHelpers {
     return templateStr.replace(templateIndex, replaceToken.length(), replacement);
   }
 
-  /// converts a c++ std string into QByteArray, ensuring proper encoding
-  static QByteArray stdStringToByteArray(std::string str) {
-    return QByteArray(str.c_str(), str.size());
-  }
-
   /// writeFile write the provided content to the provided path.
   /// @throws a FileError if there are issues opening or writing to the file.
   static void writeFile(QString path, QString content) {

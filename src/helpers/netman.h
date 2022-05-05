@@ -118,7 +118,7 @@ class NetMan : public QObject {
     QByteArray key = QByteArray::fromBase64(secretKeyCopy.toUtf8());
 
     code.setKey(key);
-    code.addData(FileHelpers::stdStringToByteArray(msg));
+    code.addData(QByteArray::fromStdString(msg));
     return code.result().toBase64();
   }
 
@@ -178,7 +178,7 @@ class NetMan : public QObject {
 
     parser.AddFile("file", evidence.path.toStdString());
 
-    auto body = FileHelpers::stdStringToByteArray(parser.GenBodyContent());
+    auto body = QByteArray::fromStdString(parser.GenBodyContent());
 
     auto builder = ashirtFormPost(QStringLiteral("/api/operations/%1/evidence").arg(evidence.operationSlug), body, parser.boundary().c_str());
     addASHIRTAuth(builder);
