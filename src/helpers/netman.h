@@ -115,10 +115,10 @@ class NetMan : public QObject {
     }
 
     QMessageAuthenticationCode code(QCryptographicHash::Sha256);
-    QByteArray key = QByteArray::fromBase64(FileHelpers::qstringToByteArray(secretKeyCopy));
+    QByteArray key = QByteArray::fromBase64(secretKeyCopy.toUtf8());
 
     code.setKey(key);
-    code.addData(FileHelpers::stdStringToByteArray(msg));
+    code.addData(QByteArray::fromStdString(msg));
     return code.result().toBase64();
   }
 
@@ -178,7 +178,7 @@ class NetMan : public QObject {
 
     parser.AddFile("file", evidence.path.toStdString());
 
-    auto body = FileHelpers::stdStringToByteArray(parser.GenBodyContent());
+    auto body = QByteArray::fromStdString(parser.GenBodyContent());
 
     auto builder = ashirtFormPost(QStringLiteral("/api/operations/%1/evidence").arg(evidence.operationSlug), body, parser.boundary().c_str());
     addASHIRTAuth(builder);
@@ -256,7 +256,7 @@ class NetMan : public QObject {
   /// checkForNewRelease retrieves the recent releases from github for the provided owner/repo project.
   /// Callers should retrieve the result by listening for the releasesChecked signal
   void checkForNewRelease(QString owner, QString repo) {
-    if (owner == Constants::unknownOwnerValue() || repo == Constants::unknownRepoValue()) {
+    if (owner == Constants::unknownValue || repo == Constants::unknownValue) {
       std::cerr << "Skipping release check: no owner or repo set." << std::endl;
       return;
     }

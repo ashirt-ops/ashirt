@@ -30,7 +30,7 @@ void SystemManifest::migrateConfig() {
       }
     }
     AppConfig::getInstance().applyConfig(src);
-    return "";
+    return QString();
   });
   AppConfig::getInstance().writeConfig(); // save updated config
 }

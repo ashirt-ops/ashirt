@@ -149,7 +149,7 @@ class RequestBuilder {
     QNetworkRequest req;
 
     for(const auto& header : rawHeaders) {
-      req.setRawHeader(FileHelpers::qstringToByteArray(header.first), FileHelpers::qstringToByteArray(header.second));
+      req.setRawHeader(header.first.toUtf8(), header.second.toUtf8());
     }
 
     for(const auto& header : knownHeaders) {

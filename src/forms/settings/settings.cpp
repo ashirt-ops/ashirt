@@ -162,8 +162,7 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
 
   bool alreadyUsed = usesKeySequence(captureWindowShortcutTextBox)
                      || usesKeySequence(recordCodeblockShortcutTextBox)
-                     || usesKeySequence(captureAreaShortcutTextBox)
-      ;
+                     || usesKeySequence(captureAreaShortcutTextBox);
 
   if(alreadyUsed) {
     parentComponent->clear();
@@ -231,12 +230,9 @@ void Settings::onSaveClicked() {
   inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
   inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->keySequence().toString();
 
-  try {
-    inst.writeConfig();
-  }
-  catch (std::exception &e) {
-    couldNotSaveSettingsMsg->showMessage(tr("Unable to save settings. Error: %1").arg(e.what()));
-  }
+  inst.writeConfig();
+  if(!inst.errorText.isEmpty())
+    couldNotSaveSettingsMsg->showMessage(tr("Unable to save settings. Error: %1").arg(inst.errorText));
 
   hotkeyManager->updateHotkeys();
   close();

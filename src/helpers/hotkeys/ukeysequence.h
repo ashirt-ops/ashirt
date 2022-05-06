@@ -2,7 +2,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QVector>
+#include <QList>
 #include <QStringList>
 #include <QKeyEvent>
 
@@ -34,11 +34,11 @@ public:
         return mKeys[n];
     }
 
-    QVector<Qt::Key> getSimpleKeys() const;
-    QVector<Qt::Key> getModifiers() const;
+    QList<Qt::Key> getSimpleKeys() const;
+    QList<Qt::Key> getModifiers() const;
 
 private:
-    QVector<Qt::Key> mKeys;
+    QList<Qt::Key> mKeys;
 
     inline static bool isModifier(Qt::Key key)
     {

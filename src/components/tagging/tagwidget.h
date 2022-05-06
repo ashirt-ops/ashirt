@@ -76,4 +76,6 @@ class TagWidget : public QLabel {
       {QStringLiteral("lightViolet"),    QColor(0xC274C2)},
   };
   inline static QStringList allColorNames = colorMap.keys();
+  inline static int smBuffer = 6;
+  inline static int lgBuffer = 12;
 };

@@ -123,9 +123,8 @@ inline size_t QtKeyToWin(Qt::Key key)
     return key;
 }
 #elif defined(Q_OS_LINUX)
-
 #include "ukeysequence.h"
-#include <unordered_map>
+#include <QMap>
 #include "xcb/xcb.h"
 #include "xcb/xcb_keysyms.h"
 #include "X11/keysym.h"
@@ -135,7 +134,7 @@ struct UKeyData {
     int mods;
 };
 
-static std::unordered_map<uint32_t, uint32_t> KEY_MAP = {
+inline const static QMap<uint32_t, uint32_t> KEY_MAP = {
     {Qt::Key_Escape, XK_Escape},
     {Qt::Key_Tab, XK_Tab},
     {Qt::Key_Backspace, XK_BackSpace},
@@ -163,15 +162,15 @@ inline UKeyData QtKeyToLinux(const UKeySequence &keySeq)
 
     auto key = keySeq.getSimpleKeys();
     if (key.size() > 0) {
-        data.key = key[0];
+        data.key = key.first();
     } else {
         qWarning() << "Invalid hotkey";
         return data;
     }
     // Key conversion
     // Misc Keys
-    if (KEY_MAP.find(key[0]) != KEY_MAP.end()) {
-        data.key = KEY_MAP[key[0]];
+    if (KEY_MAP.find(key.first()) != KEY_MAP.end()) {
+        data.key = KEY_MAP.value(key.first());
     } else if (data.key >= Qt::Key_F1 && data.key <= Qt::Key_F35) { // Qt's F keys need conversion
         const size_t DIFF = Qt::Key_F1 - XK_F1;
         data.key -= DIFF;
@@ -198,18 +197,19 @@ inline UKeyData QtKeyToLinux(const UKeySequence &keySeq)
 
     return data;
 }
+    xcb_connection_t *X11Connection;
+    xcb_window_t X11Wid;
+    xcb_key_symbols_t *X11KeySymbs;
 #elif defined(Q_OS_MAC)
-
 #include "ukeysequence.h"
 #include <Carbon/Carbon.h>
-#include <unordered_map>
-
+#include <QMap>
 struct UKeyData {
     uint32_t key;
     uint32_t mods;
 };
 
-static std::unordered_map<uint32_t, uint32_t> KEY_MAP = {
+static QMap<uint32_t, uint32_t> KEY_MAP = {
     {Qt::Key_A, kVK_ANSI_A},
     {Qt::Key_B, kVK_ANSI_B},
     {Qt::Key_C, kVK_ANSI_C},
@@ -263,7 +263,7 @@ static std::unordered_map<uint32_t, uint32_t> KEY_MAP = {
     {Qt::Key_Print, kVK_F14},
 };
 
-static std::unordered_map<uint32_t, uint32_t> MOD_MAP = {
+static QMap<uint32_t, uint32_t> MOD_MAP = {
     {Qt::Key_Shift, shiftKey},
     {Qt::Key_Alt, optionKey},
     {Qt::Key_Control, controlKey},
@@ -277,8 +277,8 @@ inline UKeyData QtKeyToMac(const UKeySequence &keySeq)
     auto key = keySeq.getSimpleKeys();
     auto mods = keySeq.getModifiers();
 
-    if (key.size() == 1 && KEY_MAP.find(key[0]) != KEY_MAP.end()) {
-        data.key = KEY_MAP[key[0]];
+    if (key.size() == 1 && KEY_MAP.find(key.first()) != KEY_MAP.end()) {
+        data.key = KEY_MAP.value(key.first());
     } else {
         qWarning() << "Invalid hotkey";
         return data;
@@ -288,9 +288,9 @@ inline UKeyData QtKeyToMac(const UKeySequence &keySeq)
         if (MOD_MAP.find(mod) == MOD_MAP.end())
             return data;
 
-        data.mods += MOD_MAP[mod];
+        data.mods += MOD_MAP.value(mod);
     }
     return data;
 }
-
+    QHash<size_t, EventHotKeyRef> HotkeyRefs;
 #endif

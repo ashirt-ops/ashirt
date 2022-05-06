@@ -48,7 +48,7 @@ void TagView::removeWidget(TagWidget* tagWidget) {
 
   // remove from includedTags
   auto itr = std::find(includedTags.begin(), includedTags.end(), tagWidget);
-  if(itr != includedTags.cend()) {
+  if(itr != includedTags.end()) {
     auto last = includedTags.end()-1;
     std::iter_swap(itr, last);
     includedTags.pop_back();

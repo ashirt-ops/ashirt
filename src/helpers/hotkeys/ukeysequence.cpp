@@ -22,8 +22,8 @@ void UKeySequence::fromString(const QString &str)
 
 QString UKeySequence::toString()
 {
-    const QVector<Qt::Key> simpleKeys = getSimpleKeys();
-    const QVector<Qt::Key> modifiers = getModifiers();
+    const QList<Qt::Key> simpleKeys = getSimpleKeys();
+    const QList<Qt::Key> modifiers = getModifiers();
     QStringList result;
     for (auto mod : modifiers)
         result.append(keyToStr(mod));
@@ -34,9 +34,9 @@ QString UKeySequence::toString()
     return result.join('+');
 }
 
-QVector<Qt::Key> UKeySequence::getSimpleKeys() const
+QList<Qt::Key> UKeySequence::getSimpleKeys() const
 {
-    QVector<Qt::Key> result;
+    QList<Qt::Key> result;
     for (auto key : qAsConst(mKeys)) {
         if (!isModifier(key)) {
             result.append(key);
@@ -45,9 +45,9 @@ QVector<Qt::Key> UKeySequence::getSimpleKeys() const
     return result;
 }
 
-QVector<Qt::Key> UKeySequence::getModifiers() const
+QList<Qt::Key> UKeySequence::getModifiers() const
 {
-    QVector<Qt::Key> result;
+    QList<Qt::Key> result;
     for (auto key : qAsConst(mKeys)) {
         if (isModifier(key)) {
             result.append(key);

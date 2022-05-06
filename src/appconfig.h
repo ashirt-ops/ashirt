@@ -55,19 +55,14 @@ class AppConfig {
   /// readConfig attempts to read the provided path and parse the configuration file.
   /// If successful, the config file is loaded. If the config file is missing, then a
   /// default file will be generated. If some other error occurs, a FileError is thrown.
-  void readConfig(QString location=Constants::configLocation()) {
+  void readConfig(QString location = Constants::configLocation) {
     QFile configFile(location);
     if (!configFile.open(QIODevice::ReadOnly)) {
       if (configFile.exists()) {
         throw FileError::mkError("Error reading config file", location.toStdString(),
                                  configFile.error());
       }
-      try {
-        writeDefaultConfig();
-      }
-      catch (...) {
-        // ignoring -- just trying to generate an empty config
-      }
+      writeDefaultConfig();
       return;
     }
 
@@ -89,19 +84,14 @@ class AppConfig {
   /// writeDefaultConfig attempts to write a basic configuration to disk.
   /// This is useful on first runs/when no config data is set.
   void writeDefaultConfig() {
-    evidenceRepo = Constants::defaultEvidenceRepo();
+    evidenceRepo = Constants::defaultEvidenceRepo;
 
 #ifdef Q_OS_MACOS
-    screenshotExec = "screencapture -s %file";
-    captureWindowExec = "screencapture -w %file";
+    screenshotExec = QStringLiteral("screencapture -s %file");
+    captureWindowExec = QStringLiteral("screencapture -w %file");
 #endif
 
-    try {
-      writeConfig();
-    }
-    catch (...) {
-      // ignoring error -- best effort approach
-    }
+    writeConfig();
   }
 
  public:
@@ -118,7 +108,7 @@ class AppConfig {
         QPair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
         QPair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
         QPair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
-        };
+    };
 
     for (auto fieldPair : fields) {
       QJsonValue val = src.value(fieldPair.first);
@@ -145,8 +135,8 @@ class AppConfig {
 
   /// writeConfig serializes the running config, and writes the assoicated file to the given path.
   /// The path defaults to Constants::configLocation()
-  void writeConfig(QString alternateSavePath="") {
-    QString writeLoc = alternateSavePath == "" ? Constants::configLocation() : alternateSavePath;
+  void writeConfig(QString alternateSavePath = QString()) {
+    QString writeLoc = alternateSavePath.isEmpty() ? Constants::configLocation : alternateSavePath;
 
     auto configContent = QJsonDocument(serializeConfig()).toJson();
 

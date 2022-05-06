@@ -16,10 +16,9 @@ class Tag {
   ~Tag() = default;
   Tag(const Tag &) = default;
 
-  Tag(QString name, QString colorName) {
-    this->name = name;
-    this->colorName = colorName;
-  }
+  Tag(QString name, QString colorName)
+    : name(name)
+    , colorName(colorName) { }
 
  public:
   static Tag parseData(QByteArray data) { return parseJSONItem<Tag>(data, Tag::fromJson); }
@@ -46,10 +45,9 @@ class Tag {
   // provides a Tag from a given QJsonObject
   static Tag fromJson(QJsonObject obj) {
     Tag t;
-    t.id = obj["id"].toVariant().toLongLong();
-    t.colorName = obj["colorName"].toString();
-    t.name = obj["name"].toString();
-
+    t.id = obj.value(QStringLiteral("id")).toVariant().toLongLong();
+    t.colorName = obj.value(QStringLiteral("colorName")).toString();
+    t.name = obj.value(QStringLiteral("name")).toString();
     return t;
   }
 

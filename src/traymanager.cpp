@@ -317,7 +317,7 @@ QIcon TrayManager::getTrayIcon()
 void TrayManager::onTrayMessageClicked() {
   switch(currentTrayMessage) {
     case UPGRADE:
-      QDesktopServices::openUrl(Constants::releasePageUrl());
+      QDesktopServices::openUrl(Constants::releasePageUrl);
       break;
     case OPEN_PATH:
       QDesktopServices::openUrl(openServicesPath);

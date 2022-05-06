@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   DatabaseConnection* conn;
   try {
-    conn = new DatabaseConnection(Constants::dbLocation(), Constants::defaultDbName());
+    conn = new DatabaseConnection(Constants::dbLocation, Constants::defaultDbName);
     conn->connect();
   }
   catch (FileError& err) {
