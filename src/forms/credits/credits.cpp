@@ -43,7 +43,7 @@ Credits::Credits(QWidget* parent)
 void Credits::updateRelease() {
   if (updateDigest.hasUpgrade()) {
     updateLabel->setVisible(true);
-    updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl()));
+    updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl));
   }
   else {
     updateLabel->setVisible(false);

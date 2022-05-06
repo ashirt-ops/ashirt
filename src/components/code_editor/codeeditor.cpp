@@ -71,7 +71,7 @@ CodeEditor::CodeEditor(QWidget *parent)
   // customize for text/code editing
   setLineWrapMode(LineWrapMode::NoWrap);
   setTabChangesFocus(false);
-  QFont font(Constants::codeFont());
+  QFont font(Constants::codeFont);
   font.setStyleHint(QFont::TypeWriter);
   setFont(font);
 
@@ -83,7 +83,7 @@ void CodeEditor::keyReleaseEvent(QKeyEvent *e) { QPlainTextEdit::keyReleaseEvent
 
 int CodeEditor::lineNumberAreaWidth() {
   int digits = 1;
-  int max = qMax(1, blockCount());
+  int max = std::max(1, blockCount());
   while (max >= 10) {
     max /= 10;
     ++digits;

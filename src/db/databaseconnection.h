@@ -44,7 +44,7 @@ class DatabaseConnection {
    * interaction is localized and infrequent.
    * @param dbPath The path to the database file
    * @param dbName The name of the database connection (can be anything, but should be unique.
-   * Specifically, it should NOT be the value from Constants::databaseName())
+   * Specifically, it should NOT be the value from Constants::databaseName)
    * @param actions A function that will execute after a connection is established. This is where
    * all db interactions should occur.
    */

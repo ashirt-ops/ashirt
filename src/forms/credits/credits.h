@@ -48,11 +48,11 @@ class Credits : public AShirtDialog {
                    "A short user guide can be found %5\n\n"
                    "Report issues %6\n\n")
                    .arg(Constants::releaseTag()
-                   , Constants::commitHash()
+                   , Constants::commitHash
                    , QStringLiteral("2020 - %1").arg(QDateTime::currentDateTime().date().year())
                    , hyperlinkMd.arg(QStringLiteral("MIT"), QStringLiteral("https://github.com/theparanoids/ashirt/blob/master/LICENSE"))
-                   , hyperlinkMd.arg(QStringLiteral("here"), Constants::userGuideUrl())
-                   , hyperlinkMd.arg(QStringLiteral("here"), Constants::reportAnIssueUrl()));
+                   , hyperlinkMd.arg(QStringLiteral("here"), Constants::userGuideUrl)
+                   , hyperlinkMd.arg(QStringLiteral("here"), Constants::reportAnIssueUrl));
 
   static QString attributionMarkdown() {
     const QStringList attribs = attribBLOB.split(attribBLOB_splitChar);

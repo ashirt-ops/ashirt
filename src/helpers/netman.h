@@ -256,7 +256,7 @@ class NetMan : public QObject {
   /// checkForNewRelease retrieves the recent releases from github for the provided owner/repo project.
   /// Callers should retrieve the result by listening for the releasesChecked signal
   void checkForNewRelease(QString owner, QString repo) {
-    if (owner == Constants::unknownOwnerValue() || repo == Constants::unknownRepoValue()) {
+    if (owner == Constants::unknownValue || repo == Constants::unknownValue) {
       std::cerr << "Skipping release check: no owner or repo set." << std::endl;
       return;
     }

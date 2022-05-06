@@ -163,7 +163,7 @@ void PortingDialog::doExport(porting::SystemManifest* manifest, const QString& e
   // Qt db access is limited to single-thread access. A new connection needs to be made, hence
   // the withconnection here that connects to the same database. Note: we shouldn't write to the db
   // in this thread, if possible.
-  QString threadedDbName = Constants::defaultDbName() + "_mt_forExport";
+  QString threadedDbName = QStringLiteral("%1_mt_forExport").arg(Constants::defaultDbName);
   DatabaseConnection::withConnection(
       db->getDatabasePath(), threadedDbName, [this, &manifest, exportPath, options](DatabaseConnection conn){
          try {
@@ -198,7 +198,7 @@ void PortingDialog::doImport(porting::SystemManifest* manifest) {
   options.importDb = portEvidenceCheckBox->isChecked() ? options.Merge : options.None;
   options.importConfig = portConfigCheckBox->isChecked();
 
-  QString threadedDbName = QStringLiteral("%1_mt_forImport").arg(Constants::defaultDbName());
+  QString threadedDbName = QStringLiteral("%1_mt_forImport").arg(Constants::defaultDbName);
   DatabaseConnection::withConnection(
       db->getDatabasePath(), threadedDbName, [this, &manifest, options](DatabaseConnection conn){
         try {
