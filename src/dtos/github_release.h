@@ -104,22 +104,21 @@ class GithubRelease {
  private:
   static GithubRelease fromJson(QJsonObject obj) {
     GithubRelease release;
-    release.url = obj["url"].toString();
-    release.htmlURL = obj["html_url"].toString();
-    release.assetsURL = obj["assets_url"].toString();
-    release.uploadURL = obj["upload_url"].toString();
-    release.tarballURL = obj["tarball_url"].toString();
-    release.zipballURL = obj["zipball_url"].toString();
-    release.tagName = obj["tag_name"].toString();
-    release.body = obj["body"].toString();
-    release.releaseName = obj["name"].toString();
-    release.publishedAt = obj["published_at"].toString();
-    release.draft = obj["draft"].toBool();
-    release.prerelease = obj["prerelease"].toBool();
+    release.url = obj.value(QStringLiteral("url")).toString();
+    release.htmlURL = obj.value(QStringLiteral("html_url")).toString();
+    release.assetsURL = obj.value(QStringLiteral("assets_url")).toString();
+    release.uploadURL = obj.value(QStringLiteral("upload_url")).toString();
+    release.tarballURL = obj.value(QStringLiteral("tarball_url")).toString();
+    release.zipballURL = obj.value(QStringLiteral("zipball_url")).toString();
+    release.tagName = obj.value(QStringLiteral("tag_name")).toString();
+    release.body = obj.value(QStringLiteral("body")).toString();
+    release.releaseName = obj.value(QStringLiteral("name")).toString();
+    release.publishedAt = obj.value(QStringLiteral("published_at")).toString();
+    release.draft = obj.value(QStringLiteral("draft")).toBool();
+    release.prerelease = obj.value(QStringLiteral("prerelease")).toBool();
 
     // missing a number of fields here that maybe aren't relevant
-
-    release.id = obj["id"].toVariant().toLongLong();
+    release.id = obj.value(QStringLiteral("id")).toVariant().toLongLong();
 
     return release;
   }

@@ -19,7 +19,7 @@ class CheckConnection {
 
     cc.parsedCorrectly = false;
     if (err.error == QJsonParseError::NoError) {
-      QJsonValue val = doc["ok"];
+      QJsonValue val = doc.object().value(QStringLiteral("ok"));
       if (!val.isUndefined()) {
         cc.parsedCorrectly = true;
         cc.ok = val.toBool();

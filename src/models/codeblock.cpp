@@ -10,11 +10,11 @@
 
 static Codeblock fromJson(QJsonObject obj) {
   Codeblock rtn;
-  rtn.content = obj["content"].toVariant().toString();
-  rtn.subtype = obj["contentSubtype"].toString();
-  QJsonObject meta = obj["metadata"].toObject();
+  rtn.content = obj.value(QStringLiteral("content")).toVariant().toString();
+  rtn.subtype = obj.value(QStringLiteral("contentSubtype")).toString();
+  QJsonObject meta = obj.value(QStringLiteral("metadata")).toObject();
   if (!meta.empty()) {
-    rtn.source = meta["source"].toString();
+    rtn.source = obj.value(QStringLiteral("source")).toString();
   }
 
   return rtn;

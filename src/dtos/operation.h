@@ -51,11 +51,10 @@ class Operation {
   // provides a Operation from a given QJsonObject
   static Operation fromJson(QJsonObject obj) {
     Operation o;
-    o.slug = obj["slug"].toString();
-    o.name = obj["name"].toString();
-    o.numUsers = obj["numUsers"].toInt();
-    o.status = static_cast<OperationStatus>(obj["status"].toInt());
-
+    o.slug = obj.value(QStringLiteral("slug")).toString();
+    o.name = obj.value(QStringLiteral("name")).toString();
+    o.numUsers = obj.value(QStringLiteral("numUsers")).toInt();
+    o.status = static_cast<OperationStatus>(obj.value(QStringLiteral("status")).toInt());
     return o;
   }
 };
