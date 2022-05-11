@@ -46,7 +46,7 @@ void Screenshot::basicScreenshot(QString cmdProto) {
   auto hasPath = QDir().mkpath(root);
 
   if (hasPath) {
-    auto tempPath = QStringLiteral("%1/%2").arg(QDir::tempPath(), mkName());
+    auto tempPath = QDir::toNativeSeparators(QStringLiteral("%1/%2").arg(QDir::tempPath(), mkName()));
 
     QString cmd = formatScreenshotCmd(std::move(cmdProto), tempPath);
     auto lastSlash = tempPath.lastIndexOf(QStringLiteral("/")) + 1;
