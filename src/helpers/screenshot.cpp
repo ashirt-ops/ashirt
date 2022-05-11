@@ -26,7 +26,11 @@ QString Screenshot::formatScreenshotCmd(QString cmdProto, const QString &filenam
   if (idx == -1) {
     return cmdProto;
   }
-  QString fixedFilename = QStringLiteral("'%1'").arg(filename);
+  #ifdef Q_OS_WIN
+    QString fixedFilename = QStringLiteral("\"%1\"").arg(filename);
+  #else
+    QString fixedFilename = QStringLiteral("'%1'").arg(filename);
+  #endif
   return cmdProto.replace(idx, key.length(), fixedFilename);
 }
 
