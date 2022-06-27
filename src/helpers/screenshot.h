@@ -4,23 +4,24 @@
 #pragma once
 
 #include <QObject>
-#include <string>
 
 class Screenshot : public QObject {
   Q_OBJECT
  public:
-  Screenshot(QObject* parent = 0);
+  Screenshot(QObject* parent = nullptr);
   void captureArea();
   void captureWindow();
 
   static QString mkName();
-  static QString extension();
-  static QString contentType();
+  static QString extension() { return QStringLiteral("png"); }
+  static QString contentType() { return QStringLiteral("image"); }
 
  signals:
   void onScreenshotCaptured(QString filepath);
 
  private:
-  QString formatScreenshotCmd(QString cmdProto, const QString& filename);
   void basicScreenshot(QString cmdProto);
+  inline static const QString m_fileTemplate = QStringLiteral("%1/%2");
+  inline static const QString m_doubleQuote = QStringLiteral("\"");
+  inline static const QString m_space = QStringLiteral(" ");
 };
