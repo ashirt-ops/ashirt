@@ -3,146 +3,55 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QIODevice>
 #include <QRandomGenerator>
 #include <QString>
-#include <QStringList>
-#include <array>
-
-#include "exceptions/fileerror.h"
-
-class FileCopyResult {
- public:
-  FileCopyResult(){}
-  bool success = false;
-  QFile* file = nullptr;
-};
 
 class FileHelpers {
  public:
-  /// randomText generates an arbitrary number of case-sensitive english letters
-  static QString randomText(unsigned int numChars) {
-    std::array<int, 2> asciiOffset = {'A', 'a'};
-    QStringList replacement;
-
-    for (unsigned int i = 0; i < numChars; i++) {
-      int letter = QRandomGenerator::global()->bounded(52);
-      auto base = asciiOffset.at(letter < 26 ? 0 : 1);
-      replacement << QString(char(base + (letter % 26)));
-    }
-    return replacement.join(QString());
-  }
-
   /**
-   * @brief randomFilename replaces a given substring with random english letters. By default, the
-   * expected substring is 6 consecutive "X" characters (i.e. XXXXXX). Users may specify their own
-   * replacement string. Note that only the _first_ matching substring is replaced. If the
-   * replaceToken is not found, then the templateString is returned, unmodified.
-   * Each replacement letter may either be upper or lower case.
-   * Similar to what QTemporaryFile does.
-   * @param templateStr The model string, with
-   * @param replaceToken The template string to find, and then replace, with random characters
-   * @return The resulting filename
+   * @brief randomString Generates a random String of N chars
+   * Each character can be a-z either be upper or lower case.
+   * @param numberOfChars Length of the string to return default is 6
+   * @return The resulting randomString
    */
-  static QString randomFilename(QString templateStr, QString replaceToken="XXXXXX") {
-    int templateIndex = templateStr.indexOf(replaceToken);
-
-    if (templateIndex == -1) {
-      return templateStr;
-    }
-
-    QString replacement = randomText(replaceToken.length());
-    return templateStr.replace(templateIndex, replaceToken.length(), replacement);
+  static QString randomString(int numberOfChars = 6) {
+    QString rString;
+    for(int i = 0; i < numberOfChars; i++)
+        rString.append(_chars.at(QRandomGenerator::global()->bounded(_chars.length())));
+    return rString;
   }
 
   /// writeFile write the provided content to the provided path.
-  /// @throws a FileError if there are issues opening or writing to the file.
-  static void writeFile(QString path, QString content) {
-    writeFile(path, content.toUtf8());
-  }
-
-  /// writeFile write the provided content to the provided path.
-  /// @throws a FileError if there are issues opening or writing to the file.
-  static void writeFile(QString path, QByteArray content) {
-    QFile file(path);
-    bool opened = file.open(QIODevice::WriteOnly);
-    if (opened) {
-      int bytesWritten = file.write(content);
-      if (bytesWritten == -1) {
-        throw FileError::mkError("Error writing file", path.toStdString(), file.error());
-      }
-      file.close();
-    }
-    if (file.error() != QFile::NoError) {
-      throw FileError::mkError("Unable to write to file", path.toStdString(), file.error());
-    }
+  /// returns false if failed.
+  static bool writeFile(QString fileName, QByteArray content) {
+    auto filePath = getDirname(fileName);
+    if(!QDir().exists(filePath))
+        QDir().mkpath(filePath);
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    if (file.write(content) == -1)
+        return false;
+    return true;
   }
 
   /// readFile reads all of the data from the given path.
-  /// @throws a FileError if any issues occur while writing the filethere are issues opening or
+  /// returns QByteArray() if unable to read.
+  /// writes any Errors while reading
   /// reading the file.
   static QByteArray readFile(QString path) {
     QFile file(path);
     QByteArray data;
-    bool opened = file.open(QIODevice::ReadOnly);
-    if (opened) {
-      data = file.readAll();
-    }
-    if (file.error() != QFile::NoError) {
-      throw FileError::mkError("Unable to read from file", path.toStdString(), file.error());
-    }
+    if (file.open(QIODevice::ReadOnly))
+        data = file.readAll();
+    if (file.error() != QFile::NoError)
+      QTextStream(stdout) << "Unable to read from file: " << path << '\n' << file.error();
     return data;
   }
 
-  /// mkdirs creates the necessary folders along a given path.
-  /// equivalent to the unix mkdir -p command
-  /// specify isFile = true if the path points to a file, rather than a directory
-  static bool mkdirs(const QString &path, bool isFile=false) {
-    auto adjustedPath = path;
-    if( isFile ) {
-      adjustedPath = getDirname(path);
-    }
-
-    return QDir().mkpath(adjustedPath);
-  }
-
-  /// moveFile simply moves a file from one path to the next. Optionally, this method can create
-  /// intermediary directories, as needed.
-  /// equivalent to the unix mv command
-  static bool moveFile(QString srcPath, QString dstPath, bool mkdirs=false) {
-    if (mkdirs) {
-      FileHelpers::mkdirs(dstPath, true);
-    }
-
-    QFile file(srcPath);
-    return file.rename(dstPath);
-  }
-
-  /// copyFile simply copies a file from one path to the next. Optionally, this method can create
-  /// intermediary directories, as needed.
-  /// equivalent to the unix cp command
-  static FileCopyResult copyFile(QString srcPath, QString dstPath, bool mkdirs=false) {
-    FileCopyResult r;
-    if (mkdirs) {
-      FileHelpers::mkdirs(dstPath, true);
-    }
-
-    QFile file(srcPath);
-    r.file = &file;
-    r.success = file.copy(dstPath);
-
-    return r;
-  }
-
-  /// getFilename is a small helper to convert a QFile into a filename (excluding the path)
-  static QString getFilename(QFile f) { return QFileInfo(f).fileName(); }
-  /// getFilename is a small helper to convert a filepath into a filename
-  static QString getFilename(QString filepath) { return QFileInfo(filepath).fileName(); }
-  /// getDirname is a small helper to convert a QFile pointing to a file into a path to that file's parent
-  static QString getDirname(QFile f) { return QFileInfo(f).dir().path(); }
   /// getDirname is a small helper to convert a filepath to a file into a path to the file's parent
-  static QString getDirname(QString filepath) {
-    // maybe faster: filepath.left(filepath.lastIndexOf("/"));
-    return QFileInfo(filepath).dir().path();
-  }
+  static QString getDirname(QString filepath) { return QFileInfo(filepath).dir().path(); }
+
+  private:
+    inline static const QString _chars = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 };

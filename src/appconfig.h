@@ -135,20 +135,10 @@ class AppConfig {
 
   /// writeConfig serializes the running config, and writes the assoicated file to the given path.
   /// The path defaults to Constants::configLocation()
-  void writeConfig(QString alternateSavePath = QString()) {
+  /// Returns True if successful
+  bool writeConfig(const QString &alternateSavePath = QString()) {
     QString writeLoc = alternateSavePath.isEmpty() ? Constants::configLocation : alternateSavePath;
-
     auto configContent = QJsonDocument(serializeConfig()).toJson();
-
-    try {
-      FileHelpers::mkdirs(writeLoc, true); // ensure the path exists
-      FileHelpers::writeFile(writeLoc, configContent);
-    }
-    catch(const FileError &e) {
-      // rewrap error for easier identification
-      throw FileError::mkError("Error writing config file", writeLoc.toStdString(),
-                               e.fileDeviceError);
-    }
-    return;
+    return FileHelpers::writeFile(writeLoc, configContent);
    }
 };

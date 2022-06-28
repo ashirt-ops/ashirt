@@ -18,13 +18,15 @@ void Screenshot::captureArea() { basicScreenshot(AppConfig::getInstance().screen
 
 void Screenshot::captureWindow() { basicScreenshot(AppConfig::getInstance().captureWindowExec); }
 
-QString Screenshot::mkName() {
-  return FileHelpers::randomFilename(QStringLiteral("ashirt_screenshot_XXXXXX.%1").arg(extension()));
+QString Screenshot::mkName()
+{
+  return QStringLiteral("ashirt_screenshot_%1.%2").arg(FileHelpers::randomString(), extension());
 }
 
 void Screenshot::basicScreenshot(QString cmdProto)
 {
-    if(!QDir().mkpath(SystemHelpers::pathToEvidence()))
+    auto baseDir = SystemHelpers::pathToEvidence();
+    if(!QDir().mkpath(baseDir))
         return;
     auto newName = mkName();
     auto tempFile = QDir::toNativeSeparators(m_fileTemplate.arg(QDir::tempPath(), newName));
@@ -44,10 +46,10 @@ void Screenshot::basicScreenshot(QString cmdProto)
     ssTool->setWorkingDirectory(QDir::rootPath());
     ssTool->start();
 
-    connect(ssTool, &QProcess::finished, this, [this, tempFile, newName] {
+    connect(ssTool, &QProcess::finished, this, [this, baseDir, tempFile, newName] {
         if(!QFile::exists(tempFile))
             return;
-        auto finalName = QDir::toNativeSeparators(SystemHelpers::pathToEvidence().append(newName));
+        auto finalName = QDir::toNativeSeparators(baseDir + newName);
         auto trueName = QFile::rename(tempFile, finalName) ? finalName : newName;
         Q_EMIT onScreenshotCaptured(trueName);
     });
