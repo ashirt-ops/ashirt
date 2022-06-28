@@ -24,7 +24,7 @@ class HotkeyManager : public QObject {
     // Reserving 1 (UGlobalHotkey default)
     ACTION_CAPTURE_AREA = 2,
     ACTION_CAPTURE_WINDOW = 3,
-    ACTION_CAPTURE_CODEBLOCK = 4,
+    ACTION_CAPTURE_CLIPBOARD = 4,
   };
 
  public:
@@ -46,8 +46,8 @@ class HotkeyManager : public QObject {
   void enableHotkeys();
 
  signals:
-  /// codeblockHotkeyPressed signals when the ACTION_CAPTURE_CODEBLOCK event has been triggered.
-  void codeblockHotkeyPressed();
+  /// clipboardHotkeyPressed signals when the ACTION_CAPTURE_CLIPBOARD event has been triggered.
+  void clipboardHotkeyPressed();
   /// captureWindowHotkeyPressed signals when the ACTION_CAPTURE_WINDOW event has been triggered.
   void captureWindowHotkeyPressed();
   /// captureAreaHotkeyPressed signals when the ACTION_CAPTURE_AREA event has been triggered.

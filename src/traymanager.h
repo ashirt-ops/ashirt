@@ -77,10 +77,10 @@ class TrayManager : public QDialog {
  public slots:
   void onScreenshotCaptured(const QString &filepath);
   void setActiveOperationLabel();
-  void onCodeblockCapture();
+  void onClipboardCapture();
   void captureAreaActionTriggered();
   void captureWindowActionTriggered();
-  void captureCodeblockActionTriggered();
+  void captureClipboardActionTriggered();
 
  protected:
   void closeEvent(QCloseEvent *event) override;

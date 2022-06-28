@@ -3,7 +3,9 @@
 
 #include "evidencemanager.h"
 
+#include <QApplication>
 #include <QCheckBox>
+#include <QClipboard>
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -17,7 +19,6 @@
 #include "dtos/tag.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
-#include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
 
@@ -304,7 +305,7 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
 
 void EvidenceManager::copyPathTriggered() {
   auto evidence = db->getEvidenceDetails(selectedRowEvidenceID());
-  ClipboardHelper::setText(evidence.path);
+  QApplication::clipboard()->setText(evidence.path);
 }
 
 void EvidenceManager::openTableContextMenu(QPoint pos) {

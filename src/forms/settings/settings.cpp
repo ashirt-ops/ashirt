@@ -39,7 +39,7 @@ Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
     , captureAreaShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
     , captureWindowCmdTextBox(new QLineEdit(this))
     , captureWindowShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
-    , recordCodeblockShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
+    , captureClipboardShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
     , testConnectionButton(new LoadingButton(tr("Test Connection"), this))
     , couldNotSaveSettingsMsg(new QErrorMessage(this))
 {
@@ -116,8 +116,8 @@ void Settings::buildUi() {
   gridLayout->addWidget(captureWindowShortcutTextBox, 5, 3, 1, 2);
 
   // row 6 (reserved for codeblocks)
-  gridLayout->addWidget(new QLabel(tr("Record Codeblock Shortcut"), this), 6, 0);
-  gridLayout->addWidget(recordCodeblockShortcutTextBox, 6, 1);
+  gridLayout->addWidget(new QLabel(tr("Capture Clipboard Shortcut"), this), 6, 0);
+  gridLayout->addWidget(captureClipboardShortcutTextBox, 6, 1);
   gridLayout->addWidget(clearHotkeysButton, 6, 2, 1, 3, Qt::AlignRight);
 
   // row 7
@@ -144,8 +144,8 @@ void Settings::wireUi() {
   connect(captureWindowShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, captureWindowShortcutTextBox);
   });
-  connect(recordCodeblockShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
-    checkForDuplicateShortcuts(keySequence, recordCodeblockShortcutTextBox);
+  connect(captureClipboardShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
+    checkForDuplicateShortcuts(keySequence, captureClipboardShortcutTextBox);
   });
 }
 
@@ -161,7 +161,7 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
   };
 
   bool alreadyUsed = usesKeySequence(captureWindowShortcutTextBox)
-                     || usesKeySequence(recordCodeblockShortcutTextBox)
+                     || usesKeySequence(captureClipboardShortcutTextBox)
                      || usesKeySequence(captureAreaShortcutTextBox);
 
   if(alreadyUsed) {
@@ -189,7 +189,7 @@ void Settings::showEvent(QShowEvent *evt) {
   captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.screenshotShortcutCombo));
   captureWindowCmdTextBox->setText(inst.captureWindowExec);
   captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureWindowShortcut));
-  recordCodeblockShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureCodeblockShortcut));
+  captureClipboardShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureClipboardShortcut));
 
   // re-enable form
   connStatusLabel->clear();
@@ -228,7 +228,7 @@ void Settings::onSaveClicked() {
   inst.screenshotShortcutCombo = captureAreaShortcutTextBox->keySequence().toString();
   inst.captureWindowExec = captureWindowCmdTextBox->text();
   inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
-  inst.captureCodeblockShortcut = recordCodeblockShortcutTextBox->keySequence().toString();
+  inst.captureClipboardShortcut = captureClipboardShortcutTextBox->keySequence().toString();
 
   inst.writeConfig();
   if(!inst.errorText.isEmpty())
@@ -251,7 +251,7 @@ void Settings::onBrowseClicked() {
 void Settings::onClearShortcutsClicked() {
   captureAreaShortcutTextBox->clear();
   captureWindowShortcutTextBox->clear();
-  recordCodeblockShortcutTextBox->clear();
+  captureClipboardShortcutTextBox->clear();
 }
 
 void Settings::onTestConnectionClicked() {

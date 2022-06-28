@@ -38,7 +38,7 @@ class AppConfig {
   QString screenshotShortcutCombo;
   QString captureWindowExec;
   QString captureWindowShortcut;
-  QString captureCodeblockShortcut;
+  QString captureClipboardShortcut;
 
   QString errorText;
 
@@ -107,7 +107,7 @@ class AppConfig {
         QPair<QString, QString*>(QStringLiteral("screenshotShortcut"), &screenshotShortcutCombo),
         QPair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
         QPair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
-        QPair<QString, QString*>(QStringLiteral("captureCodeblockShortcut"), &captureCodeblockShortcut),
+        QPair<QString, QString*>(QStringLiteral("captureClipboardShortcut"), &captureClipboardShortcut),
     };
 
     for (auto fieldPair : fields) {
@@ -129,7 +129,7 @@ class AppConfig {
     root["screenshotShortcut"] = screenshotShortcutCombo;
     root["captureWindowExec"] = captureWindowExec;
     root["captureWindowShortcut"] = captureWindowShortcut;
-    root["captureCodeblockShortcut"] = captureCodeblockShortcut;
+    root["captureClipboardShortcut"] = captureClipboardShortcut;
     return root;
   }
 
