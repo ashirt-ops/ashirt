@@ -81,6 +81,7 @@ void CreateOperation::onRequestComplete() {
     dto::Operation op = dto::Operation::parseData(data);
     AppSettings::getInstance().setOperationDetails(op.slug, op.name);
     operationNameTextBox->clear();
+    NetMan::getInstance().refreshOperationsList();
     close();
   }
   else {
