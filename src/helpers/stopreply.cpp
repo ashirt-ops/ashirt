@@ -3,8 +3,6 @@
 
 #include "stopreply.h"
 
-#include <QNetworkReply>
-
 // stopReply aborts a request, then cleans up the reply (via deleteLater)
 // also sets the reply pointer to nullptr. This is for use cases where the
 // reply is to be ignored.

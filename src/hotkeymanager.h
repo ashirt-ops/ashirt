@@ -5,7 +5,6 @@
 
 #include <QObject>
 
-#include "helpers/screenshot.h"
 #include "helpers/hotkeys/uglobalhotkeys.h"
 
 /**

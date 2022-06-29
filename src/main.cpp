@@ -38,25 +38,25 @@ int main(int argc, char* argv[]) {
     conn->connect();
   }
   catch (FileError& err) {
-    std::cout << err.what() << std::endl;
+    QTextStream(stderr) << err.what() << Qt::endl;
     return -1;
   }
   catch (DBDriverUnavailableError& err) {
-    std::cout << err.what() << std::endl;
+    QTextStream(stderr) << err.what() << Qt::endl;
     return -1;
   }
   catch (QSqlError& e) {
-    std::cout << e.text().toStdString() << std::endl;
+    QTextStream(stderr) << e.text() << Qt::endl;
     return -1;
   }
   catch (std::exception& e) {
-    std::cout << "Unexpected error: " << e.what() << std::endl;
+    QTextStream(stderr) << "Unexpected error: " << e.what() << Qt::endl;
     return -1;
   }
 
-  auto configError = AppConfig::getInstance().errorText.toStdString();
-  if (!configError.empty()) {  // quick check & preload config data
-    std::cout << "Unable to load config file: " << configError << std::endl;
+  auto configError = AppConfig::getInstance().errorText;
+  if (!configError.isEmpty()) {  // quick check & preload config data
+    QTextStream(stderr) << "Unable to load config file: " << configError << Qt::endl;
     return -1;
   }
 
@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
     window->deleteLater();
   }
   catch (std::exception const& ex) {
-    std::cout << "Exception while running: " << ex.what() << std::endl;
+    QTextStream(stderr) << "Exception while running: " << ex.what() << Qt::endl;
   }
   catch (...) {
-    std::cout << "Unhandled exception while running" << std::endl;
+    QTextStream(stderr) << "Unhandled exception while running" << Qt::endl;
   }
   conn->close();
   delete conn;
@@ -103,14 +103,14 @@ int main(int argc, char *argv[]) { handleCLI(std::vector<string>(argv, argv + ar
 
 void handleCLI(std::vector<std::string> args) {
   size_t trueCount = args.size() - 1;
-  std::cout << "You provided " << trueCount << " arguments.\n";
+  QTextStream(stdout) << "You provided " << trueCount << " arguments.\n";
   if (trueCount == 0) {
-    std::cout << "Next time try suppling some arguments." << std::endl;
+    QTextStream(stdout) << "Next time try suppling some arguments." << Qt::endl;
     return;
   }
 
-  std::cout << "All arguments:" << std::endl;
+  QTextStream(stdout) << "All arguments:" << Qt::endl;
   for (size_t i = 1; i < args.size(); i++) {
-    std::cout << "\t" << args.at(i) << std::endl;
+    QTextStream(stdout) << "\t" << QString::fromStdString(args.at(i)) << Qt::endl;
   }
 }

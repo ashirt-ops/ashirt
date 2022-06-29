@@ -122,8 +122,8 @@ void GetInfo::deleteButtonClicked() {
       db->deleteEvidence(evidenceID);
     }
     catch (QSqlError& e) {
-      std::cout << "Could not delete evidence from internal database. Error: "
-                << e.text().toStdString() << std::endl;
+      QTextStream(stderr) << "Could not delete evidence from internal database. Error: "
+                << e.text() << Qt::endl;
     }
 
     Q_EMIT setActionButtonsEnabled(true);
@@ -141,8 +141,8 @@ void GetInfo::onUploadComplete() {
       db->updateEvidenceError(errMessage, evidenceID);
     }
     catch (QSqlError& e) {
-      std::cout << "Upload failed. Could not update internal database. Error: "
-                << e.text().toStdString() << std::endl;
+      QTextStream(stderr) << "Upload failed. Could not update internal database. Error: "
+                << e.text() << Qt::endl;
     }
     QMessageBox::warning(this, tr("Cannot submit evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
@@ -157,8 +157,8 @@ void GetInfo::onUploadComplete() {
       close();
     }
     catch (QSqlError& e) {
-      std::cout << "Upload successful. Could not update internal database. Error: "
-                << e.text().toStdString() << std::endl;
+      QTextStream(stderr) << "Upload successful. Could not update internal database. Error: "
+                << e.text() << Qt::endl;
     }
   }
   // we don't actually need anything from the uploadAssets reply, so just clean it up.

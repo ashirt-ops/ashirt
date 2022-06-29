@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QDateTime>
-#include <QString>
 
 #include "tag.h"
 

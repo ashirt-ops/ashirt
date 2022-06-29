@@ -4,8 +4,7 @@
 #pragma once
 
 #include <QDataStream>
-#include <QString>
-#include <QVariant>
+#include <QMetaType>
 
 namespace model {
 class Tag {
@@ -43,5 +42,5 @@ class Tag {
 };
 }  // namespace model
 
-Q_DECLARE_METATYPE(model::Tag);
-Q_DECLARE_METATYPE(QList<model::Tag>);
+Q_DECLARE_METATYPE(model::Tag)
+Q_DECLARE_METATYPE(QList<model::Tag>)

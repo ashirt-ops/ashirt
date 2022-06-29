@@ -5,10 +5,6 @@
 
 #include <QDir>
 #include <QVariant>
-#include <iostream>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 #include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
@@ -42,7 +38,7 @@ void DatabaseConnection::withConnection(const QString& dbPath, const QString &db
     actions(conn);
   }
   catch(const std::runtime_error& e) {
-    std::cerr << "Ran into an error dealing with database actions: " << e.what() << std::endl;
+    QTextStream(stderr) << "Ran into an error dealing with database actions: " << e.what() << Qt::endl;
   }
 
   conn.close();
@@ -131,7 +127,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.tags = getTagsForEvidenceID(evidenceID);
   }
   else {
-    std::cerr << "Could not find evidence with id: " << evidenceID << std::endl;
+    QTextStream(stderr) << "Could not find evidence with id: " << evidenceID << Qt::endl;
   }
   return rtn;
 }
@@ -345,7 +341,7 @@ QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
 // Throws exceptions/FileError if a migration file cannot be found.
 void DatabaseConnection::migrateDB() {
   auto db = getDB();
-  std::cout << "Checking database state" << std::endl;
+  QTextStream(stdout) << "Checking database state" << Qt::endl;
   auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
 
   for (const QString &newMigration : migrationsToApply) {
@@ -358,14 +354,14 @@ void DatabaseConnection::migrateDB() {
     auto content = QString(migrationFile.readAll());
     migrationFile.close();
 
-    std::cout << "Applying Migration: " << newMigration.toStdString() << std::endl;
+    QTextStream(stdout) << "Applying Migration: " << newMigration << Qt::endl;
     auto upScript = extractMigrateUpContent(content);
     executeQuery(db, upScript);
     executeQuery(db,
                  "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
                  {newMigration});
   }
-  std::cout << "All migrations applied" << std::endl;
+  QTextStream(stdout) << "All migrations applied" << Qt::endl;
 }
 
 // getUnappliedMigrations retrieves a list of all of the migrations that have not been applied

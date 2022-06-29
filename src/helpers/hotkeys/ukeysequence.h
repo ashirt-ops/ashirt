@@ -1,9 +1,6 @@
 #pragma once
 
 #include <QObject>
-#include <QString>
-#include <QList>
-#include <QStringList>
 #include <QKeyEvent>
 
 class UKeySequence : public QObject

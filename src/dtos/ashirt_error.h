@@ -1,7 +1,4 @@
-#ifndef DTO_ASHIRT_ERROR_H
-#define DTO_ASHIRT_ERROR_H
-
-#include <QString>
+#pragma once
 
 #include "helpers/jsonhelpers.h"
 
@@ -9,7 +6,7 @@ namespace dto {
 class AShirtError {
 
  public:
-  QString error = "";
+  QString error;
 
   static AShirtError parseData(QByteArray data) {
     return parseJSONItem<AShirtError>(data, AShirtError::fromJson);
@@ -24,4 +21,3 @@ class AShirtError {
   }
 };
 }
-#endif // DTO_ASHIRT_ERROR_H

@@ -2,7 +2,6 @@
 
 #include <QRegularExpression>
 #include <QStandardPaths>
-#include <QString>
 
 class Constants {
  public:

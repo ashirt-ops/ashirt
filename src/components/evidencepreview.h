@@ -34,7 +34,7 @@ class EvidencePreview : public QWidget {
   virtual void setReadonly(bool readonly);
 
   /// isReadOnly returns whether the current preview has been marked as readonly.
-  inline bool isReadOnly() { return readonly; };
+  inline bool isReadOnly() { return readonly; }
 
  private:
   bool readonly = false;

@@ -1,6 +1,8 @@
 #include "errorview.h"
+
+#include <QLabel>
 #include <QVBoxLayout>
- #include <utility>
+
 ErrorView::ErrorView(QString errorText, QWidget* parent)
     : EvidencePreview(parent)
     , errorLabel(new QLabel(errorText, this))

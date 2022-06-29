@@ -5,8 +5,6 @@
 
 #include <QPushButton>
 
-
-
 class QProgressIndicator;
 class LoadingButton : public QPushButton {
   Q_OBJECT

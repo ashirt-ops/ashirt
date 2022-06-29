@@ -1,9 +1,7 @@
 #pragma once
 
-#include <QFile>
-#include <QJsonObject>
 #include <QObject>
-#include <QString>
+#include <QJsonObject>
 
 #include "helpers/file_helpers.h"
 #include "helpers/jsonhelpers.h"
@@ -13,13 +11,12 @@
 #include "db/databaseconnection.h"
 #include "evidence_manifest.h"
 #include "models/codeblock.h"
-
 #include "system_porting_options.h"
 
 namespace porting {
 
 class SystemManifest : public QObject {
-  Q_OBJECT;
+  Q_OBJECT
 
  public:
   SystemManifest() {}

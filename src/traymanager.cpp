@@ -221,7 +221,7 @@ void TrayManager::onClipboardCapture()
             Codeblock::saveCodeblock(evidence);
         }
         catch(FileError& e) {
-            QTextStream(stdout) << "Error Gathering Evidence from clipboard" << Qt::endl;
+            QTextStream(stderr) << "Error Gathering Evidence from clipboard" << Qt::endl;
             return;
         }
         path = evidence.filePath();
@@ -240,7 +240,7 @@ void TrayManager::onClipboardCapture()
         evidenceID = createNewEvidence(path, type);
     }
     catch (QSqlError& e) {
-      QTextStream(stdout) << "could not write to the database: " << e.text() << Qt::endl;
+      QTextStream(stderr) << "could not write to the database: " << e.text() << Qt::endl;
       return;
     }
     spawnGetInfoWindow(evidenceID);
@@ -252,7 +252,7 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
     spawnGetInfoWindow(evidenceID);
   }
   catch (QSqlError& e) {
-    std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
+    QTextStream(stderr) << "could not write to the database: " << e.text() << Qt::endl;
   }
 }
 

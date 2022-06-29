@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QWidget>
-
 #include "components/evidencepreview.h"
 
 class AspectRatioPixmapLabel;

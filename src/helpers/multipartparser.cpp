@@ -8,13 +8,10 @@
 
 #include "multipartparser.h"
 
-#include <stdlib.h>
-#include <time.h>
-
 #include <algorithm>
 #include <fstream>
 #include <future>
-#include <iostream>
+#include <time.h>
 
 const std::string MultipartParser::boundary_prefix_("----ASHIRTTrayApp");
 const std::string MultipartParser::rand_chars_(

@@ -15,7 +15,6 @@
 #include "components/tagging/tageditor.h"
 #include "models/codeblock.h"
 #include "models/evidence.h"
-#include <vector>
 
 EvidenceEditor::EvidenceEditor(qint64 evidenceID, DatabaseConnection *db, QWidget *parent)
     : EvidenceEditor(db, parent)

@@ -5,7 +5,6 @@
 
 #include <QActionGroup>
 #include <QSystemTrayIcon>
-#include <QTimer>
 
 #include "db/databaseconnection.h"
 #include "dtos/operation.h"
@@ -33,6 +32,7 @@ class QMenu;
 class QPushButton;
 class QSpinBox;
 class QTextEdit;
+class QTimer;
 QT_END_NAMESPACE
 
 /**

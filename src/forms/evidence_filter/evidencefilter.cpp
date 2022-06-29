@@ -3,8 +3,6 @@
 
 #include "evidencefilter.h"
 
-EvidenceFilters::EvidenceFilters() = default;
-
 QString EvidenceFilters::standardizeFilterKey(QString key) {
   if (FILTER_KEYS_ERROR.contains(key, Qt::CaseInsensitive)) {
     return FILTER_KEY_ERROR;
