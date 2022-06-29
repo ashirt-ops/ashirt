@@ -3,6 +3,7 @@
 
 #include "getinfo.h"
 
+#include <QGridLayout>
 #include <QMessageBox>
 
 #include "appsettings.h"
@@ -11,7 +12,6 @@
 #include "db/databaseconnection.h"
 #include "helpers/netman.h"
 #include "helpers/stopreply.h"
-#include "helpers/ui_helpers.h"
 
 GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
     : AShirtDialog(parent, AShirtDialog::commonWindowFlags)

@@ -1,6 +1,8 @@
 #include "codeblockview.h"
 
 #include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
 #include <QLineEdit>
 
 #include "codeeditor.h"
@@ -49,7 +51,7 @@ void CodeBlockView::loadFromFile(QString filepath) {
 
     codeEditor->setPlainText(loadedCodeblock.content);
     sourceTextBox->setText(loadedCodeblock.source);
-    UiHelpers::setComboBoxValue(languageComboBox, loadedCodeblock.subtype);
+    UIHelpers::setComboBoxValue(languageComboBox, loadedCodeblock.subtype);
   }
   catch (std::exception& e) {
     QString msg = tr("Unable to load codeblock. Error: %1").arg(e.what());
