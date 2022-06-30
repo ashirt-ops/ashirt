@@ -17,7 +17,6 @@ add_library (HELPERS STATIC
     stopreply.cpp stopreply.h
     system_helpers.h
     ui_helpers.h
-    clipboard/clipboardhelper.cpp clipboard/clipboardhelper.h
     hotkeys/hotkeymap.h
     hotkeys/uglobalhotkeys.cpp hotkeys/uglobalhotkeys.h
     hotkeys/ukeysequence.cpp hotkeys/ukeysequence.h

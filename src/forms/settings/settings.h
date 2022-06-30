@@ -77,7 +77,7 @@ class Settings : public AShirtDialog {
   QKeySequenceEdit* captureAreaShortcutTextBox = nullptr;
   QLineEdit* captureWindowCmdTextBox = nullptr;
   QKeySequenceEdit* captureWindowShortcutTextBox = nullptr;
-  QKeySequenceEdit* recordCodeblockShortcutTextBox = nullptr;
+  QKeySequenceEdit* captureClipboardShortcutTextBox = nullptr;
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QPushButton* clearHotkeysButton = nullptr;

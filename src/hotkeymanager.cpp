@@ -34,8 +34,8 @@ void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
   else if (hotkeyIndex == ACTION_CAPTURE_WINDOW) {
     Q_EMIT captureWindowHotkeyPressed();
   }
-  else if (hotkeyIndex == ACTION_CAPTURE_CODEBLOCK) {
-    Q_EMIT codeblockHotkeyPressed();
+  else if (hotkeyIndex == ACTION_CAPTURE_CLIPBOARD) {
+    Q_EMIT clipboardHotkeyPressed();
   }
 }
 
@@ -56,5 +56,5 @@ void HotkeyManager::updateHotkeys() {
   };
   regKey(AppConfig::getInstance().screenshotShortcutCombo, ACTION_CAPTURE_AREA);
   regKey(AppConfig::getInstance().captureWindowShortcut, ACTION_CAPTURE_WINDOW);
-  regKey(AppConfig::getInstance().captureCodeblockShortcut, ACTION_CAPTURE_CODEBLOCK);
+  regKey(AppConfig::getInstance().captureClipboardShortcut, ACTION_CAPTURE_CLIPBOARD);
 }

@@ -7,10 +7,12 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QClipboard>
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QTimer>
 #include <QDesktopServices>
 #include <iostream>
@@ -18,10 +20,10 @@
 #include "appsettings.h"
 #include "db/databaseconnection.h"
 #include "forms/getinfo/getinfo.h"
-#include "helpers/clipboard/clipboardhelper.h"
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
 #include "helpers/constants.h"
+#include "helpers/system_helpers.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
 #include "porting/system_manifest.h"
@@ -69,7 +71,7 @@ void TrayManager::buildUi() {
 
   // Build Tray menu
   auto trayIconMenu = new QMenu(this);
-  trayIconMenu->addAction(tr("Add Codeblock from Clipboard"), this, &TrayManager::captureCodeblockActionTriggered);
+  trayIconMenu->addAction(tr("Capture from Clipboard"), this, &TrayManager::captureClipboardActionTriggered);
   trayIconMenu->addAction(tr("Capture Screen Area"), this, &TrayManager::captureAreaActionTriggered);
   trayIconMenu->addAction(tr("Capture Window"), this, &TrayManager::captureWindowActionTriggered);
   trayIconMenu->addAction(tr("View Accumulated Evidence"), evidenceManagerWindow, &EvidenceManager::show);
@@ -110,8 +112,8 @@ void TrayManager::wireUi() {
           &TrayManager::onScreenshotCaptured);
 
   // connect to hotkey signals
-  connect(hotkeyManager, &HotkeyManager::codeblockHotkeyPressed, this,
-          &TrayManager::captureCodeblockActionTriggered);
+  connect(hotkeyManager, &HotkeyManager::clipboardHotkeyPressed, this,
+          &TrayManager::captureClipboardActionTriggered);
   connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
           &TrayManager::captureAreaActionTriggered);
   connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
@@ -198,27 +200,50 @@ void TrayManager::captureAreaActionTriggered() {
   screenshotTool->captureArea();
 }
 
-void TrayManager::captureCodeblockActionTriggered() {
+void TrayManager::captureClipboardActionTriggered() {
   if(AppSettings::getInstance().operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
-  onCodeblockCapture();
+  onClipboardCapture();
 }
+void TrayManager::onClipboardCapture()
+{
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    QString path;
+    QString type;
+    if (mimeData->hasHtml() || mimeData->hasText()) {
+        QString clipboardContent = mimeData->text();
+        if (clipboardContent.isEmpty())
+            return;
+        Codeblock evidence(clipboardContent);
+        try {
+            Codeblock::saveCodeblock(evidence);
+        }
+        catch(FileError& e) {
+            QTextStream(stdout) << "Error Gathering Evidence from clipboard" << Qt::endl;
+            return;
+        }
+        path = evidence.filePath();
+        type = Codeblock::contentType();
+    } else if (mimeData->hasImage()) {
+        path  = QDir::toNativeSeparators(SystemHelpers::pathToEvidence().append(Screenshot::mkName()));
+        QImage img = qvariant_cast<QImage>(mimeData->imageData());
+        img.save(path);
+        type = Screenshot::contentType();
+    } else {
+        return;
+    }
 
-void TrayManager::onCodeblockCapture() {
-  QString clipboardContent = ClipboardHelper::readPlaintext();
-  if (!clipboardContent.isEmpty()) {
-    Codeblock evidence(clipboardContent);
-    Codeblock::saveCodeblock(evidence);
+    int evidenceID = 0;
     try {
-      auto evidenceID = createNewEvidence(evidence.filePath(), QStringLiteral("codeblock"));
-      spawnGetInfoWindow(evidenceID);
+        evidenceID = createNewEvidence(path, type);
     }
     catch (QSqlError& e) {
-      std::cout << "could not write to the database: " << e.text().toStdString() << std::endl;
+      QTextStream(stdout) << "could not write to the database: " << e.text() << Qt::endl;
+      return;
     }
-  }
+    spawnGetInfoWindow(evidenceID);
 }
 
 void TrayManager::onScreenshotCaptured(const QString& path) {
