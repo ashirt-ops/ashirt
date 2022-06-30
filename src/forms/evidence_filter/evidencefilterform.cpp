@@ -7,6 +7,7 @@
 #include <QCheckBox>
 #include <QDateEdit>
 #include <QDialogButtonBox>
+#include <QGridLayout>
 #include <QLabel>
 
 #include "appsettings.h"
@@ -161,8 +162,8 @@ EvidenceFilters EvidenceFilterForm::encodeForm() {
 }
 
 void EvidenceFilterForm::setForm(const EvidenceFilters &model) {
-  UiHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
-  UiHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
+  UIHelpers::setComboBoxValue(operationComboBox, model.operationSlug);
+  UIHelpers::setComboBoxValue(contentTypeComboBox, model.contentType);
   erroredComboBox->setCurrentText(EvidenceFilters::triToString(model.hasError));
   submittedComboBox->setCurrentText(EvidenceFilters::triToString(model.submitted));
 
@@ -191,6 +192,6 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   for (const auto &op : operations) {
     operationComboBox->addItem(op.name, op.slug);
   }
-  UiHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
+  UIHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
   operationComboBox->setEnabled(true);
 }

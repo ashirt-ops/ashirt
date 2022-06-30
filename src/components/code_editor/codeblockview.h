@@ -50,7 +50,6 @@ class CodeBlockView : public EvidencePreview {
   CodeEditor* codeEditor = nullptr;
   QLineEdit* sourceTextBox = nullptr;
   QComboBox* languageComboBox = nullptr;
-
   // matches supported languages on the front end
   inline static const QList<QPair<QString, QString>> SUPPORTED_LANGUAGES = {
       QPair<QString, QString>(QStringLiteral("Plain Text"), QString()),
