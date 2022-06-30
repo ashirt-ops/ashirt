@@ -13,9 +13,8 @@ class SystemHelpers {
   /// Returns (and creates, if necessary) the path to where evidence should be stored (includes
   /// ending path separator)
   static QString pathToEvidence() {
-    AppConfig &conf = AppConfig::getInstance();
     auto op = AppSettings::getInstance().operationSlug();
-    auto root = QStringLiteral("%1/").arg(conf.evidenceRepo);
+    auto root = QStringLiteral("%1/").arg(AppConfig::getInstance().evidenceRepo);
     if (!op.isEmpty()) {
       root.append(QStringLiteral("%1/").arg(op));
     }

@@ -42,7 +42,7 @@ class SystemManifest : public QObject {
   /// onComplete fires when the entire import/export is finished
   void onComplete();
   /// onCopyFileError fires when a file cannot be copied during import or export
-  void onCopyFileError(QString srcPath, QString dstPath, const FileError& e);
+  void onCopyFileError(QString srcPath, QString dstPath, const QString& errStr);
   /// onStatusUpdate fires when the system moves between import/export phases
   void onStatusUpdate(QString text);
 
@@ -135,5 +135,6 @@ class SystemManifest : public QObject {
  private:
   /// pathToManifest is the (absolute) path to the system manifest file from the originating export
   QString pathToManifest;
+  inline static const QString m_fileTemplate = QStringLiteral("%1/%2");
 };
 }

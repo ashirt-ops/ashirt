@@ -51,7 +51,6 @@ class Codeblock {
    * @return the encoded Codeblock
    */
   QByteArray encode();
-
  public:
   /**
    * @brief saveCodeblock encodes the provided codeblock, then writes that codeblock to it's

@@ -278,9 +278,9 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
     auto today = QDateTime::currentDateTime();
     auto errLogPath = AppConfig::getInstance().evidenceRepo + "/" +QString("%1.log").arg(today.toMSecsSinceEpoch());
     try {
-      FileHelpers::writeFile(errLogPath,
-                             tr("Paths to files that could not be deleted: \n\n %1")
-                               .arg(undeletedFiles.join(QStringLiteral("\n"))));
+      QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
+              .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
+      FileHelpers::writeFile(errLogPath, dataToWrite);
     }
     catch(FileError &e) {
       logWritten = false;

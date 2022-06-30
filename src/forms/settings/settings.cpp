@@ -230,8 +230,7 @@ void Settings::onSaveClicked() {
   inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
   inst.captureClipboardShortcut = captureClipboardShortcutTextBox->keySequence().toString();
 
-  inst.writeConfig();
-  if(!inst.errorText.isEmpty())
+  if(!inst.writeConfig())
     couldNotSaveSettingsMsg->showMessage(tr("Unable to save settings. Error: %1").arg(inst.errorText));
 
   hotkeyManager->updateHotkeys();
