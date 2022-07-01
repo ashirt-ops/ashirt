@@ -32,8 +32,8 @@ class CodeBlockView : public EvidencePreview {
 
   /// saveEvidence attempts to write the codeblock back to disk, where it was loaded from.
   /// Inherited from EvidencePreview
-  /// Note: Will silently fail if an error occurs while saving. Implemented as best effort approach.
-  virtual void saveEvidence() override;
+  /// Returns False if failed.
+  virtual bool saveEvidence() override;
 
   /// clearPreview removes the content, source, and sets the language to "Plain Text". Inherited
   /// from EvidencePreview

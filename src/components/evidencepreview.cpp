@@ -2,8 +2,8 @@
 
 EvidencePreview::EvidencePreview(QWidget *parent) : QWidget(parent) {}
 
-void EvidencePreview::saveEvidence() {
-  // no-op expected for view-only evidence
+bool EvidencePreview::saveEvidence() {
+  return true;
 }
 
 void EvidencePreview::setReadonly(bool readonly) { this->readonly = readonly; }

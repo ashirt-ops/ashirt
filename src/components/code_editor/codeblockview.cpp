@@ -60,18 +60,13 @@ void CodeBlockView::loadFromFile(QString filepath) {
   }
 }
 
-void CodeBlockView::saveEvidence() {
+bool CodeBlockView::saveEvidence() {
   loadedCodeblock.source = sourceTextBox->text();
   loadedCodeblock.subtype = languageComboBox->currentData().toString();
   loadedCodeblock.content = codeEditor->toPlainText();
-  if (!loadedCodeblock.filePath().isEmpty()) {
-    try {
-      Codeblock::saveCodeblock(loadedCodeblock);
-    }
-    catch (FileError& e) {
-      // best effort here -- if we can't save, oh well, they can edit it on the server
-    }
-  }
+  if (!loadedCodeblock.filePath().isEmpty())
+      return Codeblock::saveCodeblock(loadedCodeblock);
+  return false;
 }
 
 void CodeBlockView::clearPreview() {
