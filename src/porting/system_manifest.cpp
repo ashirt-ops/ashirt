@@ -11,28 +11,13 @@ void SystemManifest::applyManifest(SystemManifestImportOptions options, Database
 
     if (shouldMigrateConfig) {
         Q_EMIT onStatusUpdate(tr("Importing Settings"));
-        migrateConfig();
+        AppConfig::importConfig(configPath);
     }
 
     if (shouldMigrateDb) {
         migrateDb(systemDb);
     }
     Q_EMIT onComplete();
-}
-
-void SystemManifest::migrateConfig()
-{
-    parseJSONItem<QString>(FileHelpers::readFile(pathToFile(configPath)), [](QJsonObject src) {
-        for(const QString& key : src.keys()) {
-            // only migrate connections settings, other are not portable
-            src.remove(QStringLiteral("evidenceRepo")); // we never want to replace what the user has set there.
-            if (key != QStringLiteral("accessKey") && key != QStringLiteral("secretKey") && key != QStringLiteral("apiURL"))
-                src.remove(key);
-        }
-        AppConfig::getInstance().applyConfig(src);
-        return QString();
-    });
-    AppConfig::getInstance().writeConfig(); // save updated config
 }
 
 void SystemManifest::migrateDb(DatabaseConnection* systemDb)
@@ -50,7 +35,7 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb)
             if (importRecord.id == 0)
                 continue; // in the odd situation that evidence doesn't match up, just skip it
             QString newEvidencePath = QStringLiteral("%1/%2/%3")
-                    .arg(AppConfig::getInstance().evidenceRepo
+                    .arg(AppConfig::value(CONFIG::EVIDENCEREPO)
                          , importRecord.operationSlug
                          , contentSensitiveFilename(importRecord.contentType));
 
@@ -121,19 +106,7 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
     if (options.exportConfig) {
         Q_EMIT onStatusUpdate(tr("Exporting settings"));
         configPath = QStringLiteral("config.json");
-        AppConfig::getInstance().writeConfig(m_fileTemplate.arg(basePath, configPath));
-    }
-
-    if (options.exportDb) {
-        Q_EMIT onStatusUpdate(tr("Exporting Evidence"));
-        dbPath = QStringLiteral("db.sqlite");
-        evidenceManifestPath = QStringLiteral("evidence.json");
-        auto allEvidence = DatabaseConnection::createEvidenceExportView(m_fileTemplate.arg(basePath, dbPath), EvidenceFilters(), db);
-        Q_EMIT onReady(allEvidence.size());
-        porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
-        // write evidence manifest
-        FileHelpers::writeFile(m_fileTemplate.arg(basePath, evidenceManifestPath),
-                               QJsonDocument(EvidenceManifest::serialize(evidenceManifest)).toJson());
+        AppConfig::exportConfig(m_fileTemplate.arg(basePath, configPath));
     }
 
     m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);

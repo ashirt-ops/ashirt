@@ -6,7 +6,7 @@
 #include <QNetworkReply>
 #include <QRegularExpression>
 
-#include "appsettings.h"
+#include "appconfig.h"
 #include "dtos/ashirt_error.h"
 #include "components/loading_button/loadingbutton.h"
 #include "helpers/netman.h"
@@ -79,7 +79,7 @@ void CreateOperation::onRequestComplete() {
   auto data = NetMan::extractResponse(createOpReply, isValid);
   if (isValid) {
     dto::Operation op = dto::Operation::parseData(data);
-    AppSettings::getInstance().setOperationDetails(op.slug, op.name);
+    AppConfig::setOperationDetails(op.slug, op.name);
     operationNameTextBox->clear();
     NetMan::refreshOperationsList();
     close();

@@ -6,7 +6,6 @@
 #include <QGridLayout>
 #include <QMessageBox>
 
-#include "appsettings.h"
 #include "components/evidence_editor/evidenceeditor.h"
 #include "components/loading_button/loadingbutton.h"
 #include "db/databaseconnection.h"

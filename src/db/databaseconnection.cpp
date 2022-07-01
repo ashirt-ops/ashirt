@@ -175,9 +175,12 @@ QList<model::Tag> DatabaseConnection::getFullTagsForEvidenceIDs(
   return tags;
 }
 
-void DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags,
-                                         qint64 evidenceID) {
+void DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID)
+{
   // todo: this this actually work?
+  if(newTags.isEmpty())
+      return;
+
   auto db = getDB();
   QVariantList newTagIds;
   for (const auto &tag : newTags) {

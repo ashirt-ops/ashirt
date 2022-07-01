@@ -10,7 +10,7 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include "appsettings.h"
+#include "appconfig.h"
 #include "helpers/netman.h"
 #include "helpers/ui_helpers.h"
 
@@ -191,6 +191,6 @@ void EvidenceFilterForm::onOperationListUpdated(bool success,
   for (const auto &op : operations) {
     operationComboBox->addItem(op.name, op.slug);
   }
-  UIHelpers::setComboBoxValue(operationComboBox, AppSettings::getInstance().operationSlug());
+  UIHelpers::setComboBoxValue(operationComboBox, AppConfig::operationSlug());
   operationComboBox->setEnabled(true);
 }

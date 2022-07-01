@@ -4,7 +4,6 @@
 #include <QDir>
 
 #include "appconfig.h"
-#include "appsettings.h"
 
 class SystemHelpers {
 
@@ -13,8 +12,8 @@ class SystemHelpers {
   /// Returns (and creates, if necessary) the path to where evidence should be stored (includes
   /// ending path separator)
   static QString pathToEvidence() {
-    auto op = AppSettings::getInstance().operationSlug();
-    auto root = QStringLiteral("%1/").arg(AppConfig::getInstance().evidenceRepo);
+    auto op = AppConfig::operationSlug();
+    auto root = QStringLiteral("%1/").arg(AppConfig::value(CONFIG::EVIDENCEREPO));
     if (!op.isEmpty()) {
       root.append(QStringLiteral("%1/").arg(op));
     }

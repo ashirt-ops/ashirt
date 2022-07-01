@@ -17,8 +17,8 @@
 #include <QDesktopServices>
 #include <iostream>
 #include "appconfig.h"
-#include "appsettings.h"
 #include "db/databaseconnection.h"
+#include "exceptions/fileerror.h"
 #include "forms/getinfo/getinfo.h"
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
@@ -122,8 +122,8 @@ void TrayManager::wireUi() {
   // connect to network signals
   connect(NetMan::get(), &NetMan::operationListUpdated, this, &TrayManager::onOperationListUpdated);
   connect(NetMan::get(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
-  connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this, &TrayManager::setActiveOperationLabel);
-  
+  connect(AppConfig::get(), &AppConfig::operationChanged, this, &TrayManager::setActiveOperationLabel);
+
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, this, [this] {
     newOperationAction->setEnabled(false);
@@ -166,24 +166,21 @@ void TrayManager::changeEvent(QEvent *event)
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
   auto getInfoWindow = new GetInfo(db, evidenceID, this);
-  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](const model::Evidence& evi){
-    AppSettings::getInstance().setLastUsedTags(evi.tags);
+  connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](const model::Evidence& evi) {
+    AppConfig::setLastUsedTags(evi.tags);
   });
   getInfoWindow->show();
 }
 
 qint64 TrayManager::createNewEvidence(const QString& filepath, const QString& evidenceType) {
-  AppSettings& inst = AppSettings::getInstance();
-  auto evidenceID = db->createEvidence(filepath, inst.operationSlug(), evidenceType);
-  auto tags = inst.getLastUsedTags();
-  if (!tags.empty()) {
-    db->setEvidenceTags(tags, evidenceID);
-  }
+  auto evidenceID = db->createEvidence(filepath, AppConfig::operationSlug(), evidenceType);
+  auto tags = AppConfig::getLastUsedTags();
+  db->setEvidenceTags(tags, evidenceID);
   return evidenceID;
 }
 
 void TrayManager::captureWindowActionTriggered() {
-  if(AppSettings::getInstance().operationSlug().isEmpty()) {
+  if(AppConfig::operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -191,7 +188,7 @@ void TrayManager::captureWindowActionTriggered() {
 }
 
 void TrayManager::captureAreaActionTriggered() {
-  if(AppSettings::getInstance().operationSlug().isEmpty()) {
+  if(AppConfig::operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -199,7 +196,7 @@ void TrayManager::captureAreaActionTriggered() {
 }
 
 void TrayManager::captureClipboardActionTriggered() {
-  if(AppSettings::getInstance().operationSlug().isEmpty()) {
+  if(AppConfig::operationSlug().isEmpty()) {
     showNoOperationSetTrayMessage();
     return;
   }
@@ -263,7 +260,7 @@ void TrayManager::showNoOperationSetTrayMessage() {
 }
 
 void TrayManager::setActiveOperationLabel() {
-  const auto& opName = AppSettings::getInstance().operationName();
+  const auto& opName = AppConfig::operationName();
   chooseOpSubmenu->setTitle(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
 }
 
@@ -273,7 +270,7 @@ void TrayManager::onOperationListUpdated(bool success,
   if (!success)
       return;
 
-  auto currentOp = AppSettings::getInstance().operationSlug();
+  auto currentOp = AppConfig::operationSlug();
   newOperationAction->setEnabled(true);
   newOperationAction->setText(tr("New Operation"));
   cleanChooseOpSubmenu();
@@ -287,15 +284,15 @@ void TrayManager::onOperationListUpdated(bool success,
     }
     allOperationActions.addAction(newAction.get());
     connect(newAction.get(), &QAction::triggered, this, [this, newAction, op] {
-      AppSettings::getInstance().setLastUsedTags(QList<model::Tag>{}); // clear last used tags
-      AppSettings::getInstance().setOperationDetails(op.slug, op.name);
+      AppConfig::setLastUsedTags(QList<model::Tag>{}); // clear last used tags
+      AppConfig::setOperationDetails(op.slug, op.name);
       selectedAction = newAction.get();
     });
     chooseOpSubmenu->addAction(newAction.get());
   }
 
   if (!selectedAction) {
-    AppSettings::getInstance().setOperationDetails(QString(), QString());
+    AppConfig::setOperationDetails(QString(), QString());
   }
 }
 

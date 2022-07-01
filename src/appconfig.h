@@ -1,143 +1,92 @@
-// Copyright 2020, Verizon Media
+// New AppConfig 2022, Chris Rizzitello
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #pragma once
 
-#include <QDir>
-#include <QFile>
-#include <QJsonValue>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QObject>
 #include <QStandardPaths>
-#include <cstdlib>
-#include <stdexcept>
+#include <QSettings>
+#include <QVariant>
+#include <QRegularExpression>
 
-#include "exceptions/fileerror.h"
-#include "helpers/constants.h"
-#include "helpers/file_helpers.h"
-#include "helpers/jsonhelpers.h"
+#include "models/tag.h"
 
-// AppConfig is a singleton construct for accessing the application's configuration.
-// singleton design borrowed from:
-// https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-class AppConfig {
- public:
-  static AppConfig &getInstance() {
-    static AppConfig instance;
-    return instance;
-  }
-  AppConfig(AppConfig const &) = delete;
-  void operator=(AppConfig const &) = delete;
+struct CONFIG {
+    inline static const auto EVIDENCEREPO = QStringLiteral("evidenceRepo");
+    inline static const auto ACCESSKEY = QStringLiteral("accessKey");
+    inline static const auto SECRETKEY = QStringLiteral("secretKey");
+    inline static const auto APIURL = QStringLiteral("apiURL");
+    inline static const auto COMMAND_SCREENSHOT = QStringLiteral("screenshotCommand");
+    inline static const auto SHORTCUT_SCREENSHOT = QStringLiteral("screenshotShortcut");
+    inline static const auto COMMAND_CAPTUREWINDOW = QStringLiteral("captureWindowExec");
+    inline static const auto SHORTCUT_CAPTUREWINDOW = QStringLiteral("captureWindowShortcut");
+    inline static const auto SHORTCUT_CAPTURECLIPBOARD = QStringLiteral("captureClipboardShortcut");
+};
 
-  QString evidenceRepo;
-  QString accessKey;
-  QString secretKey;
-  QString apiURL;
-  QString screenshotExec;
-  QString screenshotShortcutCombo;
-  QString captureWindowExec;
-  QString captureWindowShortcut;
-  QString captureClipboardShortcut;
-
-  QString errorText;
-
- private:
-  AppConfig() noexcept {
-    try {
-      readConfig();
+/// AppConfig is a singleton for accessing the application's configuration.
+class AppConfig : public QObject
+{
+    Q_OBJECT
+public:
+    /// Access the AppConfig for connections
+    static AppConfig* get() {
+        static AppConfig instance;
+        return &instance;
     }
-    catch (std::exception &e) {
-      errorText = e.what();
-    }
-  }
+    /// Request the value of a key; returns a QString version of that value or empty QString
+    static QString value(const QString &key = QString());
+    /// Sets a value of a key to any QString Only accepts QStrings
+    static void setValue(const QString &key = QString(), const QString &value = QString());
+    /// Returns a List of all the Valid Keys in the config file
+    static QStringList appConfigKeys() { return _appConfigValidKeys; }
+    /// Writes a Copy of the config to FileName. Returns true if successful
+    static bool exportConfig(const QString &fileName = QString());
+    /// Import configuration from a file.
+    static void importConfig(const QString &fileName = QString());
+    /// Helper to get the operation Name
+    static QString operationName();
+    /// Helper to get the operation Slug
+    static QString operationSlug();
+    /// Helper to write operation Details, emits operationsChanged when called.
+    static void setOperationDetails(const QString &operationSlug = QString(), const QString &operationName = QString());
+    /// Get the list of the last used tag(s)
+    static QList<model::Tag> getLastUsedTags();
+    /// Set the last used Tags
+    static void setLastUsedTags(QList<model::Tag> lastTags);
 
-  /// readConfig attempts to read the provided path and parse the configuration file.
-  /// If successful, the config file is loaded. If the config file is missing, then a
-  /// default file will be generated. If some other error occurs, a FileError is thrown.
-  void readConfig(QString location = Constants::configLocation) {
-    QFile configFile(location);
-    if (!configFile.open(QIODevice::ReadOnly)) {
-      if (configFile.exists()) {
-        throw FileError::mkError("Error reading config file", location.toStdString(),
-                                 configFile.error());
-      }
-      writeDefaultConfig();
-      return;
-    }
+signals:
+    void operationChanged(QString operationSlug, QString operationName);
 
-    QByteArray data = configFile.readAll();
-    if (configFile.error() != QFile::NoError) {
-      throw FileError::mkError("Error reading config file", location.toStdString(),
-                               configFile.error());
-    }
-
-    auto result = parseJSONItem<QString>(data, [this](QJsonObject src) {
-      applyConfig(src);
-      return "";
-    });
-    if (result.isNull()) {
-      throw std::runtime_error("Unable to parse config file");
-    }
-  }
-
-  /// writeDefaultConfig attempts to write a basic configuration to disk.
-  /// This is useful on first runs/when no config data is set.
-  void writeDefaultConfig() {
-    evidenceRepo = Constants::defaultEvidenceRepo;
-
-#ifdef Q_OS_MACOS
-    screenshotExec = QStringLiteral("screencapture -s %file");
-    captureWindowExec = QStringLiteral("screencapture -w %file");
+private:
+    AppConfig(QObject *parent = nullptr);
+    ~AppConfig() = default;
+    AppConfig(AppConfig const &) = delete;
+    void operator=(AppConfig const &) = delete;
+    void validateConfig();
+    // Helpers for JSON Format
+    static bool readJSONSettings(QIODevice &device, QMap<QString, QVariant> &map);
+    static bool writeJSONSettings(QIODevice &device, const QMap<QString, QVariant> &map);
+    inline static const auto JSON = QSettings::registerFormat(QStringLiteral("json"), &readJSONSettings, &writeJSONSettings);
+    //Vars Used Internally
+    QSettings *appConfig = nullptr;
+    QSettings *appSettings = nullptr;
+#ifdef Q_OS_MAC
+    inline static const auto _configFile = QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation));
+#else
+    inline static const QString _configFile = QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
 #endif
-
-    writeConfig();
-  }
-
- public:
-
-  /// applyConfig takes a parsed json configuration, and applies it to the current running app instance
-  void applyConfig(QJsonObject src) {
-    QList<QPair<QString, QString*>> fields = {
-        QPair<QString, QString*>(QStringLiteral("evidenceRepo"), &evidenceRepo),
-        QPair<QString, QString*>(QStringLiteral("accessKey"), &accessKey),
-        QPair<QString, QString*>(QStringLiteral("secretKey"), &secretKey),
-        QPair<QString, QString*>(QStringLiteral("apiURL"), &apiURL),
-        QPair<QString, QString*>(QStringLiteral("screenshotCommand"), &screenshotExec),
-        QPair<QString, QString*>(QStringLiteral("screenshotShortcut"), &screenshotShortcutCombo),
-        QPair<QString, QString*>(QStringLiteral("captureWindowExec"), &captureWindowExec),
-        QPair<QString, QString*>(QStringLiteral("captureWindowShortcut"), &captureWindowShortcut),
-        QPair<QString, QString*>(QStringLiteral("captureClipboardShortcut"), &captureClipboardShortcut),
+    inline static const auto _opSlugSetting = QStringLiteral("operation/slug");
+    inline static const auto _opNameSetting = QStringLiteral("operation/name");
+    inline static const auto _lastUsedTagsSetting = QStringLiteral("gather/tags");
+    inline static const QStringList _appConfigValidKeys {
+        CONFIG::EVIDENCEREPO,
+        CONFIG::ACCESSKEY,
+        CONFIG::SECRETKEY,
+        CONFIG::APIURL,
+        CONFIG::COMMAND_SCREENSHOT,
+        CONFIG::SHORTCUT_SCREENSHOT,
+        CONFIG::COMMAND_CAPTUREWINDOW,
+        CONFIG::SHORTCUT_CAPTUREWINDOW,
+        CONFIG::SHORTCUT_CAPTURECLIPBOARD,
     };
-
-    for (auto fieldPair : fields) {
-      QJsonValue val = src.value(fieldPair.first);
-      if (!val.isUndefined() && val.isString()) {
-        *fieldPair.second = val.toString();
-      }
-    }
-  }
-
-  /// serializeConfig creates a Json Object from the currently-used configuration
-  QJsonObject serializeConfig() {
-    QJsonObject root;
-    root["evidenceRepo"] = evidenceRepo;
-    root["accessKey"] = accessKey;
-    root["secretKey"] = secretKey;
-    root["apiURL"] = apiURL;
-    root["screenshotCommand"] = screenshotExec;
-    root["screenshotShortcut"] = screenshotShortcutCombo;
-    root["captureWindowExec"] = captureWindowExec;
-    root["captureWindowShortcut"] = captureWindowShortcut;
-    root["captureClipboardShortcut"] = captureClipboardShortcut;
-    return root;
-  }
-
-  /// writeConfig serializes the running config, and writes the assoicated file to the given path.
-  /// The path defaults to Constants::configLocation()
-  /// Returns True if successful
-  bool writeConfig(const QString &alternateSavePath = QString()) {
-    QString writeLoc = alternateSavePath.isEmpty() ? Constants::configLocation : alternateSavePath;
-    auto configContent = QJsonDocument(serializeConfig()).toJson();
-    return FileHelpers::writeFile(writeLoc, configContent);
-   }
 };
