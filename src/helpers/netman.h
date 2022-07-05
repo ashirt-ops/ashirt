@@ -69,8 +69,8 @@ class NetMan : public QObject {
 
   /// ashirtFormPost generates a basic POST request with content type multipart/form-data.
   /// No authentication is provided (use addASHIRTAuth to do this)
-  RequestBuilder* ashirtFormPost(QString endpoint, QByteArray body, QString boundry) {
-    return RequestBuilder::newFormPost(boundry)
+  RequestBuilder* ashirtFormPost(QString endpoint, QByteArray body, QString boundary) {
+    return RequestBuilder::newFormPost(boundary)
         ->setHost(AppConfig::getInstance().apiURL)
         ->setEndpoint(endpoint)
         ->setBody(body);
@@ -159,8 +159,8 @@ class NetMan : public QObject {
   /// rather than the time of capture.
   QNetworkReply *uploadAsset(model::Evidence evidence) {
     MultipartParser parser;
-    parser.AddParameter("notes", evidence.description.toStdString());
-    parser.AddParameter("contentType", evidence.contentType.toStdString());
+    parser.addParameter(QStringLiteral("notes"), evidence.description);
+    parser.addParameter(QStringLiteral("contentType"), evidence.contentType);
 
     // TODO: convert this time below into a proper unix timestamp (mSecSinceEpoch and secsSinceEpoch
     // produce invalid times)
@@ -170,13 +170,13 @@ class NetMan : public QObject {
     for (const auto& tag : evidence.tags) {
       list << QString::number(tag.serverTagId);
     }
-    parser.AddParameter("tagIds", ("[" + list.join(",") + "]").toStdString());
+    parser.addParameter(QStringLiteral("tagIds"), QStringLiteral("[%1]").arg(list.join(QStringLiteral(","))));
 
-    parser.AddFile("file", evidence.path.toStdString());
+    parser.addFile(QStringLiteral("file"), evidence.path);
 
-    auto body = QByteArray::fromStdString(parser.GenBodyContent());
+    auto body = parser.generateBody();
 
-    auto builder = ashirtFormPost(QStringLiteral("/api/operations/%1/evidence").arg(evidence.operationSlug), body, parser.boundary().c_str());
+    auto builder = ashirtFormPost(QStringLiteral("/api/operations/%1/evidence").arg(evidence.operationSlug), body, parser.boundary());
     addASHIRTAuth(builder);
     return builder->execute(nam);
   }

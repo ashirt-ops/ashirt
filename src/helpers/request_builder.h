@@ -59,11 +59,11 @@ class RequestBuilder {
   }
 
   /// newFormPost constructs a request builder with method POST and contentType multipart/form-data
-  static RequestBuilder* newFormPost(QString formBoundry) {
+  static RequestBuilder* newFormPost(QString formboundary) {
     RequestBuilder* builder = new RequestBuilder();
     return builder
         ->setMethod(METHOD_POST)
-        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("multipart/form-data; boundary=%1").arg(formBoundry));
+        ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("multipart/form-data; boundary=%1").arg(formboundary));
   }
 
   /// newJSONPost constructs a request builder with method POST and contentType application/json

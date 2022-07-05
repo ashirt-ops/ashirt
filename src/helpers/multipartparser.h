@@ -1,38 +1,34 @@
 /*********************************************************************************
  *     File Name           :     multipartparser.h
- *     Created By          :     Ye Yangang
- *     Creation Date       :     [2017-02-20 16:50]
+ *     Created By          :     Ye Yangang, ReWritten for Qt by Chris Rizzitello
+ *     Creation Date       :     [2017-02-20 16:50] Modified for Qt 7/5/2022
  *     Last Modified       :     [AUTO_UPDATE_BEFORE_SAVE]
  *     Description         :     Generate multipart/form-data POST body
  **********************************************************************************/
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <QList>
+#include <QPair>
+#include <QString>
 
 class MultipartParser {
  public:
   MultipartParser();
-  inline const std::string &body_content() { return body_content_; }
-  inline const std::string &boundary() { return boundary_; }
-  inline void AddParameter(const std::string &name, const std::string &value) {
-    params_.push_back(std::pair<std::string, std::string>(name, value));
+  inline const QString &boundary() {return m_boundary;}
+  inline void addParameter(const QString &name = QString(), const QString &value = QString()) {
+      m_paramList.append(QPair<QString, QString>(name, value));
   }
-  inline void AddFile(const std::string &name, const std::string &value) {
-    files_.push_back(std::pair<std::string, std::string>(name, value));
+  inline void addFile(const QString &name = QString(), const QString &value = QString()) {
+      m_fileList.append(QPair<QString, QString>(name, value));
   }
-  const std::string &GenBodyContent();
-
+  const QByteArray &generateBody();
  private:
-  void _get_file_name_type(const std::string &file_path, std::string *filenae,
-                           std::string *content_type);
-
- private:
-  static const std::string boundary_prefix_;
-  static const std::string rand_chars_;
-  std::string boundary_;
-  std::string body_content_;
-  std::vector<std::pair<std::string, std::string>> params_;
-  std::vector<std::pair<std::string, std::string>> files_;
+  inline static const auto m_contentHeader = QStringLiteral("\r\n--%1\r\n");
+  inline static const auto m_contentParam = QStringLiteral("Content-Disposition: form-data; name=\"%1\"\r\n\r\n");
+  inline static const auto m_contentFile = QStringLiteral("Content-Disposition: form-data; name=\"%1\"; filename=\"%2\"\r\nContent-Type: %3\r\n\r\n");
+  QString m_boundary;
+  QByteArray m_body;
+  QList<QPair<QString, QString>> m_paramList;
+  QList<QPair<QString, QString>> m_fileList;
 };

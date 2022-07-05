@@ -1,5 +1,7 @@
 #include "system_manifest.h"
 
+#include "helpers/string_helpers.h"
+
 using namespace porting;
 
 void SystemManifest::applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb) {
@@ -93,7 +95,7 @@ QString SystemManifest::contentSensitiveFilename(const QString& contentType)
         return Codeblock::mkName();
     if(contentType == Screenshot::contentType())
         return Screenshot::mkName();
-    return QStringLiteral("ashirt_unknown_type_%1.bin").arg(FileHelpers::randomString());
+    return QStringLiteral("ashirt_unknown_type_%1.bin").arg(StringHelpers::randomString());
 }
 
 SystemManifest* SystemManifest::readManifest(const QString& pathToExportFile) {
@@ -154,7 +156,7 @@ porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExport
   for (size_t evidenceIndex = 0; evidenceIndex < allEvidence.size(); evidenceIndex++) {
     auto evi = allEvidence.at(evidenceIndex);
     auto newName = QStringLiteral("ashirt_evidence_%1.%2")
-                                .arg(FileHelpers::randomString(10), contentSensitiveExtension(evi.contentType));
+                                .arg(StringHelpers::randomString(10), contentSensitiveExtension(evi.contentType));
     auto item = porting::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
     auto dstPath = m_fileTemplate.arg(baseExportPath, item.exportPath);
     QFile srcFile(evi.path);

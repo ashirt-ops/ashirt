@@ -4,6 +4,7 @@
 #include <QJsonObject>
 
 #include "helpers/file_helpers.h"
+#include "helpers/string_helpers.h"
 #include "helpers/system_helpers.h"
 #include "helpers/jsonhelpers.h"
 
@@ -25,7 +26,7 @@ Codeblock::Codeblock(QString content)
 
 QString Codeblock::mkName()
 {
-    return QStringLiteral("ashirt_codeblock_%1.%2").arg(FileHelpers::randomString(), extension());
+    return QStringLiteral("ashirt_codeblock_%1.%2").arg(StringHelpers::randomString(), extension());
 }
 
 QString Codeblock::extension()
