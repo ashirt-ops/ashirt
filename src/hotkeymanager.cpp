@@ -3,12 +3,8 @@
 
 #include "hotkeymanager.h"
 
-#include <QString>
-#include <iostream>
-
 #include "appconfig.h"
 #include "appsettings.h"
-#include "helpers/hotkeys/uglobalhotkeys.h"
 
 HotkeyManager::HotkeyManager(QObject *parent)
   : QObject (parent)

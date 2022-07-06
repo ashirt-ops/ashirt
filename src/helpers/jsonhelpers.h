@@ -6,8 +6,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <functional>
-#include <vector>
 
 // parseJSONList parses a JSON list into a vector of concrete types from a byte[]. If any error
 // occurs during parsing, an empty vector is returned

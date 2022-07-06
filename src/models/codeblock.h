@@ -12,7 +12,7 @@
 class Codeblock {
  public:
   /// default constructor, no data is provided
-  Codeblock();
+  Codeblock() = default;
   /// creates a new codeblock with the given content and a new random filename
   /// (all other data must be provided)
   Codeblock(QString content);

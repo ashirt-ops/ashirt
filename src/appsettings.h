@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <QObject>
 #include <QSequentialIterable>
 #include <QSettings>
-#include <QString>
 
 #include "models/tag.h"
 
@@ -16,7 +16,7 @@
 // singleton design borrowed from:
 // https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
 class AppSettings : public QObject {
-  Q_OBJECT;
+  Q_OBJECT
 
  public:
   static AppSettings &getInstance() {

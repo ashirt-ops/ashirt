@@ -1,10 +1,8 @@
 #pragma once
 
 #include <QDir>
-#include <QFile>
 #include <QFileInfo>
 #include <QRandomGenerator>
-#include <QString>
 
 class FileHelpers {
  public:
@@ -45,7 +43,7 @@ class FileHelpers {
     if (file.open(QIODevice::ReadOnly))
         data = file.readAll();
     if (file.error() != QFile::NoError)
-      QTextStream(stdout) << "Unable to read from file: " << path << '\n' << file.error();
+      QTextStream(stderr) << "Unable to read from file: " << path << '\n' << file.error();
     return data;
   }
 

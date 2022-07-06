@@ -1,10 +1,7 @@
 #pragma once
 
-#include <QString>
 #include <QJsonArray>
 #include <QJsonObject>
-
-#include <vector>
 
 #include "helpers/jsonhelpers.h"
 #include "helpers/file_helpers.h"

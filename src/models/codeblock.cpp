@@ -2,7 +2,6 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QVariant>
 
 #include "helpers/file_helpers.h"
 #include "helpers/system_helpers.h"
@@ -18,8 +17,6 @@ static Codeblock fromJson(QJsonObject obj)
         rtn.source = obj.value(QStringLiteral("source")).toString();
     return rtn;
 }
-
-Codeblock::Codeblock() = default;
 
 Codeblock::Codeblock(QString content)
     : filename(SystemHelpers::pathToEvidence() + Codeblock::mkName())

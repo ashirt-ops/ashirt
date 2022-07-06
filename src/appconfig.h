@@ -9,7 +9,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
-#include <QStringLiteral>
 #include <cstdlib>
 #include <stdexcept>
 

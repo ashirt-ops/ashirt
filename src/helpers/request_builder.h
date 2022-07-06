@@ -2,10 +2,6 @@
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QString>
-#include <iostream>
-#include <string>
-#include <vector>
 
 #include "helpers/file_helpers.h"
 
@@ -185,7 +181,7 @@ class RequestBuilder {
         reply = nam->post(req, body);
         break;
       default:
-        std::cerr << "Requestbuilder contains an unsupported request method" << std::endl;
+        QTextStream(stderr) << "Requestbuilder contains an unsupported request method" << Qt::endl;
     }
     if (autodelete) {
       delete this;

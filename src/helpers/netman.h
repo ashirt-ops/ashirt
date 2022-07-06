@@ -7,16 +7,12 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
 
 #include "appconfig.h"
 #include "request_builder.h"
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "dtos/github_release.h"
-#include "helpers/file_helpers.h"
 #include "helpers/multipartparser.h"
 #include "helpers/stopreply.h"
 #include "models/evidence.h"
@@ -257,7 +253,7 @@ class NetMan : public QObject {
   /// Callers should retrieve the result by listening for the releasesChecked signal
   void checkForNewRelease(QString owner, QString repo) {
     if (owner == Constants::unknownValue || repo == Constants::unknownValue) {
-      std::cerr << "Skipping release check: no owner or repo set." << std::endl;
+      QTextStream(stderr) << "Skipping release check: no owner or repo set." << Qt::endl;
       return;
     }
     githubReleaseReply = getGithubReleases(owner, repo);

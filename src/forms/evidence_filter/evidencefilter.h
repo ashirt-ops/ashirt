@@ -4,16 +4,13 @@
 #pragma once
 
 #include <QDate>
-#include <QString>
-#include <utility>
-#include <vector>
 #include <QStringList>
 
 enum Tri { Any, Yes, No };
 
 class EvidenceFilters {
  public:
-  EvidenceFilters();
+  EvidenceFilters() = default;
 
   static QString standardizeFilterKey(QString key);
   QString toString() const;

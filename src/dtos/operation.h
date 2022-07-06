@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QVariant>
-#include <vector>
 
 #include "helpers/jsonhelpers.h"
 

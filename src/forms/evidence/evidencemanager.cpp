@@ -13,7 +13,6 @@
 #include <QRandomGenerator>
 #include <QStandardPaths>
 #include <QTableWidgetItem>
-#include <iostream>
 
 #include "appsettings.h"
 #include "dtos/tag.h"
@@ -265,10 +264,10 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
   }
 
   if (!removedAllDbRecords) {
-    std::cerr << "Could not delete evidence from internal database. Errors: " << std::endl;
+    QTextStream(stderr) << "Could not delete evidence from internal database. Errors: " << Qt::endl;
     for (const auto& resp : responses) {
       if (!resp.dbDeleteSuccess) {
-        std::cerr << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText.toStdString() << std::endl;
+        QTextStream(stderr) << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText << Qt::endl;
       }
     }
   }
@@ -381,8 +380,8 @@ void EvidenceManager::loadEvidence() {
     }
   }
   catch (QSqlError& e) {
-    std::cout << "Could not retrieve evidence for operation. Error: " << e.text().toStdString()
-              << std::endl;
+    QTextStream(stderr) << "Could not retrieve evidence for operation. Error: " << e.text()
+              << Qt::endl;
   }
 }
 
@@ -440,7 +439,7 @@ void EvidenceManager::refreshRow(int row) {
     setRowText(row, updatedData);
   }
   catch (QSqlError& e) {
-    std::cout << "Could not refresh table row: " << e.text().toStdString() << std::endl;
+    QTextStream(stderr) << "Could not refresh table row: " << e.text() << Qt::endl;
   }
 }
 
@@ -507,8 +506,8 @@ void EvidenceManager::onUploadComplete() {
       db->updateEvidenceError(errMessage, evidenceIDForRequest);
     }
     catch (QSqlError& e) {
-      std::cout << "Upload failed. Could not update internal database. Error: "
-                << e.text().toStdString() << std::endl;
+      QTextStream(stderr) << "Upload failed. Could not update internal database. Error: "
+                << e.text() << Qt::endl;
     }
     QMessageBox::warning(this, tr("Cannot Submit Evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
@@ -519,8 +518,8 @@ void EvidenceManager::onUploadComplete() {
       db->updateEvidenceSubmitted(evidenceIDForRequest);
     }
     catch (QSqlError& e) {
-      std::cout << "Upload successful. Could not update internal database. Error: "
-                << e.text().toStdString() << std::endl;
+      QTextStream(stderr) << "Upload successful. Could not update internal database. Error: "
+                << e.text() << Qt::endl;
     }
     Q_EMIT evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }

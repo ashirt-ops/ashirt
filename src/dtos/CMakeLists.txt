@@ -1,5 +1,6 @@
 
 add_library (DTOS STATIC
+    ashirt_error.h
     checkConnection.h
     github_release.h
     operation.h

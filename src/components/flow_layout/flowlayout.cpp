@@ -50,7 +50,7 @@
 
 #include "flowlayout.h"
 
-#include <QtWidgets>
+#include <QWidget>
 
 // Local Edits:
 // 1. Formatting

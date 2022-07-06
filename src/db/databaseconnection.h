@@ -7,8 +7,6 @@
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlQuery>
-#include <QStandardPaths>
-#include <QString>
 #include <QVariant>
 
 #include "forms/evidence_filter/evidencefilter.h"

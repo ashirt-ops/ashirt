@@ -2,7 +2,6 @@
 
 #include <QVariant>
 #include <QRegularExpression>
-#include <iostream>
 
 #include "helpers/jsonhelpers.h"
 
@@ -133,7 +132,7 @@ class ReleaseDigest {
   static ReleaseDigest fromReleases(QString curVersion, const QList<GithubRelease> &borrowedReleases) {
 
     if (curVersion.contains(QStringLiteral("v0.0.0"))) {
-      std::cerr << "skipping unversioned/development release check" << std::endl;
+      QTextStream(stdout) << "skipping unversioned/development release check" << Qt::endl;
       return ReleaseDigest();
     }
 
