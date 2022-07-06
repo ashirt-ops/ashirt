@@ -217,10 +217,7 @@ void TrayManager::onClipboardCapture()
         if (clipboardContent.isEmpty())
             return;
         Codeblock evidence(clipboardContent);
-        try {
-            Codeblock::saveCodeblock(evidence);
-        }
-        catch(FileError& e) {
+        if(!Codeblock::saveCodeblock(evidence)) {
             QTextStream(stderr) << "Error Gathering Evidence from clipboard" << Qt::endl;
             return;
         }

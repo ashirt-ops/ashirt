@@ -58,5 +58,5 @@ class Codeblock {
    * @throws a FileError if any issues occur while writing the file
    * @param codeblock The codeblock to save
    */
-  static void saveCodeblock(Codeblock codeblock);
+  static bool saveCodeblock(Codeblock codeblock);
 };

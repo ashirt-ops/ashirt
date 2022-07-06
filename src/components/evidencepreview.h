@@ -24,9 +24,8 @@ class EvidencePreview : public QWidget {
   /// default/plain view. No content should be displayed.
   virtual void clearPreview() = 0;
 
-  /// saveEvidence allows the underlying evidence to be re-written to disk. The default
-  /// implementation is a no-op.
-  virtual void saveEvidence();
+  /// saveEvidence allows the underlying evidence to be re-written to disk.
+  virtual bool saveEvidence();
 
   /// setReadonly marks the evidence preview as read-only, disallowing editing. The default
   /// implementation sets the internal flag -- it is the responsibilty of the underlying evidence to

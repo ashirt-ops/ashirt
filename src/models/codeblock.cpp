@@ -33,9 +33,9 @@ QString Codeblock::extension()
     return QStringLiteral("json");
 }
 
-void Codeblock::saveCodeblock(Codeblock codeblock)
+bool Codeblock::saveCodeblock(Codeblock codeblock)
 {
-    FileHelpers::writeFile(codeblock.filename, codeblock.encode());
+    return FileHelpers::writeFile(codeblock.filename, codeblock.encode());
 }
 
 Codeblock Codeblock::readCodeblock(const QString& filepath)
