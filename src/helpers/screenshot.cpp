@@ -9,7 +9,7 @@
 #include <QProcess>
 
 #include "appconfig.h"
-#include "helpers/file_helpers.h"
+#include "helpers/string_helpers.h"
 #include "helpers/system_helpers.h"
 
 Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
@@ -20,7 +20,7 @@ void Screenshot::captureWindow() { basicScreenshot(AppConfig::getInstance().capt
 
 QString Screenshot::mkName()
 {
-  return QStringLiteral("ashirt_screenshot_%1.%2").arg(FileHelpers::randomString(), extension());
+  return QStringLiteral("ashirt_screenshot_%1.%2").arg(StringHelpers::randomString(), extension());
 }
 
 void Screenshot::basicScreenshot(QString cmdProto)

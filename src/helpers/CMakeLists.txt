@@ -15,6 +15,7 @@ add_library (HELPERS STATIC
     request_builder.h
     screenshot.cpp screenshot.h
     stopreply.cpp stopreply.h
+    string_helpers.h
     system_helpers.h
     ui_helpers.h
     hotkeys/hotkeymap.h

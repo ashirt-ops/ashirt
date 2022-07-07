@@ -6,19 +6,6 @@
 
 class FileHelpers {
  public:
-  /**
-   * @brief randomString Generates a random String of N chars
-   * Each character can be a-z either be upper or lower case.
-   * @param numberOfChars Length of the string to return default is 6
-   * @return The resulting randomString
-   */
-  static QString randomString(int numberOfChars = 6) {
-    QString rString;
-    for(int i = 0; i < numberOfChars; i++)
-        rString.append(_chars.at(QRandomGenerator::global()->bounded(_chars.length())));
-    return rString;
-  }
-
   /// writeFile write the provided content to the provided path.
   /// returns false if failed.
   static bool writeFile(QString fileName, QByteArray content) {
@@ -49,7 +36,4 @@ class FileHelpers {
 
   /// getDirname is a small helper to convert a filepath to a file into a path to the file's parent
   static QString getDirname(QString filepath) { return QFileInfo(filepath).dir().path(); }
-
-  private:
-    inline static const QString _chars = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 };
