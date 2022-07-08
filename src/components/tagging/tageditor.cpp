@@ -179,7 +179,7 @@ void TagEditor::createTag(QString tagName) {
   tagCompleteTextBox->setEnabled(false);
 
   dto::Tag newTag(newText, TagWidget::randomColor());
-  createTagReply = NetMan::getInstance().createTag(newTag, operationSlug);
+  createTagReply = NetMan::createTag(newTag, operationSlug);
   connect(createTagReply, &QNetworkReply::finished, this, &TagEditor::onCreateTagComplete);
 }
 

@@ -5,7 +5,6 @@
 
 class Constants {
  public:
-  inline static const auto unknownValue = QStringLiteral("???");
   inline static const auto dbLocation = QStringLiteral("%1/evidence.sqlite").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   inline static const auto defaultEvidenceRepo = QStringLiteral("%1/evidence").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   inline static const auto commitHash = QStringLiteral("%1").arg(COMMIT_HASH);
@@ -57,8 +56,8 @@ class Constants {
       QRegularExpressionMatch match = ownerRegex.match(rawRepo);
       // Note that the specific values for the error cases below don't matter
       // They are set to avoid rerunning the parsing (since these values won't change mid-run)
-      parsedOwner = match.hasMatch() ? match.captured(1) : unknownValue;
-      parsedRepo = match.hasMatch() ? match.captured(2) : unknownValue;
+      parsedOwner = match.hasMatch() ? match.captured(1) : QString();
+      parsedRepo = match.hasMatch() ? match.captured(2) : QString();
     }
     return field == RepoField::owner ? parsedOwner : parsedRepo;
   }

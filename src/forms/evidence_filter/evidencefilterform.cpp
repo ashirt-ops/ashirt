@@ -123,8 +123,7 @@ void EvidenceFilterForm::wireUi() {
   submittedComboBox->installEventFilter(this);
   contentTypeComboBox->installEventFilter(this);
 
-  connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
-          &EvidenceFilterForm::onOperationListUpdated);
+  connect(NetMan::get(), &NetMan::operationListUpdated, this, &EvidenceFilterForm::onOperationListUpdated);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeAndClose);
 
   connect(includeStartDateCheckBox, &QCheckBox::stateChanged, fromDateEdit, &QDateEdit::setEnabled);

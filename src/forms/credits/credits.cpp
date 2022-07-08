@@ -17,7 +17,7 @@ Credits::Credits(QWidget* parent)
   , updateLabel(new QLabel(this))
 {
   setWindowTitle("About");
-  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
+  connect(NetMan::get(), &NetMan::releasesChecked, this, &Credits::onReleasesUpdate);
 
   updateLabel->setVisible(false);
   updateLabel->setOpenExternalLinks(true);

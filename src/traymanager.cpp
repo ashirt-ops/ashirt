@@ -56,7 +56,7 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
   wireUi();
 
   // delayed so that windows can listen for get all ops signal
-  NetMan::getInstance().refreshOperationsList();
+  NetMan::refreshOperationsList();
   QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);
 }
 
@@ -120,16 +120,14 @@ void TrayManager::wireUi() {
           &TrayManager::captureWindowActionTriggered);
 
   // connect to network signals
-  connect(&NetMan::getInstance(), &NetMan::operationListUpdated, this,
-          &TrayManager::onOperationListUpdated);
-  connect(&NetMan::getInstance(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
-  connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this,
-          &TrayManager::setActiveOperationLabel);
+  connect(NetMan::get(), &NetMan::operationListUpdated, this, &TrayManager::onOperationListUpdated);
+  connect(NetMan::get(), &NetMan::releasesChecked, this, &TrayManager::onReleaseCheck);
+  connect(&AppSettings::getInstance(), &AppSettings::onOperationUpdated, this, &TrayManager::setActiveOperationLabel);
   
   connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &TrayManager::onTrayMessageClicked);
   connect(trayIcon, &QSystemTrayIcon::activated, this, [this] {
     newOperationAction->setEnabled(false);
-    NetMan::getInstance().refreshOperationsList();
+    NetMan::refreshOperationsList();
   });
 
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
@@ -297,7 +295,7 @@ void TrayManager::onOperationListUpdated(bool success,
 }
 
 void TrayManager::checkForUpdate() {
-  NetMan::getInstance().checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
+  NetMan::checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
 }
 
 void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& releases) {
