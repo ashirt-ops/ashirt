@@ -20,7 +20,6 @@ class Codeblock {
   /**
    * @brief readCodeblock parses a local codeblock file and returns back the data as a codeblock
    * @param filepath The path to the codeblock file
-   * @throws a FileError if any issues occur while reading the file
    * @return a parsed Codeblock object, ready for use.
    */
   static Codeblock readCodeblock(const QString& filepath);
@@ -53,9 +52,7 @@ class Codeblock {
   QByteArray encode();
  public:
   /**
-   * @brief saveCodeblock encodes the provided codeblock, then writes that codeblock to it's
-   * filePath
-   * @throws a FileError if any issues occur while writing the file
+   * @brief saveCodeblock encodes the provided codeblock, then writes that codeblock to it's filePath
    * @param codeblock The codeblock to save
    */
   static bool saveCodeblock(Codeblock codeblock);

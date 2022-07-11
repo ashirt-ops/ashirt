@@ -179,32 +179,28 @@ SaveEvidenceResponse EvidenceEditor::saveEvidence() {
   return resp;
 }
 
-QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evidenceIDs) {
-  QList<DeleteEvidenceResponse> responses;
+QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evidenceIDs)
+{
+    QList<DeleteEvidenceResponse> responses;
+    for (qint64 id : evidenceIDs) {
+        model::Evidence evi = db->getEvidenceDetails(id);
+        DeleteEvidenceResponse resp(evi);
 
-  for (qint64 id : evidenceIDs) {
-    model::Evidence evi = db->getEvidenceDetails(id);
-    DeleteEvidenceResponse resp(evi);
-    try {
-      db->deleteEvidence(evi.id);
-      resp.dbDeleteSuccess = true;
-    }
-    catch(QSqlError &e) {
-      resp.dbDeleteSuccess = false;
-      resp.errorText = e.text();
-    }
-    auto localFile = new QFile(evi.path);
-    if (!localFile->remove()) {
-      resp.fileDeleteSuccess = false;
-      resp.errorText += "\n" + localFile->errorString();
-    }
-    else {
-      resp.fileDeleteSuccess = true;
-    }
-    localFile->deleteLater(); // deletes the pointer, not the file
-    resp.errorText = resp.errorText.trimmed();
-    responses.append(resp);
-  }
+        try{
+            resp.dbDeleteSuccess = db->deleteEvidence(evi.id);
+        } catch(QSqlError &e) {
+            resp.errorText = e.text();
+        }
 
-  return responses;
+        auto localFile = QFile(evi.path);
+        if (!localFile.remove()) {
+            resp.fileDeleteSuccess = false;
+            resp.errorText.append(QStringLiteral("\n%1").arg(localFile.errorString()));
+        } else {
+            resp.fileDeleteSuccess = true;
+        }
+        resp.errorText = resp.errorText.trimmed();
+        responses.append(resp);
+    }
+    return responses;
 }

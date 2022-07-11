@@ -6,28 +6,16 @@
 #include <QDir>
 #include <QVariant>
 
-#include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
 #include "helpers/file_helpers.h"
 
-// DatabaseConnection constructs a connection to the database, unsurpringly. Note that the
-// constructor can throw a error (see below). Additionally, many methods can throw a QSqlError,
-// though are not marked as such in their comments. Other errors are listed in throw comments, or
-// are marked as noexcept if no error is possible.
-//
-// Throws: DBDriverUnavailable if the required database driver does not exist
-DatabaseConnection::DatabaseConnection(const QString& dbPath, QString databaseName) {
-  const static QString dbDriver = "QSQLITE";
-  if (QSqlDatabase::isDriverAvailable(dbDriver)) {
-    dbName = std::move(databaseName);
-    auto db = QSqlDatabase::addDatabase(dbDriver, dbName);
+DatabaseConnection::DatabaseConnection(const QString& dbPath, const QString& databaseName)
+ : _dbName(databaseName)
+ , _dbPath(dbPath)
+{
+    auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), databaseName);
     QDir().mkpath(FileHelpers::getDirname(dbPath));
     db.setDatabaseName(dbPath);
-    this->_dbPath = dbPath;
-  }
-  else {
-    throw DBDriverUnavailableError("SQLite");
-  }
 }
 
 void DatabaseConnection::withConnection(const QString& dbPath, const QString &dbName,
@@ -45,12 +33,14 @@ void DatabaseConnection::withConnection(const QString& dbPath, const QString &db
   QSqlDatabase::removeDatabase(dbName);
 }
 
-void DatabaseConnection::connect() {
-  auto db = getDB();
-  if (!db.open()) {
-    throw db.lastError();
-  }
-  migrateDB();
+bool DatabaseConnection::connect()
+{
+    auto db = getDB();
+    if (!db.open()) {
+        return false;
+        throw db.lastError();
+    }
+    return migrateDB();
 }
 
 void DatabaseConnection::close() noexcept { getDB().close(); }
@@ -137,8 +127,13 @@ void DatabaseConnection::updateEvidenceDescription(const QString &newDescription
   executeQuery(getDB(), "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
 }
 
-void DatabaseConnection::deleteEvidence(qint64 evidenceID) {
-  executeQuery(getDB(), "DELETE FROM evidence WHERE id=?", {evidenceID});
+bool DatabaseConnection::deleteEvidence(qint64 evidenceID)
+{
+  auto q = executeQuery(getDB(), "DELETE FROM evidence WHERE id=?", {evidenceID});
+  if (q.lastError().type() == QSqlError::NoError)
+      return true;
+  QTextStream(stderr) << "Unable to Delete " << evidenceID << " " << q.lastError().text();
+  return false;
 }
 
 void DatabaseConnection::updateEvidenceError(const QString &errorText, qint64 evidenceID) {
@@ -339,7 +334,7 @@ QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
 // lacking update.
 //
 // Throws exceptions/FileError if a migration file cannot be found.
-void DatabaseConnection::migrateDB() {
+bool DatabaseConnection::migrateDB() {
   auto db = getDB();
   QTextStream(stdout) << "Checking database state" << Qt::endl;
   auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
@@ -347,10 +342,8 @@ void DatabaseConnection::migrateDB() {
   for (const QString &newMigration : migrationsToApply) {
     QFile migrationFile(QStringLiteral(":/migrations/%1").arg(newMigration));
     auto ok = migrationFile.open(QFile::ReadOnly);
-    if (!ok) {
-      throw FileError::mkError("Error reading migration file",
-                               migrationFile.fileName().toStdString(), migrationFile.error());
-    }
+    if (!ok)
+        return false;
     auto content = QString(migrationFile.readAll());
     migrationFile.close();
 
@@ -362,6 +355,7 @@ void DatabaseConnection::migrateDB() {
                  {newMigration});
   }
   QTextStream(stdout) << "All migrations applied" << Qt::endl;
+  return true;
 }
 
 // getUnappliedMigrations retrieves a list of all of the migrations that have not been applied
@@ -372,10 +366,10 @@ void DatabaseConnection::migrateDB() {
 // Throws:
 //   * BadDatabaseStateError if some migrations have been applied that are not known
 //   * QSqlError if database queries fail
-QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
+QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db)
+{
   QDir migrationsDir(QStringLiteral(":/migrations"));
-
-  auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
+  const auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
   QStringList appliedMigrations;
   QStringList migrationsToApply;
 
@@ -386,19 +380,17 @@ QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
   }
   // compare the two list to find gaps
   for (const QString &possibleMigration : allMigrations) {
-    if (!possibleMigration.endsWith(QStringLiteral(".sql"))) {
+    if (!possibleMigration.endsWith(QStringLiteral(".sql")))
       continue;  // assume non-sql files aren't actual migrations.
-    }
+
     auto foundIndex = appliedMigrations.indexOf(possibleMigration);
-    if (foundIndex == -1) {
+    if (foundIndex == -1)
       migrationsToApply << possibleMigration;
-    }
-    else {
+    else
       appliedMigrations.removeAt(foundIndex);
-    }
   }
   if (!appliedMigrations.empty()) {
-    throw BadDatabaseStateError();
+    QTextStream(stderr) << "Database is in an inconsistent state";
   }
   return migrationsToApply;
 }
@@ -406,21 +398,15 @@ QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db) {
 // extractMigrateUpContent parses the given migration content and retrieves only
 // the portion that applies to the "up" / apply logic. The "down" section is ignored.
 QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) noexcept {
-  auto copying = false;
   QString upContent;
-  for (const QString &line : allContent.split("\n")) {
-    if (line.trimmed().toLower() == "-- +migrate up") {
-      copying = true;
-    }
-    else if (line.trimmed().toLower() == "-- +migrate down") {
-      if (copying) {
-        break;
-      }
-      copying = false;
-    }
-    else if (copying) {
-      upContent.append(line + "\n");
-    }
+  const QStringList lines = allContent.split(_newLine);
+  for (const QString &line : lines) {
+    auto lowerLine = line.trimmed().toLower();
+    if (lowerLine == _migrateUp)
+      continue;
+    else if (lowerLine == _migrateDown)
+      break;
+    upContent.append(_lineTemplate.arg(line));
   }
   return upContent;
 }
@@ -465,15 +451,14 @@ qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
   return query.lastInsertId().toLongLong();
 }
 
-QSqlDatabase DatabaseConnection::getDB() {
-  if (dbName.isEmpty()) {
-    return QSqlDatabase::database();
-  }
-  return QSqlDatabase::database(dbName);
+QSqlDatabase DatabaseConnection::getDB()
+{
+    return QSqlDatabase::database(_dbName);
 }
 
-QString DatabaseConnection::getDatabasePath() {
-  return _dbPath;
+QString DatabaseConnection::getDatabasePath()
+{
+    return _dbPath;
 }
 
 void DatabaseConnection::batchInsert(const QString& baseQuery, unsigned int varsPerRow, unsigned int numRows,

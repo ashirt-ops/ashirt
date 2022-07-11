@@ -6,7 +6,6 @@
 #include <QLineEdit>
 
 #include "codeeditor.h"
-#include "exceptions/fileerror.h"
 #include "helpers/ui_helpers.h"
 
 CodeBlockView::CodeBlockView(QWidget* parent)
