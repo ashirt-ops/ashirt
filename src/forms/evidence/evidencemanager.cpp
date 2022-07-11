@@ -201,7 +201,7 @@ void EvidenceManager::submitEvidenceTriggered() {
     evidenceIDForRequest = selectedRowEvidenceID();
     try {
       model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
-      uploadAssetReply = NetMan::getInstance().uploadAsset(evi);
+      uploadAssetReply = NetMan::uploadAsset(evi);
       connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
     }
     catch (QSqlError& e) {

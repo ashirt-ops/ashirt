@@ -220,7 +220,7 @@ void Settings::onSaveClicked() {
   QString originalApiUrl = inst.apiURL;
   inst.apiURL = hostPathTextBox->text();
   if (originalApiUrl != hostPathTextBox->text()) {
-    NetMan::getInstance().refreshOperationsList();
+    NetMan::refreshOperationsList();
   }
 
   inst.screenshotExec = captureAreaCmdTextBox->text();
@@ -261,7 +261,7 @@ void Settings::onTestConnectionClicked() {
   }
   testConnectionButton->startAnimation();
   testConnectionButton->setEnabled(false);
-  currentTestReply = NetMan::getInstance().testConnection(
+  currentTestReply = NetMan::testConnection(
       hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
   connect(currentTestReply, &QNetworkReply::finished, this, &Settings::onTestRequestComplete);
 }

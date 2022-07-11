@@ -63,7 +63,7 @@ void CreateOperation::submitButtonClicked() {
 
   submitButton->startAnimation();
   submitButton->setEnabled(false);
-  createOpReply = NetMan::getInstance().createOperation(name, slug);
+  createOpReply = NetMan::createOperation(name, slug);
   connect(createOpReply, &QNetworkReply::finished, this, &CreateOperation::onRequestComplete);
 }
 
@@ -81,7 +81,7 @@ void CreateOperation::onRequestComplete() {
     dto::Operation op = dto::Operation::parseData(data);
     AppSettings::getInstance().setOperationDetails(op.slug, op.name);
     operationNameTextBox->clear();
-    NetMan::getInstance().refreshOperationsList();
+    NetMan::refreshOperationsList();
     close();
   }
   else {

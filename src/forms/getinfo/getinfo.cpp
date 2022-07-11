@@ -91,7 +91,7 @@ void GetInfo::submitButtonClicked() {
   if (saveData()) {
     try {
       model::Evidence evi = db->getEvidenceDetails(evidenceID);
-      uploadAssetReply = NetMan::getInstance().uploadAsset(evi);
+      uploadAssetReply = NetMan::uploadAsset(evi);
       connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
     }
     catch (QSqlError& e) {
