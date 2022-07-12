@@ -118,13 +118,8 @@ void GetInfo::deleteButtonClicked() {
                              .arg(evi.path));
       shouldClose = false;
     }
-    try {
-      db->deleteEvidence(evidenceID);
-    }
-    catch (QSqlError& e) {
-      QTextStream(stderr) << "Could not delete evidence from internal database. Error: "
-                << e.text() << Qt::endl;
-    }
+
+    db->deleteEvidence(evidenceID);
 
     Q_EMIT setActionButtonsEnabled(true);
     if (shouldClose) {

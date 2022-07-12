@@ -24,17 +24,20 @@ class DBQuery {
 
  public:
   DBQuery(QString query) : DBQuery(query, {}) {}
-  DBQuery(QString query, QVariantList values) {
-    this->_query = query;
-    this->_values = values;
-  }
+  DBQuery(QString query, QVariantList values) :_query(query), _values(values) { }
   inline QString query() { return _query; }
   inline QVariantList values() { return _values; }
 };
 
 class DatabaseConnection {
  public:
-  DatabaseConnection(const QString& dbPath, QString databaseName);
+   /**
+   * @brief DatabaseConnection construct a connect to the database,
+   * Uses QSQLite Driver if the driver is missing the app to exit with code 255.
+   * @param dbPath - Path to the database
+   * @param databaseName - Name of the databaseFile or defaultName if none provided
+   */
+  DatabaseConnection(const QString& dbPath, const QString& databaseName = Constants::defaultDbName);
 
   /**
    * @brief withConnection acts as a context manager for a single database connection. The goal for
@@ -49,7 +52,7 @@ class DatabaseConnection {
   static void withConnection(const QString& dbPath, const QString &dbName,
                              const std::function<void(DatabaseConnection)> &actions);
 
-  void connect();
+  bool connect();
   void close() noexcept;
 
   static DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
@@ -71,7 +74,12 @@ class DatabaseConnection {
   void batchCopyTags(const QList<model::Tag> &allTags);
   QList<model::Tag> getFullTagsForEvidenceIDs(const QList<qint64>& evidenceIDs);
 
-  void deleteEvidence(qint64 evidenceID);
+  /**
+   * @brief deleteEvidence Delete Evidence from the database
+   * @param evidenceID - ID To Delete
+   * @return true if successful
+   */
+  bool deleteEvidence(qint64 evidenceID);
 
   /// createEvidenceExportView duplicates the normal database with only a subset of evidence
   /// present, as well as related data (e.g. tags)
@@ -90,10 +98,14 @@ class DatabaseConnection {
   const unsigned long SQLITE_MAX_VARS = 999;
 
  private:
-  QString dbName;
+  QString _dbName;
   QString _dbPath;
+  inline static const auto _migrateUp = QStringLiteral("-- +migrate up");
+  inline static const auto _migrateDown = QStringLiteral("-- +migrate down");
+  inline static const auto _newLine = QStringLiteral("\n");
+  inline static const auto _lineTemplate =QStringLiteral("%1").append(_newLine);
 
-  void migrateDB();
+  bool migrateDB();
   QSqlDatabase getDB();
 
   static QStringList getUnappliedMigrations(const QSqlDatabase &db);

@@ -16,7 +16,6 @@ void handleCLI(std::vector<std::string> args);
 #include "appconfig.h"
 #include "appsettings.h"
 #include "db/databaseconnection.h"
-#include "exceptions/databaseerr.h"
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
 
@@ -32,25 +31,10 @@ int main(int argc, char* argv[]) {
   QCoreApplication::setOrganizationName("ashirt");
 #endif
 
-  DatabaseConnection* conn;
-  try {
-    conn = new DatabaseConnection(Constants::dbLocation, Constants::defaultDbName);
-    conn->connect();
-  }
-  catch (FileError& err) {
-    QTextStream(stderr) << err.what() << Qt::endl;
-    return -1;
-  }
-  catch (DBDriverUnavailableError& err) {
-    QTextStream(stderr) << err.what() << Qt::endl;
-    return -1;
-  }
-  catch (QSqlError& e) {
-    QTextStream(stderr) << e.text() << Qt::endl;
-    return -1;
-  }
-  catch (std::exception& e) {
-    QTextStream(stderr) << "Unexpected error: " << e.what() << Qt::endl;
+
+  DatabaseConnection* conn = new DatabaseConnection(Constants::dbLocation, Constants::defaultDbName);
+  if(!conn->connect()) {
+    QTextStream(stderr) << "Unable to connect to Database" << Qt::endl;
     return -1;
   }
 
@@ -66,10 +50,16 @@ int main(int argc, char* argv[]) {
     qRegisterMetaType<model::Tag>();
 
     app.setWindowIcon(getWindowIcon());
+
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
       handleCLI(std::vector<std::string>(argv, argv + argc));
     }
     QApplication::setQuitOnLastWindowClosed(false);
+
+    QObject::connect(&app, &QApplication::aboutToQuit, [conn] {
+        conn->close();
+        delete conn;
+    });
 
     auto window = new TrayManager(nullptr, conn);
     rtn = app.exec();
@@ -82,9 +72,6 @@ int main(int argc, char* argv[]) {
   catch (...) {
     QTextStream(stderr) << "Unhandled exception while running" << Qt::endl;
   }
-  conn->close();
-  delete conn;
-
   return rtn;
 }
 
