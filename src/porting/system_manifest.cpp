@@ -4,19 +4,20 @@
 
 using namespace porting;
 
-void SystemManifest::applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb) {
-  bool shouldMigrateConfig = options.importConfig && !configPath.isEmpty();
-  bool shouldMigrateDb = options.importDb == SystemManifestImportOptions::Merge && !dbPath.isEmpty();
+void SystemManifest::applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb)
+{
+    bool shouldMigrateConfig = options.importConfig && !configPath.isEmpty();
+    bool shouldMigrateDb = options.importDb == SystemManifestImportOptions::Merge && !dbPath.isEmpty();
 
-  if (shouldMigrateConfig) {
-    Q_EMIT onStatusUpdate(tr("Importing Settings"));
-    migrateConfig();
-  }
+    if (shouldMigrateConfig) {
+        Q_EMIT onStatusUpdate(tr("Importing Settings"));
+        migrateConfig();
+    }
 
-  if (shouldMigrateDb) {
-    migrateDb(systemDb);
-  }
-  Q_EMIT onComplete();
+    if (shouldMigrateDb) {
+        migrateDb(systemDb);
+    }
+    Q_EMIT onComplete();
 }
 
 void SystemManifest::migrateConfig()
@@ -53,7 +54,7 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb)
                          , importRecord.operationSlug
                          , contentSensitiveFilename(importRecord.contentType));
 
-            auto fullFileExportPath = m_fileTemplate.arg(pathToManifest, item.exportPath);
+            auto fullFileExportPath = m_fileTemplate.arg(m_pathToManifest, item.exportPath);
             auto parentDir = FileHelpers::getDirname(newEvidencePath);
             if (!QDir().exists(parentDir))
                 QDir().mkpath(parentDir);
@@ -76,17 +77,16 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb)
 
 QString SystemManifest::pathToFile(const QString& filename)
 {
-    return m_fileTemplate.arg(pathToManifest, filename);
+    return m_fileTemplate.arg(m_pathToManifest, filename);
 }
 
-QString SystemManifest::contentSensitiveExtension(const QString& contentType) {
-  if (contentType == Codeblock::contentType()) {
-    return Codeblock::extension();
-  }
-  else if(contentType == Screenshot::contentType()) {
-    return Screenshot::extension();
-  }
-  return QStringLiteral(".bin");
+QString SystemManifest::contentSensitiveExtension(const QString& contentType)
+{
+    if (contentType == Codeblock::contentType())
+        return Codeblock::extension();
+    if(contentType == Screenshot::contentType())
+        return Screenshot::extension();
+    return QStringLiteral(".bin");
 }
 
 QString SystemManifest::contentSensitiveFilename(const QString& contentType)
@@ -98,94 +98,91 @@ QString SystemManifest::contentSensitiveFilename(const QString& contentType)
     return QStringLiteral("ashirt_unknown_type_%1.bin").arg(StringHelpers::randomString());
 }
 
-SystemManifest* SystemManifest::readManifest(const QString& pathToExportFile) {
-  auto content = FileHelpers::readFile(pathToExportFile);
-  auto manifest = parseJSONItem<SystemManifest*>(content, &SystemManifest::deserialize);
-  manifest->pathToManifest = FileHelpers::getDirname(pathToExportFile);
-
-  return manifest;
+SystemManifest* SystemManifest::readManifest(const QString& pathToExportFile)
+{
+    auto content = FileHelpers::readFile(pathToExportFile);
+    auto manifest = parseJSONItem<SystemManifest*>(content, &SystemManifest::deserialize);
+    manifest->m_pathToManifest = FileHelpers::getDirname(pathToExportFile);
+    return manifest;
 }
 
 void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outputDirPath,
-                                    const SystemManifestExportOptions& options) {
-  if (!options.includesAnything()) {
-    return;
-  }
+                                    const SystemManifestExportOptions& options)
+{
+    if (!options.includesAnything() || outputDirPath.isEmpty())
+        return;
 
-  bool success = QDir().mkpath(outputDirPath);
-  if (!success) {
-    return;
-  }
+    if (!QDir().mkpath(outputDirPath))
+        return;
 
-  os = QSysInfo::kernelType(); // may need to check possible answers, or maybe just compare to new system value?
+    os = QSysInfo::kernelType(); // may need to check possible answers, or maybe just compare to new system value?
+    QString basePath = QDir(outputDirPath).path();
 
-  QString basePath = QDir(outputDirPath).path();
+    if (options.exportConfig) {
+        Q_EMIT onStatusUpdate(tr("Exporting settings"));
+        configPath = QStringLiteral("config.json");
+        AppConfig::getInstance().writeConfig(m_fileTemplate.arg(basePath, configPath));
+    }
 
-  if (options.exportConfig) {
-    Q_EMIT onStatusUpdate(tr("Exporting settings"));
-    configPath = QStringLiteral("config.json");
-    AppConfig::getInstance().writeConfig(m_fileTemplate.arg(basePath, configPath));
-  }
+    if (options.exportDb) {
+        Q_EMIT onStatusUpdate(tr("Exporting Evidence"));
+        dbPath = QStringLiteral("db.sqlite");
+        evidenceManifestPath = QStringLiteral("evidence.json");
+        auto allEvidence = DatabaseConnection::createEvidenceExportView(m_fileTemplate.arg(basePath, dbPath), EvidenceFilters(), db);
+        Q_EMIT onReady(allEvidence.size());
+        porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
+        // write evidence manifest
+        FileHelpers::writeFile(m_fileTemplate.arg(basePath, evidenceManifestPath),
+                               QJsonDocument(EvidenceManifest::serialize(evidenceManifest)).toJson());
+    }
 
-  if (options.exportDb) {
-    Q_EMIT onStatusUpdate(tr("Exporting Evidence"));
-    dbPath = QStringLiteral("db.sqlite");
-    evidenceManifestPath = QStringLiteral("evidence.json");
-
-    auto allEvidence = DatabaseConnection::createEvidenceExportView(m_fileTemplate.arg(basePath, dbPath), EvidenceFilters(), db);
-    Q_EMIT onReady(allEvidence.size());
-    porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
-
-    // write evidence manifest
-    FileHelpers::writeFile(m_fileTemplate.arg(basePath, evidenceManifestPath),
-                           QJsonDocument(EvidenceManifest::serialize(evidenceManifest)).toJson());
-  }
-
-  QString exportPath = QStringLiteral("%1/system.json").arg(basePath);
-  this->pathToManifest = exportPath;
-  FileHelpers::writeFile(exportPath, QJsonDocument(serialize(*this)).toJson());
-  Q_EMIT onComplete();
+    m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);
+    FileHelpers::writeFile(m_pathToManifest, QJsonDocument(serialize(*this)).toJson());
+    Q_EMIT onComplete();
 }
 
 porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExportPath,
-                                                       QList<model::Evidence> allEvidence) {
-  QString relativeEvidenceDir = QStringLiteral("evidence");
-  QDir().mkpath(m_fileTemplate.arg(baseExportPath, relativeEvidenceDir));
+                                                       QList<model::Evidence> allEvidence)
+{
+    QString relativeEvidenceDir = QStringLiteral("evidence");
+    QDir().mkpath(m_fileTemplate.arg(baseExportPath, relativeEvidenceDir));
 
-  porting::EvidenceManifest evidenceManifest;
-  for (size_t evidenceIndex = 0; evidenceIndex < allEvidence.size(); evidenceIndex++) {
-    auto evi = allEvidence.at(evidenceIndex);
-    auto newName = QStringLiteral("ashirt_evidence_%1.%2")
-                                .arg(StringHelpers::randomString(10), contentSensitiveExtension(evi.contentType));
-    auto item = porting::EvidenceItem(evi.id, relativeEvidenceDir + "/" + newName);
-    auto dstPath = m_fileTemplate.arg(baseExportPath, item.exportPath);
-    QFile srcFile(evi.path);
-    srcFile.copy(dstPath);
-    if (!srcFile.error() != QFileDevice::NoError)
-      Q_EMIT onCopyFileError(evi.path, dstPath, srcFile.errorString());
-    else
-      evidenceManifest.entries.append(item);
-    Q_EMIT onFileProcessed(evidenceIndex + 1);
-  }
-  return evidenceManifest;
+    porting::EvidenceManifest evidenceManifest;
+    for (size_t evidenceIndex = 0; evidenceIndex < allEvidence.size(); evidenceIndex++) {
+        auto evi = allEvidence.at(evidenceIndex);
+        auto newName = QStringLiteral("ashirt_evidence_%1.%2")
+                .arg(StringHelpers::randomString(10), contentSensitiveExtension(evi.contentType));
+        auto item = porting::EvidenceItem(evi.id, m_fileTemplate.arg(relativeEvidenceDir, newName));
+        auto dstPath = m_fileTemplate.arg(baseExportPath, item.exportPath);
+        QFile srcFile(evi.path);
+        srcFile.copy(dstPath);
+        if (!srcFile.error() != QFileDevice::NoError)
+            Q_EMIT onCopyFileError(evi.path, dstPath, srcFile.errorString());
+        else
+            evidenceManifest.entries.append(item);
+        Q_EMIT onFileProcessed(evidenceIndex + 1);
+    }
+    return evidenceManifest;
 }
 
-QJsonObject SystemManifest::serialize(const SystemManifest& src) {
-  QJsonObject o;
-  o.insert(QStringLiteral("operatingSystem"), src.os);
-  o.insert(QStringLiteral("databasePath"), src.dbPath);
-  o.insert(QStringLiteral("configPath"), src.configPath);
-  o.insert(QStringLiteral("serversPath"), src.serversPath);
-  o.insert(QStringLiteral("evidenceManifestPath"), src.evidenceManifestPath);
-  return o;
+QJsonObject SystemManifest::serialize(const SystemManifest& src)
+{
+    QJsonObject o;
+    o.insert(QStringLiteral("operatingSystem"), src.os);
+    o.insert(QStringLiteral("databasePath"), src.dbPath);
+    o.insert(QStringLiteral("configPath"), src.configPath);
+    o.insert(QStringLiteral("serversPath"), src.serversPath);
+    o.insert(QStringLiteral("evidenceManifestPath"), src.evidenceManifestPath);
+    return o;
 }
 
-SystemManifest* SystemManifest::deserialize(const QJsonObject& o) {
-  auto manifest = new SystemManifest;
-  manifest->os = o.value(QStringLiteral("operatingSystem")).toString();
-  manifest->dbPath = o.value(QStringLiteral("databasePath")).toString();
-  manifest->configPath = o.value(QStringLiteral("configPath")).toString();
-  manifest->serversPath = o.value(QStringLiteral("serversPath")).toString();
-  manifest->evidenceManifestPath = o.value(QStringLiteral("evidenceManifestPath")).toString();
-  return manifest;
+SystemManifest* SystemManifest::deserialize(const QJsonObject& o)
+{
+    auto manifest = new SystemManifest;
+    manifest->os = o.value(QStringLiteral("operatingSystem")).toString();
+    manifest->dbPath = o.value(QStringLiteral("databasePath")).toString();
+    manifest->configPath = o.value(QStringLiteral("configPath")).toString();
+    manifest->serversPath = o.value(QStringLiteral("serversPath")).toString();
+    manifest->evidenceManifestPath = o.value(QStringLiteral("evidenceManifestPath")).toString();
+    return manifest;
 }
