@@ -36,8 +36,8 @@ bool DatabaseConnection::connect()
 {
     auto db = getDB();
     if (!db.open()) {
+        qWarning() << "Unable to connect to Database";
         return false;
-        throw db.lastError();
     }
     return migrateDB();
 }
@@ -415,14 +415,11 @@ QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) n
 
 // executeQuery simply attempts to execute the given stmt with the passed args. The statement is
 // first prepared, and arg placements can be specified with "?"
-//
-// Throws: QSqlError when a query error occurs
 QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString &stmt,
                                            const QVariantList &args) {
   auto result = executeQueryNoThrow(db, stmt, args);
-  if (!result.success) {
-    throw result.err;
-  }
+  if (!result.success)
+    qWarning() << "Error executing Query: " << result.err.text();
   return std::move(result.query);
 }
 

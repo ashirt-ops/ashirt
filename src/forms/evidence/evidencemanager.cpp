@@ -500,25 +500,13 @@ void EvidenceManager::onUploadComplete() {
   NetMan::extractResponse(uploadAssetReply, isValid);
 
   if (!isValid) {
-    auto errMessage =
-        tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
-    try {
-      db->updateEvidenceError(errMessage, evidenceIDForRequest);
-    }
-    catch (QSqlError& e) {
-      qWarning() << "Upload failed. Could not update internal database. Error: " << e.text();
-    }
+    auto errMessage = tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
+    db->updateEvidenceError(errMessage, evidenceIDForRequest);
     QMessageBox::warning(this, tr("Cannot Submit Evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
                          "(Error: %1)").arg(uploadAssetReply->errorString()));
-  }
-  else {
-    try {
-      db->updateEvidenceSubmitted(evidenceIDForRequest);
-    }
-    catch (QSqlError& e) {
-      qWarning() << "Upload successful. Could not update internal database. Error: " << e.text();
-    }
+  } else {
+    db->updateEvidenceSubmitted(evidenceIDForRequest);
     Q_EMIT evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }
   refreshRow(evidenceTable->currentRow());

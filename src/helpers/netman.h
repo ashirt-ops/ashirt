@@ -122,7 +122,7 @@ public:
   /// Callers should retrieve the result by listening for the releasesChecked signal
   static void checkForNewRelease(QString owner, QString repo) {
     if (owner.isEmpty() || repo.isEmpty()) {
-      qWarning() << "Skipping release check: no owner or repo set.";
+      qInfo() << "Skipping release check: no owner or repo set.";
       return;
     }
     get()->githubReleaseReply = get()->getGithubReleases(owner, repo);

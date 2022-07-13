@@ -61,7 +61,7 @@ class TrayManager : public QDialog {
   qint64 createNewEvidence(const QString& filepath, const QString& evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
-  void showDBWriteErrorTrayMessage(const QString &errorMessage = QString());
+  void showDBWriteErrorTrayMessage();
   void checkForUpdate();
   void cleanChooseOpSubmenu();
   /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,

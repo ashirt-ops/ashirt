@@ -18,7 +18,6 @@
 #include <iostream>
 #include "appconfig.h"
 #include "db/databaseconnection.h"
-#include "exceptions/fileerror.h"
 #include "forms/getinfo/getinfo.h"
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
@@ -211,6 +210,7 @@ void TrayManager::onClipboardCapture()
         QString clipboardContent = mimeData->text();
         if (clipboardContent.isEmpty())
             return;
+
         Codeblock evidence(clipboardContent);
         if(!Codeblock::saveCodeblock(evidence)) {
             setTrayMessage(NO_ACTION, _recordErrorTitle, tr("Error Gathering Evidence from clipboard"), QSystemTrayIcon::Information);
@@ -227,30 +227,27 @@ void TrayManager::onClipboardCapture()
         return;
     }
 
-    int evidenceID = 0;
-    try {
-        evidenceID = createNewEvidence(path, type);
-    }
-    catch (QSqlError& e) {
-      showDBWriteErrorTrayMessage(e.text());
-      return;
+    int evidenceID = createNewEvidence(path, type);
+    if(evidenceID == -1) {
+        showDBWriteErrorTrayMessage();
+        return;
     }
     spawnGetInfoWindow(evidenceID);
 }
 
-void TrayManager::onScreenshotCaptured(const QString& path) {
-  try {
-    auto evidenceID = createNewEvidence(path, QStringLiteral("image"));
-    spawnGetInfoWindow(evidenceID);
-  }
-  catch (QSqlError& e) {
-    showDBWriteErrorTrayMessage(e.text());
-  }
-}
-
-void TrayManager::showDBWriteErrorTrayMessage(const QString &errorMessage)
+void TrayManager::onScreenshotCaptured(const QString& path)
 {
-    setTrayMessage(NO_ACTION, _recordErrorTitle, tr("Could not write to database: %1").arg(errorMessage), QSystemTrayIcon::Warning);
+  auto evidenceID = createNewEvidence(path, QStringLiteral("image"));
+  if(evidenceID == -1) {
+      showDBWriteErrorTrayMessage();
+      return;
+  }
+    spawnGetInfoWindow(evidenceID);
+}
+
+void TrayManager::showDBWriteErrorTrayMessage()
+{
+    setTrayMessage(NO_ACTION, _recordErrorTitle,tr("Could not write to database"), QSystemTrayIcon::Warning);
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
