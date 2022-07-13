@@ -14,8 +14,10 @@ DatabaseConnection::DatabaseConnection(const QString& dbPath, const QString& dat
  , _dbPath(dbPath)
  , _db(QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), databaseName))
 {
-    QDir().mkpath(FileHelpers::getDirname(dbPath));
-    _db.setDatabaseName(dbPath);
+    const auto dbDir = FileHelpers::getDirname(_dbPath);
+    if(!QDir().exists(dbDir))
+        QDir().mkpath(dbDir);
+    _db.setDatabaseName(_dbPath);
 }
 
 void DatabaseConnection::withConnection(const QString& dbPath, const QString &dbName,
