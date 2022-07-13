@@ -12,7 +12,6 @@
 #include <QtConcurrent/QtConcurrent>
 
 #include "db/databaseconnection.h"
-#include "exceptions/fileerror.h"
 
 PortingDialog::PortingDialog(PortType dialogType, DatabaseConnection* db, QWidget *parent)
   : AShirtDialog(parent)
@@ -167,29 +166,21 @@ void PortingDialog::doExport(porting::SystemManifest* manifest, const QString& e
   QString threadedDbName = QStringLiteral("%1_mt_forExport").arg(Constants::defaultDbName);
   DatabaseConnection::withConnection(
       db->getDatabasePath(), threadedDbName, [this, &manifest, exportPath, options](DatabaseConnection conn){
-         try {
            manifest->exportManifest(&conn, exportPath, options);
-         }
-         catch(const FileError &e) {
-           portStatusLabel->setText(tr("Error during export: %1").arg(e.what()));
+           connect(manifest, &porting::SystemManifest::onExportError, this, [this] {
+               portStatusLabel->setText(tr("Error during export"));
+           });
            Q_EMIT onWorkComplete(false);
-         }
-         catch(const QSqlError &e) {
-           portStatusLabel->setText(tr("Error during export: %1").arg(e.text()));
-           Q_EMIT onWorkComplete(false);
-         }
   });
   Q_EMIT onWorkComplete(true);
 }
 
 porting::SystemManifest* PortingDialog::doPreImport(const QString& pathToSystemManifest) {
   porting::SystemManifest* manifest = nullptr;
-  try {
-    manifest = porting::SystemManifest::readManifest(pathToSystemManifest);
-  }
-  catch(const FileError& e) {
-    portStatusLabel->setText(tr("Unable to parse system file."));
-    onPortComplete(false);
+  manifest = porting::SystemManifest::readManifest(pathToSystemManifest);
+  if(!manifest) {
+      portStatusLabel->setText(tr("Unable to parse system file."));
+      onPortComplete(false);
   }
   return manifest;
 }
@@ -202,17 +193,7 @@ void PortingDialog::doImport(porting::SystemManifest* manifest) {
   QString threadedDbName = QStringLiteral("%1_mt_forImport").arg(Constants::defaultDbName);
   DatabaseConnection::withConnection(
       db->getDatabasePath(), threadedDbName, [this, &manifest, options](DatabaseConnection conn){
-        try {
-          manifest->applyManifest(options, &conn);
-        }
-        catch(const FileError &e) {
-          portStatusLabel->setText(tr("Error during import: %1").arg(e.what()));
-          Q_EMIT onWorkComplete(false);
-        }
-        catch(const QSqlError &e) {
-          portStatusLabel->setText(tr("Error during import: ").arg(e.text()));
-          Q_EMIT onWorkComplete(false);
-        }
+      manifest->applyManifest(options, &conn);
   });
   Q_EMIT onWorkComplete(true);
 }

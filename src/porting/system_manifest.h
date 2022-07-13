@@ -67,6 +67,8 @@ namespace porting {
     void onFileProcessed(quint64 runningCount);
     /// onComplete fires when the entire import/export is finished
     void onComplete();
+    /// onComplete fires when the export has an error
+    void onExportError(QString errorString);
     /// onCopyFileError fires when a file cannot be copied during import or export
     void onCopyFileError(QString srcPath, QString dstPath, const QString& errStr);
     /// onStatusUpdate fires when the system moves between import/export phases

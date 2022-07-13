@@ -15,7 +15,6 @@
 
 #include "appconfig.h"
 #include "dtos/tag.h"
-#include "exceptions/fileerror.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 #include "helpers/netman.h"
@@ -277,19 +276,15 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
     auto errLogPath = QStringLiteral("%1/%2.log")
             .arg(AppConfig::value(CONFIG::EVIDENCEREPO)
             , QDateTime::currentDateTime().toMSecsSinceEpoch());
-    try {
-      QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
-              .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
-      FileHelpers::writeFile(errLogPath, dataToWrite);
-    }
-    catch(FileError &e) {
-      logWritten = false;
-    }
-    QString msg = tr("Some files could not be deleted.");
 
-    if (logWritten) {
-      msg.append(tr(" A list of the excluded files can be found here: \n").arg(errLogPath));
-    }
+    QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
+              .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
+    logWritten = FileHelpers::writeFile(errLogPath, dataToWrite);
+
+    QString msg = tr("Some files could not be deleted.");
+    if (logWritten)
+        msg.append(tr(" A list of the excluded files can be found here: \n").arg(errLogPath));
+
     QMessageBox::warning(this, tr("Could not complete evidence deletion"), msg);
   }
 

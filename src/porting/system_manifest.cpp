@@ -120,9 +120,11 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
                                QJsonDocument(EvidenceManifest::serialize(evidenceManifest)).toJson());
     }
 
-        m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);
-    FileHelpers::writeFile(m_pathToManifest, QJsonDocument(serialize(*this)).toJson());
-    Q_EMIT onComplete();
+    m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);
+    if(FileHelpers::writeFile(m_pathToManifest, QJsonDocument(serialize(*this)).toJson()))
+        Q_EMIT onComplete();
+    else
+        Q_EMIT onExportError(QStringLiteral("Error On Exporting manifest"));
 }
 
 porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExportPath,
