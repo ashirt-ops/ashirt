@@ -12,41 +12,38 @@
 DatabaseConnection::DatabaseConnection(const QString& dbPath, const QString& databaseName)
  : _dbName(databaseName)
  , _dbPath(dbPath)
+ , _db(QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), databaseName))
 {
-    auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), databaseName);
     QDir().mkpath(FileHelpers::getDirname(dbPath));
-    db.setDatabaseName(dbPath);
+    _db.setDatabaseName(dbPath);
 }
 
 void DatabaseConnection::withConnection(const QString& dbPath, const QString &dbName,
-                                        const std::function<void(DatabaseConnection)> &actions) {
+                                        const std::function<void(DatabaseConnection)> &actions)
+{
   DatabaseConnection conn(dbPath, dbName);
   conn.connect();
-  try {
-    actions(conn);
-  } catch(const std::runtime_error& e) {
-    qWarning() << "Error running action: " << e.what();
-  }
-
+  actions(conn);
+  if(conn._db.lastError().type() != QSqlError::NoError)
+      qWarning() << "Error running action: " << conn._db.lastError().text();
   conn.close();
   QSqlDatabase::removeDatabase(dbName);
 }
 
 bool DatabaseConnection::connect()
 {
-    auto db = getDB();
-    if (!db.open()) {
+    if (!_db.open()) {
         qWarning() << "Unable to connect to Database";
         return false;
     }
     return migrateDB();
 }
 
-void DatabaseConnection::close() noexcept { getDB().close(); }
+void DatabaseConnection::close() noexcept { _db.close(); }
 
 qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString &operationSlug,
                                           const QString &contentType) {
-  return doInsert(getDB(),
+  return doInsert(_db,
                   "INSERT INTO evidence"
                   " (path, operation_slug, content_type, recorded_date)"
                   " VALUES"
@@ -55,7 +52,7 @@ qint64 DatabaseConnection::createEvidence(const QString &filepath, const QString
 }
 
 qint64 DatabaseConnection::createFullEvidence(const model::Evidence &evidence) {
-  return doInsert(getDB(),
+  return doInsert(_db,
                   "INSERT INTO evidence"
                   " (path, operation_slug, content_type, description, error, recorded_date, upload_date)"
                   " VALUES"
@@ -80,7 +77,7 @@ void DatabaseConnection::batchCopyFullEvidence(const QList<model::Evidence> &evi
 }
 
 qint64 DatabaseConnection::copyFullEvidence(const model::Evidence &evidence) {
-  return doInsert(getDB(),
+  return doInsert(_db,
                   "INSERT INTO evidence"
                   " (id, path, operation_slug, content_type, description, error, recorded_date, upload_date)"
                   " VALUES"
@@ -93,7 +90,7 @@ qint64 DatabaseConnection::copyFullEvidence(const model::Evidence &evidence) {
 
 model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   model::Evidence rtn;
-  auto query = executeQuery(getDB(),
+  auto query = executeQuery(_db,
       "SELECT"
       " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
       " FROM evidence"
@@ -123,12 +120,12 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
 
 void DatabaseConnection::updateEvidenceDescription(const QString &newDescription,
                                                    qint64 evidenceID) {
-  executeQuery(getDB(), "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
+  executeQuery(_db, "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
 }
 
 bool DatabaseConnection::deleteEvidence(qint64 evidenceID)
 {
-  auto q = executeQuery(getDB(), "DELETE FROM evidence WHERE id=?", {evidenceID});
+  auto q = executeQuery(_db, "DELETE FROM evidence WHERE id=?", {evidenceID});
   if (q.lastError().type() == QSqlError::NoError)
       return true;
   qWarning() << "Unable to Delete " << evidenceID << " " << q.lastError().text();
@@ -136,16 +133,16 @@ bool DatabaseConnection::deleteEvidence(qint64 evidenceID)
 }
 
 void DatabaseConnection::updateEvidenceError(const QString &errorText, qint64 evidenceID) {
-  executeQuery(getDB(), "UPDATE evidence SET error=? WHERE id=?", {errorText, evidenceID});
+  executeQuery(_db, "UPDATE evidence SET error=? WHERE id=?", {errorText, evidenceID});
 }
 
 void DatabaseConnection::updateEvidenceSubmitted(qint64 evidenceID) {
-  executeQuery(getDB(), "UPDATE evidence SET upload_date=datetime('now') WHERE id=?", {evidenceID});
+  executeQuery(_db, "UPDATE evidence SET upload_date=datetime('now') WHERE id=?", {evidenceID});
 }
 
 QList<model::Tag> DatabaseConnection::getTagsForEvidenceID(qint64 evidenceID) {
   QList<model::Tag> tags;
-  auto getTagQuery = executeQuery(getDB(), "SELECT id, tag_id, name FROM tags WHERE evidence_id=?",
+  auto getTagQuery = executeQuery(_db, "SELECT id, tag_id, name FROM tags WHERE evidence_id=?",
                                   {evidenceID});
   while (getTagQuery.next()) {
     auto tag = model::Tag(getTagQuery.value(QStringLiteral("id")).toLongLong(),
@@ -181,16 +178,15 @@ void DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint6
   if(newTags.isEmpty())
       return;
 
-  auto db = getDB();
   QVariantList newTagIds;
   for (const auto &tag : newTags) {
     newTagIds.append(tag.serverTagId);
   }
-  executeQuery(db, "DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?",
+  executeQuery(_db, "DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?",
                {newTagIds, evidenceID});
 
   auto currentTagsResult =
-      executeQuery(db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
+      executeQuery(_db, "SELECT tag_id FROM tags WHERE evidence_id = ?", {evidenceID});
   QList<qint64> currentTags;
   while (currentTagsResult.next()) {
     currentTags.append(currentTagsResult.value(QStringLiteral("tag_id")).toLongLong());
@@ -223,7 +219,7 @@ void DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint6
       args.append(item.tagID);
       args.append(item.name);
     }
-    executeQuery(db, baseQuery, args);
+    executeQuery(_db, baseQuery, args);
   }
 }
 
@@ -282,13 +278,13 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
 }
 
 void DatabaseConnection::updateEvidencePath(const QString& newPath, qint64 evidenceID) {
-  executeQuery(getDB(), "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
+  executeQuery(_db, "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
 }
 
 QList<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
     const EvidenceFilters &filters) {
   auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
-  auto resultSet = executeQuery(getDB(), dbQuery.query(), dbQuery.values());
+  auto resultSet = executeQuery(_db, dbQuery.query(), dbQuery.values());
 
   QList<model::Evidence> allEvidence;
   while (resultSet.next()) {
@@ -337,9 +333,8 @@ QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
 //
 // Throws exceptions/FileError if a migration file cannot be found.
 bool DatabaseConnection::migrateDB() {
-  auto db = getDB();
   qInfo() << "Checking database state";
-  auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
+  auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(_db);
 
   for (const QString &newMigration : migrationsToApply) {
     QFile migrationFile(QStringLiteral(":/migrations/%1").arg(newMigration));
@@ -351,8 +346,8 @@ bool DatabaseConnection::migrateDB() {
 
     qInfo() << "Applying Migration: " << newMigration;
     auto upScript = extractMigrateUpContent(content);
-    executeQuery(db, upScript);
-    executeQuery(db,
+    executeQuery(_db, upScript);
+    executeQuery(_db,
                  "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
                  {newMigration});
   }
@@ -450,11 +445,6 @@ qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
   return query.lastInsertId().toLongLong();
 }
 
-QSqlDatabase DatabaseConnection::getDB()
-{
-    return QSqlDatabase::database(_dbName);
-}
-
 QString DatabaseConnection::getDatabasePath()
 {
     return _dbPath;
@@ -481,7 +471,6 @@ void DatabaseConnection::batchQuery(const QString &baseQuery, unsigned int varsP
     variableTemplate = QString("?,").repeated(int(varsPerRow));
   }
   int runningRowIndex = 0; // tracks what row is next to be encoded/"inserted"
-  auto db = getDB();
   /// prepArgString generates a string that looks like ?,?,?, with as many ? as rowInsertTemplate * numRows
   auto prepArgString = [variableTemplate](unsigned int numRows){
     auto inst = variableTemplate.repeated(int(numRows));
@@ -498,8 +487,8 @@ void DatabaseConnection::batchQuery(const QString &baseQuery, unsigned int varsP
     return values;
   };
   /// runQuery executes the given query, and iterates over the result set
-  auto runQuery = [db, decodeRows](const QString &query, const QVariantList& values) {
-    auto completedQuery = executeQuery(db, query, values);
+  auto runQuery = [this, decodeRows](const QString &query, const QVariantList& values) {
+    auto completedQuery = executeQuery(_db, query, values);
     while (completedQuery.next()) {
       decodeRows(completedQuery);
     }

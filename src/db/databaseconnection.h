@@ -100,13 +100,13 @@ class DatabaseConnection {
  private:
   QString _dbName;
   QString _dbPath;
+  QSqlDatabase _db = QSqlDatabase();
   inline static const auto _migrateUp = QStringLiteral("-- +migrate up");
   inline static const auto _migrateDown = QStringLiteral("-- +migrate down");
   inline static const auto _newLine = QStringLiteral("\n");
   inline static const auto _lineTemplate =QStringLiteral("%1").append(_newLine);
 
   bool migrateDB();
-  QSqlDatabase getDB();
 
   static QStringList getUnappliedMigrations(const QSqlDatabase &db);
   static QString extractMigrateUpContent(const QString &allContent) noexcept;
