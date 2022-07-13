@@ -104,12 +104,28 @@ class DatabaseConnection {
   inline static const auto _migrateUp = QStringLiteral("-- +migrate up");
   inline static const auto _migrateDown = QStringLiteral("-- +migrate down");
   inline static const auto _newLine = QStringLiteral("\n");
-  inline static const auto _lineTemplate =QStringLiteral("%1").append(_newLine);
+  inline static const auto _lineTemplate = QStringLiteral("%1").append(_newLine);
+  inline static const auto _migrationPath = QStringLiteral(":/migrations");
+  inline static const auto _sqlSelectTemplate = QStringLiteral("SELECT %1 FROM %2");
+  inline static const auto _sqlAddAppliedMigration = QStringLiteral("INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))");
+  inline static const auto _migration_name = QStringLiteral("migration_name");
+  inline static const auto _tblEvidence = QStringLiteral("evidence");
+  inline static const auto _tblMigrations = QStringLiteral("migrations");
+  inline static const auto _evidenceAllKeys = QStringLiteral("id, path, operation_slug, content_type, description, error, recorded_date, upload_date");
 
+  /**
+   * @brief migrateDB - Check migration status and apply any outstanding ones
+   * @return true if successful
+   */
   bool migrateDB();
 
-  static QStringList getUnappliedMigrations(const QSqlDatabase &db);
-  static QString extractMigrateUpContent(const QString &allContent) noexcept;
+  /**
+   * @brief getUnappliedMigrations retrieves a list of all of the migrations that have not been applied to the database db
+   * Note: only files ending in ".sql" are checked
+   * @return List of migrations that have not be applied
+   */
+  QStringList getUnappliedMigrations();
+  QString extractMigrateUpContent(const QString &allContent) noexcept;
   static QSqlQuery executeQuery(const QSqlDatabase& db, const QString &stmt,
                                 const QVariantList &args = {});
 

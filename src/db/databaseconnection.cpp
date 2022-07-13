@@ -6,7 +6,6 @@
 #include <QDir>
 #include <QVariant>
 
-#include "exceptions/fileerror.h"
 #include "helpers/file_helpers.h"
 
 DatabaseConnection::DatabaseConnection(const QString& dbPath, const QString& databaseName)
@@ -120,8 +119,8 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
   return rtn;
 }
 
-void DatabaseConnection::updateEvidenceDescription(const QString &newDescription,
-                                                   qint64 evidenceID) {
+void DatabaseConnection::updateEvidenceDescription(const QString &newDescription, qint64 evidenceID)
+{
   executeQuery(_db, "UPDATE evidence SET description=? WHERE id=?", {newDescription, evidenceID});
 }
 
@@ -235,23 +234,26 @@ void DatabaseConnection::batchCopyTags(const QList<model::Tag> &allTags) {
   batchInsert(baseQuery, varsPerRow, allTags.size(), getItemValues);
 }
 
-DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters) {
-  QString query =
-      "SELECT"
-      " id, path, operation_slug, content_type, description, error, recorded_date, upload_date"
-      " FROM evidence";
+DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters)
+{
+  QString query = QStringLiteral("SELECT %1 FROM %2").arg(_evidenceAllKeys, _tblEvidence);
   QVariantList values;
   QStringList parts;
 
   if (filters.hasError != Tri::Any) {
-    parts.append(" error LIKE ? ");
+    parts.append(QStringLiteral(" error LIKE ? "));
     // _% will ensure at least one character exists in the error column, ensuring it's populated
-    values.append(filters.hasError == Tri::Yes ? "_%" : "");
+    values.append(filters.hasError == Tri::Yes ? QStringLiteral("_%") : QString());
   }
+
   if (filters.submitted != Tri::Any) {
-    parts.append((filters.submitted == Tri::Yes) ? " upload_date IS NOT NULL "
-                                                       : " upload_date IS NULL ");
+    auto sub = QStringLiteral(" upload_data IS%1NULL");
+    if(filters.submitted == Tri::Yes)
+        parts.append(sub.arg(QStringLiteral(" NOT ")));
+    else
+        parts.append(sub.arg(QStringLiteral(" ")));
   }
+
   if (!filters.operationSlug.isEmpty()) {
     parts.append(" operation_slug = ? ");
     values.append(filters.operationSlug);
@@ -271,42 +273,40 @@ DBQuery DatabaseConnection::buildGetEvidenceWithFiltersQuery(const EvidenceFilte
   }
 
   if (!parts.empty()) {
-    query += " WHERE " + parts.at(0);
-    for (size_t i = 1; i < parts.size(); i++) {
-      query += " AND " + parts.at(i);
-    }
+    query.append(QStringLiteral(" WHERE %1").arg(parts.at(0)));
+    for (size_t i = 1; i < parts.size(); i++)
+      query.append(QStringLiteral(" AND %1").arg(parts.at(i)));
   }
   return DBQuery(query, values);
 }
 
-void DatabaseConnection::updateEvidencePath(const QString& newPath, qint64 evidenceID) {
-  executeQuery(_db, "UPDATE evidence SET path=? WHERE id=?", {newPath, evidenceID});
+void DatabaseConnection::updateEvidencePath(const QString& newPath, qint64 evidenceID)
+{
+    executeQuery(_db, QStringLiteral("UPDATE evidence SET path=? WHERE id=?"), {newPath, evidenceID});
 }
 
-QList<model::Evidence> DatabaseConnection::getEvidenceWithFilters(
-    const EvidenceFilters &filters) {
-  auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
-  auto resultSet = executeQuery(_db, dbQuery.query(), dbQuery.values());
+QList<model::Evidence> DatabaseConnection::getEvidenceWithFilters(const EvidenceFilters &filters)
+{
+    auto dbQuery = buildGetEvidenceWithFiltersQuery(filters);
+    auto resultSet = executeQuery(_db, dbQuery.query(), dbQuery.values());
+    QList<model::Evidence> allEvidence;
 
-  QList<model::Evidence> allEvidence;
-  while (resultSet.next()) {
-    model::Evidence evi;
-    evi.id = resultSet.value(QStringLiteral("id")).toLongLong();
-    evi.path = resultSet.value(QStringLiteral("path")).toString();
-    evi.operationSlug = resultSet.value(QStringLiteral("operation_slug")).toString();
-    evi.contentType = resultSet.value(QStringLiteral("content_type")).toString();
-    evi.description = resultSet.value(QStringLiteral("description")).toString();
-    evi.errorText = resultSet.value(QStringLiteral("error")).toString();
-    evi.recordedDate = resultSet.value(QStringLiteral("recorded_date")).toDateTime();
-    evi.uploadDate = resultSet.value(QStringLiteral("upload_date")).toDateTime();
+    while (resultSet.next()) {
+        model::Evidence evi;
+        evi.id = resultSet.value(QStringLiteral("id")).toLongLong();
+        evi.path = resultSet.value(QStringLiteral("path")).toString();
+        evi.operationSlug = resultSet.value(QStringLiteral("operation_slug")).toString();
+        evi.contentType = resultSet.value(QStringLiteral("content_type")).toString();
+        evi.description = resultSet.value(QStringLiteral("description")).toString();
+        evi.errorText = resultSet.value(QStringLiteral("error")).toString();
+        evi.recordedDate = resultSet.value(QStringLiteral("recorded_date")).toDateTime();
+        evi.uploadDate = resultSet.value(QStringLiteral("upload_date")).toDateTime();
+        evi.recordedDate.setTimeSpec(Qt::UTC);
+        evi.uploadDate.setTimeSpec(Qt::UTC);
+        allEvidence.append(evi);
+    }
 
-    evi.recordedDate.setTimeSpec(Qt::UTC);
-    evi.uploadDate.setTimeSpec(Qt::UTC);
-
-    allEvidence.append(evi);
-  }
-
-  return allEvidence;
+    return allEvidence;
 }
 
 QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
@@ -330,84 +330,69 @@ QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
   return exportEvidence;
 }
 
-// migrateDB checks the migration status and then performs the full migration for any
-// lacking update.
-//
-// Throws exceptions/FileError if a migration file cannot be found.
-bool DatabaseConnection::migrateDB() {
-  qInfo() << "Checking database state";
-  auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(_db);
+bool DatabaseConnection::migrateDB()
+{
+    qInfo() << "Checking database state";
+    auto migrationsToApply = DatabaseConnection::getUnappliedMigrations();
 
-  for (const QString &newMigration : migrationsToApply) {
-    QFile migrationFile(QStringLiteral(":/migrations/%1").arg(newMigration));
-    auto ok = migrationFile.open(QFile::ReadOnly);
-    if (!ok)
-        return false;
-    auto content = QString(migrationFile.readAll());
-    migrationFile.close();
+    for (const auto &newMigration : migrationsToApply) {
+        QFile migrationFile(QStringLiteral("%1/%2").arg(_migrationPath, newMigration));
+        if (!migrationFile.open(QFile::ReadOnly))
+            return false;
+        auto content = QString(migrationFile.readAll());
+        migrationFile.close();
+        qInfo() << "Applying Migration: " << newMigration;
+        auto upScript = extractMigrateUpContent(content);
+        executeQuery(_db, upScript);
+        executeQuery(_db, _sqlAddAppliedMigration, {newMigration});
+    }
 
-    qInfo() << "Applying Migration: " << newMigration;
-    auto upScript = extractMigrateUpContent(content);
-    executeQuery(_db, upScript);
-    executeQuery(_db,
-                 "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
-                 {newMigration});
-  }
-  qInfo() << "All migrations applied";
-  return true;
+    qInfo() << "All migrations applied";
+    return true;
 }
 
-// getUnappliedMigrations retrieves a list of all of the migrations that have not been applied
-// to the local database.
-//
-// Note: All sql files must end in ".sql" to be picked up
-//
-// Throws:
-//   * BadDatabaseStateError if some migrations have been applied that are not known
-//   * QSqlError if database queries fail
-QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db)
+QStringList DatabaseConnection::getUnappliedMigrations()
 {
-  QDir migrationsDir(QStringLiteral(":/migrations"));
-  const auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
-  QStringList appliedMigrations;
-  QStringList migrationsToApply;
+    QDir migrationsDir(_migrationPath);
+    const auto allMigrations = migrationsDir.entryList(QDir::Files, QDir::Name);
+    QStringList appliedMigrations;
+    QStringList migrationsToApply;
 
-  auto queryResult = executeQueryNoThrow(db, "SELECT migration_name FROM migrations");
-  QSqlQuery* dbMigrations = &queryResult.query;
-  while (queryResult.success && queryResult.query.next()) {
-    appliedMigrations << dbMigrations->value(QStringLiteral("migration_name")).toString();
-  }
-  // compare the two list to find gaps
-  for (const QString &possibleMigration : allMigrations) {
-    if (!possibleMigration.endsWith(QStringLiteral(".sql")))
-      continue;  // assume non-sql files aren't actual migrations.
-
-    auto foundIndex = appliedMigrations.indexOf(possibleMigration);
-    if (foundIndex == -1)
-      migrationsToApply << possibleMigration;
-    else
-      appliedMigrations.removeAt(foundIndex);
-  }
-  if (!appliedMigrations.empty()) {
-    qWarning() << "Database is in an inconsistent state";
-  }
-  return migrationsToApply;
+    auto queryResult = executeQueryNoThrow(_db, _sqlSelectTemplate.arg(_migration_name, _tblMigrations));
+    QSqlQuery* dbMigrations = &queryResult.query;
+    while (queryResult.success && queryResult.query.next())
+        appliedMigrations << dbMigrations->value(_migration_name).toString();
+    // compare the two list to find gaps
+    for (const auto &possibleMigration : allMigrations) {
+        if (!possibleMigration.endsWith(QStringLiteral(".sql")))
+            continue;
+        auto foundIndex = appliedMigrations.indexOf(possibleMigration);
+        if (foundIndex == -1)
+            migrationsToApply << possibleMigration;
+        else
+            appliedMigrations.removeAt(foundIndex);
+    }
+    if (!appliedMigrations.empty()) {
+        qWarning() << "Database is in an inconsistent state";
+    }
+    return migrationsToApply;
 }
 
 // extractMigrateUpContent parses the given migration content and retrieves only
 // the portion that applies to the "up" / apply logic. The "down" section is ignored.
-QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) noexcept {
-  QString upContent;
-  const QStringList lines = allContent.split(_newLine);
-  for (const QString &line : lines) {
-    auto lowerLine = line.trimmed().toLower();
-    if (lowerLine == _migrateUp)
-      continue;
-    else if (lowerLine == _migrateDown)
-      break;
-    upContent.append(_lineTemplate.arg(line));
-  }
-  return upContent;
+QString DatabaseConnection::extractMigrateUpContent(const QString &allContent) noexcept
+{
+    QString upContent;
+    const QStringList lines = allContent.split(_newLine);
+    for (const QString &line : lines) {
+        auto lowerLine = line.trimmed().toLower();
+        if (lowerLine == _migrateUp)
+            continue;
+        else if (lowerLine == _migrateDown)
+            break;
+        upContent.append(_lineTemplate.arg(line));
+    }
+    return upContent;
 }
 
 // executeQuery simply attempts to execute the given stmt with the passed args. The statement is
@@ -421,30 +406,26 @@ QSqlQuery DatabaseConnection::executeQuery(const QSqlDatabase& db, const QString
 }
 
 QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
-                                                  const QVariantList &args) noexcept {
-  QSqlQuery query(db);
-
-  bool prepared = query.prepare(stmt);
-  if (!prepared) {
+                                                  const QVariantList &args) noexcept
+{
+    QSqlQuery query(db);
+    if (!query.prepare(stmt))
+        return QueryResult(std::move(query));
+    for (const auto &arg : args)
+        query.addBindValue(arg);
+    query.exec();
     return QueryResult(std::move(query));
-  }
-  for (const auto &arg : args) {
-    query.addBindValue(arg);
-  }
-
-  query.exec();
-  return QueryResult(std::move(query));
 }
 
 // doInsert is a version of executeQuery that returns the last inserted id, rather than the
 // underlying query/response
-//
-// Throws: QSqlError when a query error occurs
-qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt,
-                                    const QVariantList &args) {
+// Logs then returns -1
+qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt, const QVariantList &args)
+{
   auto query = executeQuery(db, stmt, args);
-
-  return query.lastInsertId().toLongLong();
+  if(db.lastError().type() != QSqlError::NoError)
+    return query.lastInsertId().toLongLong();
+  return -1;
 }
 
 QString DatabaseConnection::getDatabasePath()
