@@ -136,8 +136,7 @@ void GetInfo::onUploadComplete() {
       db->updateEvidenceError(errMessage, evidenceID);
     }
     catch (QSqlError& e) {
-      QTextStream(stderr) << "Upload failed. Could not update internal database. Error: "
-                << e.text() << Qt::endl;
+      qWarning() << "Upload failed. Could not update internal database. Error: " << e.text();
     }
     QMessageBox::warning(this, tr("Cannot submit evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
@@ -152,8 +151,7 @@ void GetInfo::onUploadComplete() {
       close();
     }
     catch (QSqlError& e) {
-      QTextStream(stderr) << "Upload successful. Could not update internal database. Error: "
-                << e.text() << Qt::endl;
+      qWarning() << "Upload successful. Could not update internal database. Error: " << e.text();
     }
   }
   // we don't actually need anything from the uploadAssets reply, so just clean it up.

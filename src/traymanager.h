@@ -61,6 +61,7 @@ class TrayManager : public QDialog {
   qint64 createNewEvidence(const QString& filepath, const QString& evidenceType);
   void spawnGetInfoWindow(qint64 evidenceID);
   void showNoOperationSetTrayMessage();
+  void showDBWriteErrorTrayMessage(const QString &errorMessage = QString());
   void checkForUpdate();
   void cleanChooseOpSubmenu();
   /// setTrayMessage mostly mirrors QSystemTrayIcon::showMessage, but adds the ability to set a message type,
@@ -88,6 +89,7 @@ class TrayManager : public QDialog {
 
  private:
   inline static const int MS_IN_DAY = 86400000;
+  QString _recordErrorTitle = tr("Unable to Record Evidence");
   DatabaseConnection *db = nullptr;
   HotkeyManager *hotkeyManager = nullptr;
   Screenshot *screenshotTool = nullptr;

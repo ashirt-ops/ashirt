@@ -24,9 +24,8 @@ void DatabaseConnection::withConnection(const QString& dbPath, const QString &db
   conn.connect();
   try {
     actions(conn);
-  }
-  catch(const std::runtime_error& e) {
-    QTextStream(stderr) << "Ran into an error dealing with database actions: " << e.what() << Qt::endl;
+  } catch(const std::runtime_error& e) {
+    qWarning() << "Error running action: " << e.what();
   }
 
   conn.close();
@@ -117,7 +116,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID) {
     rtn.tags = getTagsForEvidenceID(evidenceID);
   }
   else {
-    QTextStream(stderr) << "Could not find evidence with id: " << evidenceID << Qt::endl;
+    qWarning() << "Could not find evidence with id: " << evidenceID;
   }
   return rtn;
 }
@@ -132,7 +131,7 @@ bool DatabaseConnection::deleteEvidence(qint64 evidenceID)
   auto q = executeQuery(getDB(), "DELETE FROM evidence WHERE id=?", {evidenceID});
   if (q.lastError().type() == QSqlError::NoError)
       return true;
-  QTextStream(stderr) << "Unable to Delete " << evidenceID << " " << q.lastError().text();
+  qWarning() << "Unable to Delete " << evidenceID << " " << q.lastError().text();
   return false;
 }
 
@@ -336,7 +335,7 @@ QList<model::Evidence> DatabaseConnection::createEvidenceExportView(
 // Throws exceptions/FileError if a migration file cannot be found.
 bool DatabaseConnection::migrateDB() {
   auto db = getDB();
-  QTextStream(stdout) << "Checking database state" << Qt::endl;
+  qInfo() << "Checking database state";
   auto migrationsToApply = DatabaseConnection::getUnappliedMigrations(db);
 
   for (const QString &newMigration : migrationsToApply) {
@@ -347,14 +346,14 @@ bool DatabaseConnection::migrateDB() {
     auto content = QString(migrationFile.readAll());
     migrationFile.close();
 
-    QTextStream(stdout) << "Applying Migration: " << newMigration << Qt::endl;
+    qInfo() << "Applying Migration: " << newMigration;
     auto upScript = extractMigrateUpContent(content);
     executeQuery(db, upScript);
     executeQuery(db,
                  "INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))",
                  {newMigration});
   }
-  QTextStream(stdout) << "All migrations applied" << Qt::endl;
+  qInfo() << "All migrations applied";
   return true;
 }
 
@@ -390,7 +389,7 @@ QStringList DatabaseConnection::getUnappliedMigrations(const QSqlDatabase &db)
       appliedMigrations.removeAt(foundIndex);
   }
   if (!appliedMigrations.empty()) {
-    QTextStream(stderr) << "Database is in an inconsistent state";
+    qWarning() << "Database is in an inconsistent state";
   }
   return migrationsToApply;
 }

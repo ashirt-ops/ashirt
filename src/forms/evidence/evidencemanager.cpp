@@ -264,10 +264,10 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
   }
 
   if (!removedAllDbRecords) {
-    QTextStream(stderr) << "Could not delete evidence from internal database. Errors: " << Qt::endl;
+    qWarning() << "Could not delete evidence from internal database. Errors: ";
     for (const auto& resp : responses) {
       if (!resp.dbDeleteSuccess) {
-        QTextStream(stderr) << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText << Qt::endl;
+        qWarning() << "  id: " << resp.model.id << " ;; Error: "<< resp.errorText;
       }
     }
   }
@@ -380,8 +380,7 @@ void EvidenceManager::loadEvidence() {
     }
   }
   catch (QSqlError& e) {
-    QTextStream(stderr) << "Could not retrieve evidence for operation. Error: " << e.text()
-              << Qt::endl;
+    qWarning() << "Could not retrieve evidence for operation. Error: " << e.text();
   }
 }
 
@@ -439,7 +438,7 @@ void EvidenceManager::refreshRow(int row) {
     setRowText(row, updatedData);
   }
   catch (QSqlError& e) {
-    QTextStream(stderr) << "Could not refresh table row: " << e.text() << Qt::endl;
+    qWarning() << "Could not refresh table row: " << e.text();
   }
 }
 
@@ -506,8 +505,7 @@ void EvidenceManager::onUploadComplete() {
       db->updateEvidenceError(errMessage, evidenceIDForRequest);
     }
     catch (QSqlError& e) {
-      QTextStream(stderr) << "Upload failed. Could not update internal database. Error: "
-                << e.text() << Qt::endl;
+      qWarning() << "Upload failed. Could not update internal database. Error: " << e.text();
     }
     QMessageBox::warning(this, tr("Cannot Submit Evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
@@ -518,8 +516,7 @@ void EvidenceManager::onUploadComplete() {
       db->updateEvidenceSubmitted(evidenceIDForRequest);
     }
     catch (QSqlError& e) {
-      QTextStream(stderr) << "Upload successful. Could not update internal database. Error: "
-                << e.text() << Qt::endl;
+      qWarning() << "Upload successful. Could not update internal database. Error: " << e.text();
     }
     Q_EMIT evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }
