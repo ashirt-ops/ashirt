@@ -30,26 +30,31 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
      set(CMAKE_PROJECT_VERSION_PATCH ${PATCH})
      set(CMAKE_PROJECT_VERSION_TWEAK ${TWEAK})
      set(CMAKE_PROJECT_VERSION "${MAJOR}.${MINOR}.${PATCH}.${TWEAK}")
-     add_definitions(-DVERSION_TAG="v${MAJOR}.${MINOR}.${PATCH}")
+     set(VERSION_TAG "v${MAJOR}.${MINOR}.${PATCH}")
      EXECUTE_PROCESS(
       COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-      OUTPUT_VARIABLE GITHASH
+      OUTPUT_VARIABLE COMMIT_HASH
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-     add_definitions(-DCOMMIT_HASH="${GITHASH}")
     EXECUTE_PROCESS(
       COMMAND ${GIT_EXECUTABLE} remote get-url origin
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
       OUTPUT_VARIABLE GITORIGIN
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    add_definitions(-DSOURCE_CONTROL_REPO="${GITORIGIN}")
+    string(REPLACE "https://github.com/" ":" GITORIGIN ${GITORIGIN})
+    string(REPLACE "git@github.com" "" GITORIGIN ${GITORIGIN})
+    string(REGEX MATCH [[:[A-Za-z0-9]+]] REPO_OWNER ${GITORIGIN})
+    string(REPLACE ":" "" REPO_OWNER ${REPO_OWNER})
+    string(REGEX MATCH [[/[A-Za-z0-9]+]] REPO_NAME ${GITORIGIN})
+    string(REPLACE "/" "" REPO_NAME ${REPO_NAME})
     endif()
 else()
-    add_definitions(-DCOMMIT_HASH="")
-    add_definitions(-DVERSION_TAG="")
-    add_definitions(-DSOURCE_CONTROL_REPO="")
+    set(COMMIT_HASH "")
+    set(REPO_NAME "ashirt")
+    set(REPO_OWNER "theparanoids")
+    set(VERSION_TAG "v0.0.0")
 endif()
      message(STATUS "VERSION: ${CMAKE_PROJECT_VERSION}")
 

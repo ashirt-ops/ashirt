@@ -22,7 +22,7 @@
 #include "forms/getinfo/getinfo.h"
 #include "helpers/netman.h"
 #include "helpers/screenshot.h"
-#include "helpers/constants.h"
+#include "helpers/releaseinfo.h"
 #include "helpers/system_helpers.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
@@ -300,7 +300,7 @@ void TrayManager::onOperationListUpdated(bool success,
 }
 
 void TrayManager::checkForUpdate() {
-  NetMan::checkForNewRelease(Constants::releaseOwner(), Constants::releaseRepo());
+  NetMan::checkForNewRelease(ReleaseInfo::owner, ReleaseInfo::repo);
 }
 
 void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& releases) {
@@ -308,7 +308,7 @@ void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& 
     return;  // doesn't matter if this fails -- another request will be made later.
   }
 
-  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
+  auto digest = dto::ReleaseDigest::fromReleases(ReleaseInfo::version, releases);
 
   if (digest.hasUpgrade()) {
     setTrayMessage(UPGRADE, tr("A new version is available!"), tr("Click for more info"));
@@ -342,7 +342,7 @@ QIcon TrayManager::getTrayIcon()
 void TrayManager::onTrayMessageClicked() {
   switch(currentTrayMessage) {
     case UPGRADE:
-      QDesktopServices::openUrl(Constants::releasePageUrl);
+      QDesktopServices::openUrl(ReleaseInfo::releasePageUrl);
       break;
     case OPEN_PATH:
       QDesktopServices::openUrl(openServicesPath);
