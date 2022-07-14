@@ -84,20 +84,20 @@ bool GetInfo::saveData() {
   return saveResponse.actionSucceeded;
 }
 
-void GetInfo::submitButtonClicked() {
-  submitButton->startAnimation();
-  Q_EMIT setActionButtonsEnabled(false);
-  if (saveData()) {
-    try {
-      model::Evidence evi = db->getEvidenceDetails(evidenceID);
-      uploadAssetReply = NetMan::uploadAsset(evi);
-      connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
+void GetInfo::submitButtonClicked()
+{
+    submitButton->startAnimation();
+    Q_EMIT setActionButtonsEnabled(false);
+    if (saveData()) {
+        model::Evidence evi = db->getEvidenceDetails(evidenceID);
+        if(evi.id == -1) {
+            QMessageBox::warning(this, tr("Cannot submit evidence"),
+                                 tr("Could not retrieve data. Please try again."));
+            return;
+        }
+        uploadAssetReply = NetMan::uploadAsset(evi);
+        connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
     }
-    catch (QSqlError& e) {
-      QMessageBox::warning(this, tr("Cannot submit evidence"),
-                           tr("Could not retrieve data. Please try again."));
-    }
-  }
 }
 
 void GetInfo::deleteButtonClicked() {

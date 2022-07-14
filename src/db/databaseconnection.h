@@ -66,11 +66,17 @@ class DatabaseConnection {
   void batchCopyFullEvidence(const QList<model::Evidence> &evidence);
   qint64 copyFullEvidence(const model::Evidence &evidence);
 
-  void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
-  void updateEvidenceError(const QString &errorText, qint64 evidenceID);
+  /**
+  * @brief updateEvidenceDescription
+  * @param newDescription
+  * @param evidenceID
+  * @return True if successful
+  */
+  bool updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
+  bool updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
   void updateEvidencePath(const QString& newPath, qint64 evidenceID);
-  void setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID);
+  bool setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID);
   void batchCopyTags(const QList<model::Tag> &allTags);
   QList<model::Tag> getFullTagsForEvidenceIDs(const QList<qint64>& evidenceIDs);
 
@@ -93,7 +99,7 @@ class DatabaseConnection {
 
   /// getDatabasePath returns the filepath associated with the loaded database
   QString getDatabasePath();
-
+  QSqlError lastError() {return _db.lastError();}
  public:
   const unsigned long SQLITE_MAX_VARS = 999;
 

@@ -44,19 +44,13 @@ void CodeBlockView::buildUi() {
   gridLayout->addWidget(codeEditor, 1, 0, 1, gridLayout->columnCount());
 }
 
-void CodeBlockView::loadFromFile(QString filepath) {
-  try {
+void CodeBlockView::loadFromFile(QString filepath)
+{
+    codeEditor->setPlainText(tr("No Codeblock Loaded"));
     loadedCodeblock = Codeblock::readCodeblock(filepath);
-
     codeEditor->setPlainText(loadedCodeblock.content);
     sourceTextBox->setText(loadedCodeblock.source);
     UIHelpers::setComboBoxValue(languageComboBox, loadedCodeblock.subtype);
-  }
-  catch (std::exception& e) {
-    QString msg = tr("Unable to load codeblock. Error: %1").arg(e.what());
-    codeEditor->setPlainText(msg);
-    setReadonly(true);
-  }
 }
 
 bool CodeBlockView::saveEvidence() {

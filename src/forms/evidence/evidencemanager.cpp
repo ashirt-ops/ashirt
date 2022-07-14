@@ -193,23 +193,22 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
   resetFilterButtonClicked();
 }
 
-void EvidenceManager::submitEvidenceTriggered() {
-  loadingAnimation->startAnimation();
-  evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
-  if (saveData()) {
-    evidenceIDForRequest = selectedRowEvidenceID();
-    try {
-      model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
-      uploadAssetReply = NetMan::uploadAsset(evi);
-      connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
+void EvidenceManager::submitEvidenceTriggered()
+{
+    loadingAnimation->startAnimation();
+    evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
+    if (saveData()) {
+        evidenceIDForRequest = selectedRowEvidenceID();
+        model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
+        if(evi.id == -1) {
+            evidenceTable->setEnabled(true);
+            loadingAnimation->stopAnimation();
+            QMessageBox::warning(this, tr("Cannot submit evidence"),
+                                 tr("Could not retrieve data. Please try again."));
+        }
+        uploadAssetReply = NetMan::uploadAsset(evi);
+        connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
     }
-    catch (QSqlError& e) {
-      evidenceTable->setEnabled(true);
-      loadingAnimation->stopAnimation();
-      QMessageBox::warning(this, tr("Cannot submit evidence"),
-                           tr("Could not retrieve data. Please try again."));
-    }
-  }
 }
 
 void EvidenceManager::deleteEvidenceTriggered() {
@@ -327,17 +326,20 @@ void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
   loadEvidence();
 }
 
-void EvidenceManager::loadEvidence() {
-  qint64 reselectId = -1;
-  if (evidenceTable->selectedItems().size() > 0) {
-    reselectId = selectedRowEvidenceID();
-  }
+void EvidenceManager::loadEvidence()
+{
+    qint64 reselectId = -1;
+    if (evidenceTable->selectedItems().size() > 0) {
+        reselectId = selectedRowEvidenceID();
+    }
 
-  evidenceTable->clearContents();
+    evidenceTable->clearContents();
 
-  try {
     auto filter = EvidenceFilters::parseFilter(filterTextBox->text());
     QList<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
+    if(db->lastError().type() != QSqlError::NoError){
+        qWarning() << "Could not retrieve evidence for operation. Error: " << db->lastError().text();
+    }
     evidenceTable->setRowCount(operationEvidence.size());
 
     // removing sorting temporarily to solve a bug (per qt: not a bug)
@@ -346,38 +348,34 @@ void EvidenceManager::loadEvidence() {
     // see also: https://bugreports.qt.io/browse/QTBUG-75479
     evidenceTable->setSortingEnabled(false);
     for (size_t row = 0; row < operationEvidence.size(); row++) {
-      auto evi = operationEvidence.at(row);
-      auto rowData = buildBaseEvidenceRow(evi.id);
+        auto evi = operationEvidence.at(row);
+        auto rowData = buildBaseEvidenceRow(evi.id);
 
-      evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
-      evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
-      evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
-      evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
-      evidenceTable->setItem(row, COL_PATH, rowData.path);
-      evidenceTable->setItem(row, COL_FAILED, rowData.failed);
-      evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
-      evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
-      evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
+        evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
+        evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
+        evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
+        evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
+        evidenceTable->setItem(row, COL_PATH, rowData.path);
+        evidenceTable->setItem(row, COL_FAILED, rowData.failed);
+        evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
+        evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
+        evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
 
-      setRowText(row, evi);
+        setRowText(row, evi);
     }
     evidenceTable->setSortingEnabled(true);
     if (evidenceTable->rowCount() > 0) {
-      // try to reselect the last viewed evidence, if it's still in the list
-      int selectRow = 0;
-      for (int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
-        auto evidenceID = evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong();
-        if(evidenceID == reselectId) {
-          selectRow = rowIndex;
-          break;
+        // try to reselect the last viewed evidence, if it's still in the list
+        int selectRow = 0;
+        for (int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
+            auto evidenceID = evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong();
+            if(evidenceID == reselectId) {
+                selectRow = rowIndex;
+                break;
+            }
         }
-      }
-      evidenceTable->setCurrentCell(selectRow, 0);
+        evidenceTable->setCurrentCell(selectRow, 0);
     }
-  }
-  catch (QSqlError& e) {
-    qWarning() << "Could not retrieve evidence for operation. Error: " << e.text();
-  }
 }
 
 // buildBaseEvidenceRow constructs a container for a row of data.
@@ -427,15 +425,15 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 
-void EvidenceManager::refreshRow(int row) {
-  auto evidenceID = selectedRowEvidenceID();
-  try {
+void EvidenceManager::refreshRow(int row)
+{
+    auto evidenceID = selectedRowEvidenceID();
     auto updatedData = db->getEvidenceDetails(evidenceID);
+    if(updatedData.id == -1) {
+        qWarning() << "Could not refresh table row: " << db->lastError().text();
+        return;
+    }
     setRowText(row, updatedData);
-  }
-  catch (QSqlError& e) {
-    qWarning() << "Could not refresh table row: " << e.text();
-  }
 }
 
 bool EvidenceManager::saveData() {

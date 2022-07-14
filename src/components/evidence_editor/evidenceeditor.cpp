@@ -95,36 +95,32 @@ void EvidenceEditor::setEnabled(bool enable) {
   }
 }
 
-void EvidenceEditor::loadData() {
-  // get local db evidence data
-  clearEditor();
-  try {
+// get local db evidence data
+void EvidenceEditor::loadData()
+{
+    clearEditor();
     originalEvidenceData = db->getEvidenceDetails(evidenceID);
+    if(originalEvidenceData.id == -1) {
+        loadedPreview = new ErrorView(tr("Unable to load evidence"), this);
+        return;
+    }
+
     descriptionTextBox->setText(originalEvidenceData.description);
     operationSlug = originalEvidenceData.operationSlug;
-
     if (originalEvidenceData.contentType == QStringLiteral("image")) {
-      loadedPreview = new ImageView(this);
-      loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    }
-    else if (originalEvidenceData.contentType == QStringLiteral("codeblock")) {
-      loadedPreview = new CodeBlockView(this);
-      loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    }
-    else {
-      loadedPreview =
-          new ErrorView(tr("Unsupported evidence type: %1").arg(originalEvidenceData.contentType), this);
+        loadedPreview = new ImageView(this);
+        loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    } else if (originalEvidenceData.contentType == QStringLiteral("codeblock")) {
+        loadedPreview = new CodeBlockView(this);
+        loadedPreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    } else {
+        loadedPreview = new ErrorView(tr("Unsupported evidence type: %1").arg(originalEvidenceData.contentType), this);
     }
     loadedPreview->loadFromFile(originalEvidenceData.path);
     loadedPreview->setReadonly(readonly);
-
     // get all remote tags (for op)
     tagEditor->loadTags(operationSlug, originalEvidenceData.tags);
-  }
-  catch (QSqlError &e) {
-    loadedPreview = new ErrorView(tr("Unable to load evidence: %1").arg(e.text()), this);
-  }
-  splitter->insertWidget(0, loadedPreview);
+    splitter->insertWidget(0, loadedPreview);
 }
 
 void EvidenceEditor::revert() {
@@ -167,15 +163,10 @@ SaveEvidenceResponse EvidenceEditor::saveEvidence() {
   }
   auto evi = encodeEvidence();
   auto resp = SaveEvidenceResponse(evi);
-  try {
-    db->updateEvidenceDescription(evi.description, evi.id);
-    db->setEvidenceTags(evi.tags, evi.id);
-    resp.actionSucceeded = true;
-  }
-  catch (QSqlError &e) {
-    resp.actionSucceeded = false;
-    resp.errorText = e.text();
-  }
+  bool updateDesc = db->updateEvidenceDescription(evi.description, evi.id);
+  bool updateTags = db->setEvidenceTags(evi.tags, evi.id);
+  resp.actionSucceeded = updateDesc && updateTags;
+  resp.errorText = db->lastError().text();
   return resp;
 }
 
@@ -186,11 +177,9 @@ QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evide
         model::Evidence evi = db->getEvidenceDetails(id);
         DeleteEvidenceResponse resp(evi);
 
-        try{
-            resp.dbDeleteSuccess = db->deleteEvidence(evi.id);
-        } catch(QSqlError &e) {
-            resp.errorText = e.text();
-        }
+        resp.dbDeleteSuccess = db->deleteEvidence(evi.id);
+        if(!resp.dbDeleteSuccess)
+            resp.errorText = db->lastError().text();
 
         auto localFile = QFile(evi.path);
         if (!localFile.remove()) {
