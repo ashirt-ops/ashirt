@@ -181,7 +181,7 @@ class RequestBuilder {
         reply = nam->post(req, body);
         break;
       default:
-        QTextStream(stderr) << "Requestbuilder contains an unsupported request method" << Qt::endl;
+        qWarning() << "Requestbuilder contains an unsupported request method";
     }
     if (autodelete) {
       delete this;

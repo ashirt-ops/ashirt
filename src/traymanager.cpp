@@ -216,7 +216,7 @@ void TrayManager::onClipboardCapture()
             return;
         Codeblock evidence(clipboardContent);
         if(!Codeblock::saveCodeblock(evidence)) {
-            QTextStream(stderr) << "Error Gathering Evidence from clipboard" << Qt::endl;
+            setTrayMessage(NO_ACTION, _recordErrorTitle, tr("Error Gathering Evidence from clipboard"), QSystemTrayIcon::Information);
             return;
         }
         path = evidence.filePath();
@@ -235,7 +235,7 @@ void TrayManager::onClipboardCapture()
         evidenceID = createNewEvidence(path, type);
     }
     catch (QSqlError& e) {
-      QTextStream(stderr) << "could not write to the database: " << e.text() << Qt::endl;
+      showDBWriteErrorTrayMessage(e.text());
       return;
     }
     spawnGetInfoWindow(evidenceID);
@@ -247,12 +247,17 @@ void TrayManager::onScreenshotCaptured(const QString& path) {
     spawnGetInfoWindow(evidenceID);
   }
   catch (QSqlError& e) {
-    QTextStream(stderr) << "could not write to the database: " << e.text() << Qt::endl;
+    showDBWriteErrorTrayMessage(e.text());
   }
 }
 
+void TrayManager::showDBWriteErrorTrayMessage(const QString &errorMessage)
+{
+    setTrayMessage(NO_ACTION, _recordErrorTitle, tr("Could not write to database: %1").arg(errorMessage), QSystemTrayIcon::Warning);
+}
+
 void TrayManager::showNoOperationSetTrayMessage() {
-  setTrayMessage(NO_ACTION, tr("Unable to Record Evidence"),
+  setTrayMessage(NO_ACTION, _recordErrorTitle,
                         tr("No Operation has been selected. Please select an operation first."),
                         QSystemTrayIcon::Warning);
 }

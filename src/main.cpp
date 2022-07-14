@@ -31,16 +31,15 @@ int main(int argc, char* argv[]) {
   QCoreApplication::setOrganizationName("ashirt");
 #endif
 
-
   DatabaseConnection* conn = new DatabaseConnection(Constants::dbLocation, Constants::defaultDbName);
-  if(!conn->connect()) {
-    QTextStream(stderr) << "Unable to connect to Database" << Qt::endl;
+  if (!conn->connect()) {
+    QMessageBox::critical(nullptr, QStringLiteral("ASHIRT Error"), QStringLiteral("Unable to connect to database"));
     return -1;
   }
 
   auto configError = AppConfig::getInstance().errorText;
   if (!configError.isEmpty()) {  // quick check & preload config data
-    QTextStream(stderr) << "Unable to load config file: " << configError << Qt::endl;
+    QMessageBox::critical(nullptr, QStringLiteral("ASHIRT Error"), QStringLiteral("Unable to connect to load settings"));
     return -1;
   }
 
@@ -67,10 +66,10 @@ int main(int argc, char* argv[]) {
     window->deleteLater();
   }
   catch (std::exception const& ex) {
-    QTextStream(stderr) << "Exception while running: " << ex.what() << Qt::endl;
+    qWarning() << "Exception while running: " << ex.what();
   }
   catch (...) {
-    QTextStream(stderr) << "Unhandled exception while running" << Qt::endl;
+    qWarning() << "Unhandled exception while running";
   }
   return rtn;
 }
@@ -90,14 +89,14 @@ int main(int argc, char *argv[]) { handleCLI(std::vector<string>(argv, argv + ar
 
 void handleCLI(std::vector<std::string> args) {
   size_t trueCount = args.size() - 1;
-  QTextStream(stdout) << "You provided " << trueCount << " arguments.\n";
+  qInfo() << "You provided " << trueCount << " arguments";
   if (trueCount == 0) {
-    QTextStream(stdout) << "Next time try suppling some arguments." << Qt::endl;
+    qInfo() << "Next time try suppling some arguments.";
     return;
   }
 
-  QTextStream(stdout) << "All arguments:" << Qt::endl;
+  qInfo() << "All arguments:";
   for (size_t i = 1; i < args.size(); i++) {
-    QTextStream(stdout) << "\t" << QString::fromStdString(args.at(i)) << Qt::endl;
+    qInfo() << "\t" << QString::fromStdString(args.at(i));
   }
 }

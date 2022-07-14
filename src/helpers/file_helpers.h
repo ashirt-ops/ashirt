@@ -30,7 +30,7 @@ class FileHelpers {
     if (file.open(QIODevice::ReadOnly))
         data = file.readAll();
     if (file.error() != QFile::NoError)
-      QTextStream(stderr) << "Unable to read from file: " << path << '\n' << file.error();
+      qWarning() << "Unable to read from file: " << path << '\n' << file.error();
     return data;
   }
 

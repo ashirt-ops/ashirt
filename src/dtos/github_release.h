@@ -132,7 +132,7 @@ class ReleaseDigest {
   static ReleaseDigest fromReleases(QString curVersion, const QList<GithubRelease> &borrowedReleases) {
 
     if (curVersion.contains(QStringLiteral("v0.0.0"))) {
-      QTextStream(stdout) << "skipping unversioned/development release check" << Qt::endl;
+      qInfo() << "skipping unversioned/development release check";
       return ReleaseDigest();
     }
 
