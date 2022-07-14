@@ -13,7 +13,6 @@
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "dtos/github_release.h"
-#include "helpers/constants.h"
 #include <helpers/multipartparser.h>
 #include "helpers/stopreply.h"
 #include "models/evidence.h"

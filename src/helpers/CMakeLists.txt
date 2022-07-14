@@ -5,6 +5,8 @@ if(APPLE)
     find_library(CARBON_LIBRARY Carbon)
 endif()
 
+configure_file(releaseinfo.h.in releaseinfo.h @ONLY)
+
 add_library (HELPERS STATIC
     constants.h
     file_helpers.h
@@ -21,6 +23,7 @@ add_library (HELPERS STATIC
     hotkeys/hotkeymap.h
     hotkeys/uglobalhotkeys.cpp hotkeys/uglobalhotkeys.h
     hotkeys/ukeysequence.cpp hotkeys/ukeysequence.h
+    ${CMAKE_CURRENT_BINARY_DIR}/releaseinfo.h
 )
 
 add_library(ASHIRT::HELPERS ALIAS HELPERS)

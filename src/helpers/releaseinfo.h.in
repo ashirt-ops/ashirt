@@ -1,0 +1,14 @@
+#pragma once
+
+class ReleaseInfo {
+  inline static const auto _urlBase = QStringLiteral("https://www.github.com/theparanoids/ashirt/");
+ public:
+  inline static const auto commitHash = QStringLiteral("@COMMIT_HASH@");
+  inline static const auto owner = QStringLiteral("@REPO_OWNER@");
+  inline static const auto repo = QStringLiteral("@REPO_NAME@");
+  inline static const auto licenseUrl = QStringLiteral("blob/main/LICENSE").prepend(_urlBase);
+  inline static const auto userGuideUrl = QStringLiteral("blob/main/README.md").prepend(_urlBase);
+  inline static const auto reportAnIssueUrl = QStringLiteral("issues").prepend(_urlBase);
+  inline static const auto releasePageUrl = QStringLiteral("releases").prepend(_urlBase);
+  inline static const auto version = QStringLiteral("@VERSION_TAG@");
+};

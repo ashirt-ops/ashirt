@@ -9,7 +9,6 @@
 #include <QLabel>
 #include <QTextBrowser>
 
-#include "helpers/constants.h"
 #include "helpers/netman.h"
 
 Credits::Credits(QWidget* parent)
@@ -43,7 +42,7 @@ Credits::Credits(QWidget* parent)
 void Credits::updateRelease() {
   if (updateDigest.hasUpgrade()) {
     updateLabel->setVisible(true);
-    updateLabel->setText(baseUpdateText.arg(Constants::releasePageUrl));
+    updateLabel->setText(baseUpdateText.arg(ReleaseInfo::releasePageUrl));
   }
   else {
     updateLabel->setVisible(false);
@@ -55,7 +54,7 @@ void Credits::onReleasesUpdate(bool success, QList<dto::GithubRelease> releases)
   if (!success)
     return;
 
-  auto digest = dto::ReleaseDigest::fromReleases(Constants::releaseTag(), releases);
+  auto digest = dto::ReleaseDigest::fromReleases(ReleaseInfo::version, releases);
   updateDigest = digest;
   updateRelease();
 }

@@ -85,15 +85,8 @@ elseif(UNIX AND NOT APPLE)
     install(TARGETS ashirt BUNDLE DESTINATION bin)
 elseif(WIN32)
     install(TARGETS ashirt RUNTIME DESTINATION .)
-    if(${QT_DEFAULT_MAJOR_VERSION} MATCHES "5")
-        add_custom_command(
-            TARGET ashirt POST_BUILD
-            COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-angle --no-webkit2 --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
-        )
-    else()
-        add_custom_command(
-            TARGET ashirt POST_BUILD
-            COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
-        )
-    endif()
+    add_custom_command(
+        TARGET ashirt POST_BUILD
+        COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
+    )
 endif()
