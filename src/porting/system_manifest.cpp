@@ -102,14 +102,25 @@ void SystemManifest::exportManifest(DatabaseConnection* db, const QString& outpu
 
     os = QSysInfo::kernelType(); // may need to check possible answers, or maybe just compare to new system value?
     QString basePath = QDir(outputDirPath).path();
-
     if (options.exportConfig) {
         Q_EMIT onStatusUpdate(tr("Exporting settings"));
         configPath = QStringLiteral("config.json");
         AppConfig::exportConfig(m_fileTemplate.arg(basePath, configPath));
     }
 
-    m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);
+    if (options.exportDb) {
+        Q_EMIT onStatusUpdate(tr("Exporting Evidence"));
+        dbPath = QStringLiteral("db.sqlite");
+        evidenceManifestPath = QStringLiteral("evidence.json");
+        auto allEvidence = DatabaseConnection::createEvidenceExportView(m_fileTemplate.arg(basePath, dbPath), EvidenceFilters(), db);
+        Q_EMIT onReady(allEvidence.size());
+        porting::EvidenceManifest evidenceManifest = copyEvidence(basePath, allEvidence);
+        // write evidence manifest
+        FileHelpers::writeFile(m_fileTemplate.arg(basePath, evidenceManifestPath),
+                               QJsonDocument(EvidenceManifest::serialize(evidenceManifest)).toJson());
+    }
+
+        m_pathToManifest = QStringLiteral("%1/system.json").arg(basePath);
     FileHelpers::writeFile(m_pathToManifest, QJsonDocument(serialize(*this)).toJson());
     Q_EMIT onComplete();
 }

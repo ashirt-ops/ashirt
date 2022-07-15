@@ -56,7 +56,7 @@ bool AppConfig::exportConfig(const QString &fileName)
     if(fileName.isEmpty())
         return false;
     QSettings newConfig(fileName, JSON);
-    for (const auto &key : newConfig.allKeys())
+    for (const auto &key : get()->appConfig->allKeys())
         newConfig.setValue(key, get()->appConfig->value(key));
     newConfig.sync();
     return true;
