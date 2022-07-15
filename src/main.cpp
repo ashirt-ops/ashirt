@@ -13,8 +13,6 @@ void handleCLI(std::vector<std::string> args);
 #include <QMessageBox>
 #include <QMetaType>
 
-#include "appconfig.h"
-#include "appsettings.h"
 #include "db/databaseconnection.h"
 #include "exceptions/fileerror.h"
 #include "traymanager.h"
@@ -37,12 +35,6 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  auto configError = AppConfig::getInstance().errorText;
-  if (!configError.isEmpty()) {  // quick check & preload config data
-    QMessageBox::critical(nullptr, QStringLiteral("ASHIRT Error"), QStringLiteral("Unable to connect to load settings"));
-    return -1;
-  }
-
   int rtn;
   try {
     QApplication app(argc, argv);
@@ -62,7 +54,6 @@ int main(int argc, char* argv[]) {
 
     auto window = new TrayManager(nullptr, conn);
     rtn = app.exec();
-    AppSettings::getInstance().sync();
     window->deleteLater();
   }
   catch (std::exception const& ex) {

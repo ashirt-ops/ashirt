@@ -12,6 +12,7 @@
 #include <QtConcurrent/QtConcurrent>
 
 #include "db/databaseconnection.h"
+#include "exceptions/fileerror.h"
 
 PortingDialog::PortingDialog(PortType dialogType, DatabaseConnection* db, QWidget *parent)
   : AShirtDialog(parent)

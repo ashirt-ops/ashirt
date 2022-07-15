@@ -17,7 +17,6 @@
 #include <QString>
 
 #include "appconfig.h"
-#include "appsettings.h"
 #include "dtos/checkConnection.h"
 #include "helpers/http_status.h"
 #include "helpers/netman.h"
@@ -175,20 +174,18 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
   hotkeyManager->disableHotkeys();
-  
-  AppConfig &inst = AppConfig::getInstance();
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
-  eviRepoTextBox->setText(QDir::toNativeSeparators(inst.evidenceRepo));
-  accessKeyTextBox->setText(inst.accessKey);
-  secretKeyTextBox->setText(inst.secretKey);
-  hostPathTextBox->setText(inst.apiURL);
-  captureAreaCmdTextBox->setText(inst.screenshotExec);
-  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.screenshotShortcutCombo));
-  captureWindowCmdTextBox->setText(inst.captureWindowExec);
-  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureWindowShortcut));
-  captureClipboardShortcutTextBox->setKeySequence(QKeySequence::fromString(inst.captureClipboardShortcut));
+  eviRepoTextBox->setText(QDir::toNativeSeparators(AppConfig::value(CONFIG::EVIDENCEREPO)));
+  secretKeyTextBox->setText(AppConfig::value(CONFIG::SECRETKEY));
+  accessKeyTextBox->setText(AppConfig::value(CONFIG::ACCESSKEY));
+  hostPathTextBox->setText(AppConfig::value(CONFIG::APIURL));
+  captureAreaCmdTextBox->setText(AppConfig::value(CONFIG::COMMAND_SCREENSHOT));
+  captureAreaShortcutTextBox->setKeySequence(QKeySequence::fromString(AppConfig::value(CONFIG::SHORTCUT_SCREENSHOT)));
+  captureWindowCmdTextBox->setText(AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW));
+  captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW)));
+  captureClipboardShortcutTextBox->setKeySequence(QKeySequence::fromString(AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD)));
 
   // re-enable form
   connStatusLabel->clear();
@@ -211,26 +208,20 @@ void Settings::onSaveClicked() {
   stopReply(&currentTestReply);
   connStatusLabel->clear();
 
-  AppConfig &inst = AppConfig::getInstance();
+  AppConfig::setValue(CONFIG::EVIDENCEREPO, QDir::fromNativeSeparators(eviRepoTextBox->text()));
+  AppConfig::setValue(CONFIG::ACCESSKEY, accessKeyTextBox->text());
+  AppConfig::setValue(CONFIG::SECRETKEY, secretKeyTextBox->text());
 
-  inst.evidenceRepo = QDir::fromNativeSeparators(eviRepoTextBox->text());
-  inst.accessKey = accessKeyTextBox->text();
-  inst.secretKey = secretKeyTextBox->text();
-
-  QString originalApiUrl = inst.apiURL;
-  inst.apiURL = hostPathTextBox->text();
-  if (originalApiUrl != hostPathTextBox->text()) {
+  QString originalApiUrl = AppConfig::value(CONFIG::APIURL);
+  AppConfig::setValue(CONFIG::APIURL, hostPathTextBox->text());
+  if (originalApiUrl != hostPathTextBox->text())
     NetMan::refreshOperationsList();
-  }
 
-  inst.screenshotExec = captureAreaCmdTextBox->text();
-  inst.screenshotShortcutCombo = captureAreaShortcutTextBox->keySequence().toString();
-  inst.captureWindowExec = captureWindowCmdTextBox->text();
-  inst.captureWindowShortcut = captureWindowShortcutTextBox->keySequence().toString();
-  inst.captureClipboardShortcut = captureClipboardShortcutTextBox->keySequence().toString();
-
-  if(!inst.writeConfig())
-    couldNotSaveSettingsMsg->showMessage(tr("Unable to save settings. Error: %1").arg(inst.errorText));
+  AppConfig::setValue(CONFIG::COMMAND_SCREENSHOT, captureAreaCmdTextBox->text());
+  AppConfig::setValue(CONFIG::SHORTCUT_SCREENSHOT, captureAreaShortcutTextBox->keySequence().toString());
+  AppConfig::setValue(CONFIG::COMMAND_CAPTUREWINDOW, captureWindowCmdTextBox->text());
+  AppConfig::setValue(CONFIG::SHORTCUT_CAPTUREWINDOW, captureWindowShortcutTextBox->keySequence().toString());
+  AppConfig::setValue(CONFIG::SHORTCUT_CAPTURECLIPBOARD, captureClipboardShortcutTextBox->keySequence().toString());
 
   hotkeyManager->updateHotkeys();
   close();

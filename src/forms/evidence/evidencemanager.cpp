@@ -11,11 +11,11 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRandomGenerator>
-#include <QStandardPaths>
 #include <QTableWidgetItem>
 
-#include "appsettings.h"
+#include "appconfig.h"
 #include "dtos/tag.h"
+#include "exceptions/fileerror.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 #include "helpers/netman.h"
@@ -274,8 +274,9 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
 
   if (undeletedFiles.length() > 0) {
     bool logWritten = true;
-    auto today = QDateTime::currentDateTime();
-    auto errLogPath = AppConfig::getInstance().evidenceRepo + "/" +QString("%1.log").arg(today.toMSecsSinceEpoch());
+    auto errLogPath = QStringLiteral("%1/%2.log")
+            .arg(AppConfig::value(CONFIG::EVIDENCEREPO)
+            , QDateTime::currentDateTime().toMSecsSinceEpoch());
     try {
       QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
               .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
@@ -321,7 +322,7 @@ void EvidenceManager::openTableContextMenu(QPoint pos) {
 
 void EvidenceManager::resetFilterButtonClicked() {
   EvidenceFilters filter;
-  filter.operationSlug = AppSettings::getInstance().operationSlug();
+  filter.operationSlug = AppConfig::operationSlug();
   filterTextBox->setText(filter.toString());
   loadEvidence();
 }

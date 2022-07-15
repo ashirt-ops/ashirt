@@ -14,9 +14,9 @@
 
 Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
 
-void Screenshot::captureArea() { basicScreenshot(AppConfig::getInstance().screenshotExec); }
+void Screenshot::captureArea() { basicScreenshot(AppConfig::value(CONFIG::COMMAND_SCREENSHOT)); }
 
-void Screenshot::captureWindow() { basicScreenshot(AppConfig::getInstance().captureWindowExec); }
+void Screenshot::captureWindow() { basicScreenshot(AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW)); }
 
 QString Screenshot::mkName()
 {

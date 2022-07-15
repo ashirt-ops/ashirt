@@ -13,7 +13,7 @@
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "dtos/github_release.h"
-#include <helpers/multipartparser.h>
+#include "helpers/multipartparser.h"
 #include "helpers/stopreply.h"
 #include "models/evidence.h"
 
@@ -144,7 +144,7 @@ private:
  /// Allows for an optional altHost parameter, in order to check for ashirt servers.
  /// Normal usage should provide no value for this parameter.
  static RequestBuilder* ashirtGet(QString endpoint, const QString & altHost= QString()) {
-   QString base = (altHost.isEmpty()) ? AppConfig::getInstance().apiURL : altHost;
+   QString base = (altHost.isEmpty()) ? AppConfig::value(CONFIG::APIURL) : altHost;
    return RequestBuilder::newGet()
        ->setHost(base)
        ->setEndpoint(endpoint);
@@ -154,8 +154,8 @@ private:
  /// authentication is provided (use addASHIRTAuth to do this)
  static RequestBuilder* ashirtJSONPost(QString endpoint, QByteArray body) {
    return RequestBuilder::newJSONPost()
-       ->setHost(AppConfig::getInstance().apiURL)
-           ->setEndpoint(endpoint)
+       ->setHost(AppConfig::value(CONFIG::APIURL))
+       ->setEndpoint(endpoint)
        ->setBody(body);
  }
 
@@ -163,7 +163,7 @@ private:
  /// No authentication is provided (use addASHIRTAuth to do this)
  static RequestBuilder* ashirtFormPost(QString endpoint, QByteArray body, QString boundry) {
    return RequestBuilder::newFormPost(boundry)
-       ->setHost(AppConfig::getInstance().apiURL)
+       ->setHost(AppConfig::value(CONFIG::APIURL))
        ->setEndpoint(endpoint)
        ->setBody(body);
  }
@@ -177,7 +177,7 @@ private:
    reqBuilder->addRawHeader(QStringLiteral("Date"), now);
 
    // load default key if not present
-   QString apiKeyCopy = altApiKey.isEmpty() ? AppConfig::getInstance().accessKey : QString(altApiKey);
+   QString apiKeyCopy = altApiKey.isEmpty() ? AppConfig::value(CONFIG::ACCESSKEY) : QString(altApiKey);
 
    auto code = generateHash(RequestMethodToString(reqBuilder->getMethod()),
                             reqBuilder->getEndpoint(), now, reqBuilder->getBody(), altSecretKey);
@@ -192,7 +192,7 @@ private:
                       const QString &secretKey = QString()) {
 
    QString msg  = QStringLiteral("%1\n%2\n%3\n").arg(method, path, date);
-   QString secretKeyCopy = secretKey.isEmpty() ? AppConfig::getInstance().secretKey : QString(secretKey);
+   QString secretKeyCopy = secretKey.isEmpty() ? AppConfig::value(CONFIG::SECRETKEY) : QString(secretKey);
 
    QMessageAuthenticationCode code(QCryptographicHash::Sha256);
    code.setKey(QByteArray::fromBase64(secretKeyCopy.toUtf8()));

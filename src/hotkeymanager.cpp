@@ -2,9 +2,7 @@
 // Licensed under the terms of MIT. See LICENSE file in project root for terms.
 
 #include "hotkeymanager.h"
-
 #include "appconfig.h"
-#include "appsettings.h"
 
 HotkeyManager::HotkeyManager(QObject *parent)
   : QObject (parent)
@@ -50,7 +48,7 @@ void HotkeyManager::updateHotkeys() {
       registerKey(combo, evt);
     }
   };
-  regKey(AppConfig::getInstance().screenshotShortcutCombo, ACTION_CAPTURE_AREA);
-  regKey(AppConfig::getInstance().captureWindowShortcut, ACTION_CAPTURE_WINDOW);
-  regKey(AppConfig::getInstance().captureClipboardShortcut, ACTION_CAPTURE_CLIPBOARD);
+  regKey(AppConfig::value(CONFIG::SHORTCUT_SCREENSHOT), ACTION_CAPTURE_AREA);
+  regKey(AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW), ACTION_CAPTURE_WINDOW);
+  regKey(AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD), ACTION_CAPTURE_CLIPBOARD);
 }

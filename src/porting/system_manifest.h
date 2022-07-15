@@ -7,7 +7,6 @@
 #include "helpers/jsonhelpers.h"
 #include "helpers/screenshot.h"
 #include "appconfig.h"
-#include "appsettings.h"
 #include "db/databaseconnection.h"
 #include "evidence_manifest.h"
 #include "models/codeblock.h"

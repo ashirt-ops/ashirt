@@ -10,8 +10,7 @@ add_subdirectory(models)
 add_subdirectory(porting)
 
 set(ASHIRT_SOURCES
-     appconfig.h
-     appsettings.h
+     appconfig.cpp appconfig.h
      hotkeymanager.cpp hotkeymanager.h
      main.cpp
      traymanager.cpp traymanager.h

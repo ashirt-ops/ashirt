@@ -16,10 +16,7 @@ class Tag {
 
   Tag(qint64 id, qint64 evidenceID, qint64 tagId, QString name) : Tag(id, tagId, name) { this->evidenceId = evidenceID; }
   Tag(qint64 id, qint64 tagId, QString name) : Tag(tagId, name) { this->id = id; }
-  Tag(qint64 tagId, QString name) {
-    this->serverTagId = tagId;
-    this->tagName = name;
-  }
+  Tag(qint64 tagId, QString name) : serverTagId(tagId), tagName(name) { }
 
  public:
   friend QDataStream& operator<<(QDataStream& out, const model::Tag& v) {
@@ -41,6 +38,4 @@ class Tag {
   qint64 evidenceId;
 };
 }  // namespace model
-
 Q_DECLARE_METATYPE(model::Tag)
-Q_DECLARE_METATYPE(QList<model::Tag>)

@@ -10,10 +10,8 @@ class Constants {
   /// purposes. This _value_ should not be reused for other db connections.
   inline static const auto defaultDbName = QStringLiteral("evidence");
 #ifdef Q_OS_MACOS
-  inline static const auto configLocation = QStringLiteral("%1/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   inline static const auto codeFont = QStringLiteral("monaco");
 #else
-  inline static const auto configLocation = QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
   inline static const auto codeFont = QStringLiteral("source code pro");
 #endif
 };
