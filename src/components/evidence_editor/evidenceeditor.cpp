@@ -95,13 +95,13 @@ void EvidenceEditor::setEnabled(bool enable) {
   }
 }
 
-// get local db evidence data
 void EvidenceEditor::loadData()
 {
+    // get local db evidence data
     clearEditor();
     originalEvidenceData = db->getEvidenceDetails(evidenceID);
     if(originalEvidenceData.id == -1) {
-        loadedPreview = new ErrorView(tr("Unable to load evidence"), this);
+        loadedPreview = new ErrorView(tr("Unable to load evidence: %1").arg(db->errorString()), this);
         return;
     }
 
@@ -157,17 +157,28 @@ void EvidenceEditor::onTagsLoaded(bool success) {
 
 // saveEvidence is a helper method to save (to the database) the currently
 // loaded evidence, using the editor changes.
-SaveEvidenceResponse EvidenceEditor::saveEvidence() {
-  if (loadedPreview != nullptr) {
-    loadedPreview->saveEvidence();
-  }
-  auto evi = encodeEvidence();
-  auto resp = SaveEvidenceResponse(evi);
-  bool updateDesc = db->updateEvidenceDescription(evi.description, evi.id);
-  bool updateTags = db->setEvidenceTags(evi.tags, evi.id);
-  resp.actionSucceeded = updateDesc && updateTags;
-  resp.errorText = db->lastError().text();
-  return resp;
+SaveEvidenceResponse EvidenceEditor::saveEvidence()
+{
+    if (loadedPreview != nullptr) {
+        loadedPreview->saveEvidence();
+    }
+    auto evi = encodeEvidence();
+    auto resp = SaveEvidenceResponse(evi);
+    db->updateEvidenceDescription(evi.description, evi.id);
+    if(!db->errorString().isEmpty()) {
+        resp.actionSucceeded = false;
+        resp.errorText = db->errorString();
+        return resp;
+    }
+
+    db->setEvidenceTags(evi.tags, evi.id);
+    if(!db->errorString().isEmpty()) {
+        resp.actionSucceeded = false;
+        resp.errorText = db->errorString();
+        return resp;
+    }
+    resp.actionSucceeded = true;
+    return resp;
 }
 
 QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evidenceIDs)
@@ -176,10 +187,9 @@ QList<DeleteEvidenceResponse> EvidenceEditor::deleteEvidence(QList<qint64> evide
     for (qint64 id : evidenceIDs) {
         model::Evidence evi = db->getEvidenceDetails(id);
         DeleteEvidenceResponse resp(evi);
-
         resp.dbDeleteSuccess = db->deleteEvidence(evi.id);
         if(!resp.dbDeleteSuccess)
-            resp.errorText = db->lastError().text();
+            resp.errorText = db->errorString();
 
         auto localFile = QFile(evi.path);
         if (!localFile.remove()) {

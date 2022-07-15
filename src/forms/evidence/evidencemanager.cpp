@@ -197,18 +197,19 @@ void EvidenceManager::submitEvidenceTriggered()
 {
     loadingAnimation->startAnimation();
     evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
-    if (saveData()) {
-        evidenceIDForRequest = selectedRowEvidenceID();
-        model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
-        if(evi.id == -1) {
-            evidenceTable->setEnabled(true);
-            loadingAnimation->stopAnimation();
-            QMessageBox::warning(this, tr("Cannot submit evidence"),
-                                 tr("Could not retrieve data. Please try again."));
-        }
-        uploadAssetReply = NetMan::uploadAsset(evi);
-        connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
+    if (!saveData())
+        return;
+    evidenceIDForRequest = selectedRowEvidenceID();
+    model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
+    if(evi.id == -1) {
+        evidenceTable->setEnabled(true);
+        loadingAnimation->stopAnimation();
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Could not retrieve data. Please try again."));
+        return;
     }
+    uploadAssetReply = NetMan::uploadAsset(evi);
+    connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
 }
 
 void EvidenceManager::deleteEvidenceTriggered() {
@@ -429,11 +430,11 @@ void EvidenceManager::refreshRow(int row)
 {
     auto evidenceID = selectedRowEvidenceID();
     auto updatedData = db->getEvidenceDetails(evidenceID);
-    if(updatedData.id == -1) {
-        qWarning() << "Could not refresh table row: " << db->lastError().text();
+    if (updatedData.id != -1) {
+        setRowText(row, updatedData);
         return;
     }
-    setRowText(row, updatedData);
+    qWarning() << "Could not refresh table row: " << db->errorString();
 }
 
 bool EvidenceManager::saveData() {

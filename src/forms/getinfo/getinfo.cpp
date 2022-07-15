@@ -88,16 +88,16 @@ void GetInfo::submitButtonClicked()
 {
     submitButton->startAnimation();
     Q_EMIT setActionButtonsEnabled(false);
-    if (saveData()) {
-        model::Evidence evi = db->getEvidenceDetails(evidenceID);
-        if(evi.id == -1) {
-            QMessageBox::warning(this, tr("Cannot submit evidence"),
-                                 tr("Could not retrieve data. Please try again."));
-            return;
-        }
-        uploadAssetReply = NetMan::uploadAsset(evi);
-        connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
+    if (!saveData())
+        return;
+    model::Evidence evi = db->getEvidenceDetails(evidenceID);
+    if(evi.id == -1) {
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Could not retrieve data. Please try again."));
+        return;
     }
+    uploadAssetReply = NetMan::uploadAsset(evi);
+    connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
 }
 
 void GetInfo::deleteButtonClicked() {
@@ -127,23 +127,28 @@ void GetInfo::deleteButtonClicked() {
   }
 }
 
-void GetInfo::onUploadComplete() {
-  if (uploadAssetReply->error() != QNetworkReply::NoError) {
-    auto errMessage = tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
-    db->updateEvidenceError(errMessage, evidenceID);
-    QMessageBox::warning(this, tr("Cannot submit evidence"),
-                         tr("Upload failed: Network error. Check your connection and try again.\n"
-                         "Note: This evidence has been saved. You can close this window and "
-                         "re-submit from the evidence manager."
-                         "\n(Error: %1)").arg(uploadAssetReply->errorString()));
-  } else {
-      db->updateEvidenceSubmitted(evidenceID);
-      Q_EMIT evidenceSubmitted(db->getEvidenceDetails(evidenceID));
-      close();
-  }
-  // we don't actually need anything from the uploadAssets reply, so just clean it up.
-  // one thing we might want to record: evidence uuid... not sure why we'd need it though.
-  submitButton->stopAnimation();
-  Q_EMIT setActionButtonsEnabled(true);
-  tidyReply(&uploadAssetReply);
+void GetInfo::onUploadComplete()
+{
+    if (uploadAssetReply->error() != QNetworkReply::NoError) {
+        auto errMessage = tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
+        db->updateEvidenceError(errMessage, evidenceID);
+        if(!db->errorString().isEmpty())
+            qWarning() << "Upload failed. Could not update internal database. Error: " << db->errorString();
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Upload failed: Network error. Check your connection and try again.\n"
+                                "Note: This evidence has been saved. You can close this window and "
+                                "re-submit from the evidence manager."
+                                "\n(Error: %1)").arg(uploadAssetReply->errorString()));
+    } else {
+        db->updateEvidenceSubmitted(evidenceID);
+        if(!db->errorString().isEmpty())
+            qWarning() << "Upload successful. Could not update internal database. Error: " << db->errorString();
+        Q_EMIT evidenceSubmitted(db->getEvidenceDetails(evidenceID));
+        close();
+    }
+    // we don't actually need anything from the uploadAssets reply, so just clean it up.
+    // one thing we might want to record: evidence uuid... not sure why we'd need it though.
+    submitButton->stopAnimation();
+    Q_EMIT setActionButtonsEnabled(true);
+    tidyReply(&uploadAssetReply);
 }
