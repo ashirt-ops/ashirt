@@ -28,9 +28,15 @@ class DBQuery {
   inline QString query() { return _query; }
   inline QVariantList values() { return _values; }
 };
-
+/**
+ * @brief The DatabaseConnection class Interface to the local database
+ * All Changes / reads to db should return true on success
+ * any failed actions can have erorrs checked with DatabaseConnection::errorString()
+ */
 class DatabaseConnection {
  public:
+  const unsigned long SQLITE_MAX_VARS = 999;
+  QString getDatabasePath() { return _dbPath; }
    /**
    * @brief DatabaseConnection construct a connect to the database,
    * Uses QSQLite Driver if the driver is missing the app to exit with code 255.
@@ -48,29 +54,39 @@ class DatabaseConnection {
    * Specifically, it should NOT be the value from Constants::databaseName)
    * @param actions A function that will execute after a connection is established. This is where
    * all db interactions should occur.
+   * Returns True is successful
    */
-  static void withConnection(const QString& dbPath, const QString &dbName,
+  static bool withConnection(const QString& dbPath, const QString &dbName,
                              const std::function<void(DatabaseConnection)> &actions);
 
+  ///Return the last Error
+  QString errorString() {return _db.lastError().text();}
   bool connect();
-  void close() noexcept;
+  void close() noexcept {_db.close();}
 
   static DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
 
   model::Evidence getEvidenceDetails(qint64 evidenceID);
   QList<model::Evidence> getEvidenceWithFilters(const EvidenceFilters &filters);
 
+  /// Return -1 if Failed
   qint64 createEvidence(const QString &filepath, const QString &operationSlug,
                         const QString &contentType);
   qint64 createFullEvidence(const model::Evidence &evidence);
   void batchCopyFullEvidence(const QList<model::Evidence> &evidence);
   qint64 copyFullEvidence(const model::Evidence &evidence);
 
-  void updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
-  void updateEvidenceError(const QString &errorText, qint64 evidenceID);
+  /**
+  * @brief updateEvidenceDescription
+  * @param newDescription
+  * @param evidenceID
+  * @return True if successful
+  */
+  bool updateEvidenceDescription(const QString &newDescription, qint64 evidenceID);
+  bool updateEvidenceError(const QString &errorText, qint64 evidenceID);
   void updateEvidenceSubmitted(qint64 evidenceID);
   void updateEvidencePath(const QString& newPath, qint64 evidenceID);
-  void setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID);
+  bool setEvidenceTags(const QList<model::Tag> &newTags, qint64 evidenceID);
   void batchCopyTags(const QList<model::Tag> &allTags);
   QList<model::Tag> getFullTagsForEvidenceIDs(const QList<qint64>& evidenceIDs);
 
@@ -91,25 +107,38 @@ class DatabaseConnection {
                                                                DatabaseConnection *runningDB);
   QList<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
-  /// getDatabasePath returns the filepath associated with the loaded database
-  QString getDatabasePath();
-
- public:
-  const unsigned long SQLITE_MAX_VARS = 999;
+  QSqlError lastError() {return _db.lastError();}
 
  private:
   QString _dbName;
   QString _dbPath;
+  QSqlDatabase _db = QSqlDatabase();
   inline static const auto _migrateUp = QStringLiteral("-- +migrate up");
   inline static const auto _migrateDown = QStringLiteral("-- +migrate down");
   inline static const auto _newLine = QStringLiteral("\n");
-  inline static const auto _lineTemplate =QStringLiteral("%1").append(_newLine);
+  inline static const auto _lineTemplate = QStringLiteral("%1").append(_newLine);
+  inline static const auto _migrationPath = QStringLiteral(":/migrations");
+  inline static const auto _sqlSelectTemplate = QStringLiteral("SELECT %1 FROM %2");
+  inline static const auto _sqlBasicInsert = QStringLiteral("INSERT INTO %1 (%2) VALUES (%3)");
+  inline static const auto _sqlAddAppliedMigration = QStringLiteral("INSERT INTO migrations (migration_name, applied_at) VALUES (?, datetime('now'))");
+  inline static const auto _migration_name = QStringLiteral("migration_name");
+  inline static const auto _tblEvidence = QStringLiteral("evidence");
+  inline static const auto _tblMigrations = QStringLiteral("migrations");
+  inline static const auto _evidenceAllKeys = QStringLiteral("id, path, operation_slug, content_type, description, error, recorded_date, upload_date");
 
+  /**
+   * @brief migrateDB - Check migration status and apply any outstanding ones
+   * @return true if successful
+   */
   bool migrateDB();
-  QSqlDatabase getDB();
 
-  static QStringList getUnappliedMigrations(const QSqlDatabase &db);
-  static QString extractMigrateUpContent(const QString &allContent) noexcept;
+  /**
+   * @brief getUnappliedMigrations retrieves a list of all of the migrations that have not been applied to the database db
+   * Note: only files ending in ".sql" are checked
+   * @return List of migrations that have not be applied
+   */
+  QStringList getUnappliedMigrations();
+  QString extractMigrateUpContent(const QString &allContent) noexcept;
   static QSqlQuery executeQuery(const QSqlDatabase& db, const QString &stmt,
                                 const QVariantList &args = {});
 
@@ -118,6 +147,14 @@ class DatabaseConnection {
   /// QueryResult.sucess/QueryResult.err fields to determine the actual result.
   static QueryResult executeQueryNoThrow(const QSqlDatabase& db, const QString &stmt,
                                 const QVariantList &args = {}) noexcept;
+
+  /**
+   * @brief doInsert is a version of executeQuery that returns the last inserted id, rather than the underlying query/response
+   * @param db database to act upon
+   * @param stmt sql to run
+   * @param args args
+   * @return Inserted ID or -1 if failed.
+   */
   static qint64 doInsert(const QSqlDatabase &db, const QString &stmt, const QVariantList &args);
 
   /**

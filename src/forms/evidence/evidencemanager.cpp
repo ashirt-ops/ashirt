@@ -15,7 +15,6 @@
 
 #include "appconfig.h"
 #include "dtos/tag.h"
-#include "exceptions/fileerror.h"
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 #include "helpers/netman.h"
@@ -194,23 +193,23 @@ void EvidenceManager::showEvent(QShowEvent* evt) {
   resetFilterButtonClicked();
 }
 
-void EvidenceManager::submitEvidenceTriggered() {
-  loadingAnimation->startAnimation();
-  evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
-  if (saveData()) {
+void EvidenceManager::submitEvidenceTriggered()
+{
+    loadingAnimation->startAnimation();
+    evidenceTable->setEnabled(false);  // prevent switching evidence while one is being submitted.
+    if (!saveData())
+        return;
     evidenceIDForRequest = selectedRowEvidenceID();
-    try {
-      model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
-      uploadAssetReply = NetMan::uploadAsset(evi);
-      connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
+    model::Evidence evi = db->getEvidenceDetails(evidenceIDForRequest);
+    if(evi.id == -1) {
+        evidenceTable->setEnabled(true);
+        loadingAnimation->stopAnimation();
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Could not retrieve data. Please try again."));
+        return;
     }
-    catch (QSqlError& e) {
-      evidenceTable->setEnabled(true);
-      loadingAnimation->stopAnimation();
-      QMessageBox::warning(this, tr("Cannot submit evidence"),
-                           tr("Could not retrieve data. Please try again."));
-    }
-  }
+    uploadAssetReply = NetMan::uploadAsset(evi);
+    connect(uploadAssetReply, &QNetworkReply::finished, this, &EvidenceManager::onUploadComplete);
 }
 
 void EvidenceManager::deleteEvidenceTriggered() {
@@ -277,19 +276,15 @@ void EvidenceManager::deleteSet(QList<qint64> ids) {
     auto errLogPath = QStringLiteral("%1/%2.log")
             .arg(AppConfig::value(CONFIG::EVIDENCEREPO)
             , QDateTime::currentDateTime().toMSecsSinceEpoch());
-    try {
-      QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
-              .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
-      FileHelpers::writeFile(errLogPath, dataToWrite);
-    }
-    catch(FileError &e) {
-      logWritten = false;
-    }
-    QString msg = tr("Some files could not be deleted.");
 
-    if (logWritten) {
-      msg.append(tr(" A list of the excluded files can be found here: \n").arg(errLogPath));
-    }
+    QByteArray dataToWrite = tr("Paths to files that could not be deleted: \n\n %1")
+              .arg(undeletedFiles.join(QStringLiteral("\n"))).toUtf8();
+    logWritten = FileHelpers::writeFile(errLogPath, dataToWrite);
+
+    QString msg = tr("Some files could not be deleted.");
+    if (logWritten)
+        msg.append(tr(" A list of the excluded files can be found here: \n").arg(errLogPath));
+
     QMessageBox::warning(this, tr("Could not complete evidence deletion"), msg);
   }
 
@@ -332,17 +327,20 @@ void EvidenceManager::applyFilterForm(const EvidenceFilters& filter) {
   loadEvidence();
 }
 
-void EvidenceManager::loadEvidence() {
-  qint64 reselectId = -1;
-  if (evidenceTable->selectedItems().size() > 0) {
-    reselectId = selectedRowEvidenceID();
-  }
+void EvidenceManager::loadEvidence()
+{
+    qint64 reselectId = -1;
+    if (evidenceTable->selectedItems().size() > 0) {
+        reselectId = selectedRowEvidenceID();
+    }
 
-  evidenceTable->clearContents();
+    evidenceTable->clearContents();
 
-  try {
     auto filter = EvidenceFilters::parseFilter(filterTextBox->text());
     QList<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
+    if(db->lastError().type() != QSqlError::NoError){
+        qWarning() << "Could not retrieve evidence for operation. Error: " << db->lastError().text();
+    }
     evidenceTable->setRowCount(operationEvidence.size());
 
     // removing sorting temporarily to solve a bug (per qt: not a bug)
@@ -351,38 +349,34 @@ void EvidenceManager::loadEvidence() {
     // see also: https://bugreports.qt.io/browse/QTBUG-75479
     evidenceTable->setSortingEnabled(false);
     for (size_t row = 0; row < operationEvidence.size(); row++) {
-      auto evi = operationEvidence.at(row);
-      auto rowData = buildBaseEvidenceRow(evi.id);
+        auto evi = operationEvidence.at(row);
+        auto rowData = buildBaseEvidenceRow(evi.id);
 
-      evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
-      evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
-      evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
-      evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
-      evidenceTable->setItem(row, COL_PATH, rowData.path);
-      evidenceTable->setItem(row, COL_FAILED, rowData.failed);
-      evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
-      evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
-      evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
+        evidenceTable->setItem(row, COL_OPERATION, rowData.operation);
+        evidenceTable->setItem(row, COL_DESCRIPTION, rowData.description);
+        evidenceTable->setItem(row, COL_CONTENT_TYPE, rowData.contentType);
+        evidenceTable->setItem(row, COL_DATE_CAPTURED, rowData.dateCaptured);
+        evidenceTable->setItem(row, COL_PATH, rowData.path);
+        evidenceTable->setItem(row, COL_FAILED, rowData.failed);
+        evidenceTable->setItem(row, COL_ERROR_MSG, rowData.errorText);
+        evidenceTable->setItem(row, COL_SUBMITTED, rowData.submitted);
+        evidenceTable->setItem(row, COL_DATE_SUBMITTED, rowData.dateSubmitted);
 
-      setRowText(row, evi);
+        setRowText(row, evi);
     }
     evidenceTable->setSortingEnabled(true);
     if (evidenceTable->rowCount() > 0) {
-      // try to reselect the last viewed evidence, if it's still in the list
-      int selectRow = 0;
-      for (int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
-        auto evidenceID = evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong();
-        if(evidenceID == reselectId) {
-          selectRow = rowIndex;
-          break;
+        // try to reselect the last viewed evidence, if it's still in the list
+        int selectRow = 0;
+        for (int rowIndex = 0; rowIndex < evidenceTable->rowCount(); rowIndex++) {
+            auto evidenceID = evidenceTable->item(rowIndex, 0)->data(Qt::UserRole).toLongLong();
+            if(evidenceID == reselectId) {
+                selectRow = rowIndex;
+                break;
+            }
         }
-      }
-      evidenceTable->setCurrentCell(selectRow, 0);
+        evidenceTable->setCurrentCell(selectRow, 0);
     }
-  }
-  catch (QSqlError& e) {
-    qWarning() << "Could not retrieve evidence for operation. Error: " << e.text();
-  }
 }
 
 // buildBaseEvidenceRow constructs a container for a row of data.
@@ -432,15 +426,15 @@ void EvidenceManager::setRowText(int row, const model::Evidence& model) {
   setColText(COL_DATE_SUBMITTED, uploadDateText);
 }
 
-void EvidenceManager::refreshRow(int row) {
-  auto evidenceID = selectedRowEvidenceID();
-  try {
+void EvidenceManager::refreshRow(int row)
+{
+    auto evidenceID = selectedRowEvidenceID();
     auto updatedData = db->getEvidenceDetails(evidenceID);
-    setRowText(row, updatedData);
-  }
-  catch (QSqlError& e) {
-    qWarning() << "Could not refresh table row: " << e.text();
-  }
+    if (updatedData.id != -1) {
+        setRowText(row, updatedData);
+        return;
+    }
+    qWarning() << "Could not refresh table row: " << db->errorString();
 }
 
 bool EvidenceManager::saveData() {
@@ -500,25 +494,13 @@ void EvidenceManager::onUploadComplete() {
   NetMan::extractResponse(uploadAssetReply, isValid);
 
   if (!isValid) {
-    auto errMessage =
-        tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
-    try {
-      db->updateEvidenceError(errMessage, evidenceIDForRequest);
-    }
-    catch (QSqlError& e) {
-      qWarning() << "Upload failed. Could not update internal database. Error: " << e.text();
-    }
+    auto errMessage = tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
+    db->updateEvidenceError(errMessage, evidenceIDForRequest);
     QMessageBox::warning(this, tr("Cannot Submit Evidence"),
                          tr("Upload failed: Network error. Check your connection and try again.\n"
                          "(Error: %1)").arg(uploadAssetReply->errorString()));
-  }
-  else {
-    try {
-      db->updateEvidenceSubmitted(evidenceIDForRequest);
-    }
-    catch (QSqlError& e) {
-      qWarning() << "Upload successful. Could not update internal database. Error: " << e.text();
-    }
+  } else {
+    db->updateEvidenceSubmitted(evidenceIDForRequest);
     Q_EMIT evidenceChanged(evidenceIDForRequest, true);  // lock the editing form
   }
   refreshRow(evidenceTable->currentRow());

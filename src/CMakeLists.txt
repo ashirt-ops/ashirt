@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_subdirectory(components)
 add_subdirectory(db)
 add_subdirectory(dtos)
-add_subdirectory(exceptions)
 add_subdirectory(forms)
 add_subdirectory(helpers)
 add_subdirectory(models)
@@ -54,7 +53,6 @@ target_link_libraries ( ashirt
         ASHIRT::COMPONENTS
         ASHIRT::HELPERS
         ASHIRT::DTOS
-        ASHIRT::EXCEPTIONS
         ASHIRT::FORMS
         ASHIRT::PORTING
 )

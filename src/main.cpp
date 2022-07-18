@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
     auto conn = new DatabaseConnection(Constants::dbLocation, Constants::defaultDbName);
     if(!conn->connect()) {
-        showMsgBox(QT_TRANSLATE_NOOP("main", "Unable to connect to database"));
+        showMsgBox(QString(QT_TRANSLATE_NOOP("main", "Database Error: %1")).arg(conn->errorString()));
         return -1;
     }
 

@@ -36,7 +36,6 @@ namespace porting {
     * @brief applyManifest takes the given manifest object (and options), and begins merging that data with the running system
     * @param options switches to control what gets imported
     * @param systemDb The currently running/system database
-    * @throws QSqlError If there is an issue ingesting database records from the exported database
     */
     void applyManifest(SystemManifestImportOptions options, DatabaseConnection* systemDb);
 
@@ -46,7 +45,6 @@ namespace porting {
     * @param outputDirPath the path to the expected export directory. Files will be placed under this directory
     * (not wrapped in another directory)
     * @param options exporting options (e.g. do you want to copy both evidence *and* config
-    * @throws QSqlError if there is an issue accessing the system database, or the copied database
     */
     void exportManifest(DatabaseConnection* db, const QString& outputDirPath,
                           const SystemManifestExportOptions& options);
@@ -69,6 +67,8 @@ namespace porting {
     void onFileProcessed(quint64 runningCount);
     /// onComplete fires when the entire import/export is finished
     void onComplete();
+    /// onComplete fires when the export has an error
+    void onExportError(QString errorString);
     /// onCopyFileError fires when a file cannot be copied during import or export
     void onCopyFileError(QString srcPath, QString dstPath, const QString& errStr);
     /// onStatusUpdate fires when the system moves between import/export phases
@@ -89,7 +89,6 @@ namespace porting {
 
     /**
     * @brief migrateConfig imports the config file associated with the started import
-    * @throws FileError if the config file cannot be copied
     */
     void migrateConfig();
 

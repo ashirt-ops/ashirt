@@ -84,20 +84,20 @@ bool GetInfo::saveData() {
   return saveResponse.actionSucceeded;
 }
 
-void GetInfo::submitButtonClicked() {
-  submitButton->startAnimation();
-  Q_EMIT setActionButtonsEnabled(false);
-  if (saveData()) {
-    try {
-      model::Evidence evi = db->getEvidenceDetails(evidenceID);
-      uploadAssetReply = NetMan::uploadAsset(evi);
-      connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
+void GetInfo::submitButtonClicked()
+{
+    submitButton->startAnimation();
+    Q_EMIT setActionButtonsEnabled(false);
+    if (!saveData())
+        return;
+    model::Evidence evi = db->getEvidenceDetails(evidenceID);
+    if(evi.id == -1) {
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Could not retrieve data. Please try again."));
+        return;
     }
-    catch (QSqlError& e) {
-      QMessageBox::warning(this, tr("Cannot submit evidence"),
-                           tr("Could not retrieve data. Please try again."));
-    }
-  }
+    uploadAssetReply = NetMan::uploadAsset(evi);
+    connect(uploadAssetReply, &QNetworkReply::finished, this, &GetInfo::onUploadComplete);
 }
 
 void GetInfo::deleteButtonClicked() {
@@ -127,35 +127,28 @@ void GetInfo::deleteButtonClicked() {
   }
 }
 
-void GetInfo::onUploadComplete() {
-  if (uploadAssetReply->error() != QNetworkReply::NoError) {
-    auto errMessage =
-        tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
-    try {
-      db->updateEvidenceError(errMessage, evidenceID);
+void GetInfo::onUploadComplete()
+{
+    if (uploadAssetReply->error() != QNetworkReply::NoError) {
+        auto errMessage = tr("Unable to upload evidence: Network error (%1)").arg(uploadAssetReply->errorString());
+        db->updateEvidenceError(errMessage, evidenceID);
+        if(!db->errorString().isEmpty())
+            qWarning() << "Upload failed. Could not update internal database. Error: " << db->errorString();
+        QMessageBox::warning(this, tr("Cannot submit evidence"),
+                             tr("Upload failed: Network error. Check your connection and try again.\n"
+                                "Note: This evidence has been saved. You can close this window and "
+                                "re-submit from the evidence manager."
+                                "\n(Error: %1)").arg(uploadAssetReply->errorString()));
+    } else {
+        db->updateEvidenceSubmitted(evidenceID);
+        if(!db->errorString().isEmpty())
+            qWarning() << "Upload successful. Could not update internal database. Error: " << db->errorString();
+        Q_EMIT evidenceSubmitted(db->getEvidenceDetails(evidenceID));
+        close();
     }
-    catch (QSqlError& e) {
-      qWarning() << "Upload failed. Could not update internal database. Error: " << e.text();
-    }
-    QMessageBox::warning(this, tr("Cannot submit evidence"),
-                         tr("Upload failed: Network error. Check your connection and try again.\n"
-                         "Note: This evidence has been saved. You can close this window and "
-                         "re-submit from the evidence manager."
-                         "\n(Error: %1)").arg(uploadAssetReply->errorString()));
-  }
-  else {
-    try {
-      db->updateEvidenceSubmitted(evidenceID);
-      Q_EMIT evidenceSubmitted(db->getEvidenceDetails(evidenceID));
-      close();
-    }
-    catch (QSqlError& e) {
-      qWarning() << "Upload successful. Could not update internal database. Error: " << e.text();
-    }
-  }
-  // we don't actually need anything from the uploadAssets reply, so just clean it up.
-  // one thing we might want to record: evidence uuid... not sure why we'd need it though.
-  submitButton->stopAnimation();
-  Q_EMIT setActionButtonsEnabled(true);
-  tidyReply(&uploadAssetReply);
+    // we don't actually need anything from the uploadAssets reply, so just clean it up.
+    // one thing we might want to record: evidence uuid... not sure why we'd need it though.
+    submitButton->stopAnimation();
+    Q_EMIT setActionButtonsEnabled(true);
+    tidyReply(&uploadAssetReply);
 }
