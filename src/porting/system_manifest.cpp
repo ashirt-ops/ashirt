@@ -141,8 +141,7 @@ porting::EvidenceManifest SystemManifest::copyEvidence(const QString& baseExport
         auto item = porting::EvidenceItem(evi.id, m_fileTemplate.arg(relativeEvidenceDir, newName));
         auto dstPath = m_fileTemplate.arg(baseExportPath, item.exportPath);
         QFile srcFile(evi.path);
-        srcFile.copy(dstPath);
-        if (!srcFile.error() != QFileDevice::NoError)
+        if(!srcFile.copy(dstPath))
             Q_EMIT onCopyFileError(evi.path, dstPath, srcFile.errorString());
         else
             evidenceManifest.entries.append(item);
