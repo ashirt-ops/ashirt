@@ -31,7 +31,7 @@ jobs:
           MSIGN="false"
           WSIGN="false"
           RELEASE="false"
-          if [[ "$GITHUB_REF" == *"tags/v" || "$GITHUB_REF" == *"refs/heads/release" ]]; then
+          if [[ "$GITHUB_REF" == *"tags/v"* || "$GITHUB_REF" == *"refs/heads/release" ]]; then
               RELEASE="true"
               NAME="$GITHUB_REF_NAME"
           fi
@@ -144,9 +144,9 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ env.signMacRelease }}" == "true" ]]; then
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION=${{env.githash}} ${{matrix.config.extraCMakeConfig}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
         fi
         cmake --build build ${{ matrix.config.buildTarget }}
         cd build
@@ -198,7 +198,7 @@ jobs:
        files: ashirt-*/ashirt-*.*
 
     - name: Deploy Tag
-      if: needs.run-info.outputs.isRelease == 'true'
+      if: contains(github.ref, 'tags/v') || github.ref == 'refs/heads/release'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
        repo_token: "${{ secrets.GITHUB_TOKEN }}"
