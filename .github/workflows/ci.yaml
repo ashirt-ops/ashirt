@@ -96,7 +96,7 @@ jobs:
 
     - name: Cache Qt
       id: cache-qt
-      uses: actions/cache@v3.0.10
+      uses: actions/cache@v3.0.11
       with:
         path: ${{matrix.config.QT_INST_DIR}}/Qt
         key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ env.QT_VERSION }}
