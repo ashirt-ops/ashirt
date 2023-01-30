@@ -44,10 +44,10 @@ jobs:
           if [[ "$NAME" == "" ]]; then
               NAME="continuous"
           fi
-          echo "::set-output name=signMacRelease::$MSIGN"
-          echo "::set-output name=signWinRelease::$WSIGN"
-          echo "::set-output name=sha8::$NAME"
-          echo "::set-output name=isRelease::$RELEASE"
+          echo "signMacRelease=$MSIGN" >> $GITHUB_OUTPUT
+          echo "signWinRelease=$WSIGN" >> $GITHUB_OUTPUT
+          echo "sha8=$NAME" >> $GITHUB_OUTPUT
+          echo "isRelease=$RELEASE" >> $GITHUB_OUTPUT
 
   build:
     name: ${{ matrix.config.name }}
