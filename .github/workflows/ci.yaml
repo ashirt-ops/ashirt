@@ -94,13 +94,6 @@ jobs:
         fetch-depth: 0
     - run: git fetch --tags --force
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v3.2.4
-      with:
-        path: ${{matrix.config.QT_INST_DIR}}/Qt
-        key: ${{ runner.os }}${{ matrix.config.WIN_ARCH }}-qt-${{ env.QT_VERSION }}
-
     - name: Env Script (windows)
       uses: ilammy/msvc-dev-cmd@v1
       if: runner.os == 'Windows'
@@ -129,7 +122,6 @@ jobs:
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
        version: ${{ env.QT_VERSION }}
-       cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Install Dependencies
       shell: bash
