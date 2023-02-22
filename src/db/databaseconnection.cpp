@@ -194,9 +194,8 @@ bool DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint6
   // sqlite indicates it's default is 100 passed parameter, but it can "handle thousands"
   if (!tagDataToInsert.empty()) {
     QVariantList args;
-    baseQuery.append(QStringLiteral("(?, ?, ?"));
+    baseQuery.append(QStringLiteral("(?,?,?)"));
     baseQuery.append(QString(", (?,?,?)").repeated(int(tagDataToInsert.size() - 1)));
-    baseQuery.append(QStringLiteral(")"));
     for (const auto &item : tagDataToInsert) {
       args.append(item.evidenceID);
       args.append(item.tagID);
