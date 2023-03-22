@@ -155,7 +155,7 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 
 void TrayManager::changeEvent(QEvent *event)
 {
-    if (event->type() == QEvent::ApplicationPaletteChange) {
+    if (event->type() == QEvent::PaletteChange) {
         trayIcon->setIcon(getTrayIcon());
         QWidget::event(event);
         event->accept();
@@ -343,13 +343,6 @@ void TrayManager::onTrayMessageClicked() {
     case NO_ACTION:
     default:
       break;
-  }
-}
-
-void TrayManager::changeEvent(QEvent *event)
-{
-  if (event->type() == QEvent::PaletteChange) {
-    trayIcon->setIcon(getTrayIcon());
   }
 }
 
