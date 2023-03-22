@@ -346,4 +346,11 @@ void TrayManager::onTrayMessageClicked() {
   }
 }
 
+void TrayManager::changeEvent(QEvent *event)
+{
+  if (event->type() == QEvent::PaletteChange) {
+    trayIcon->setIcon(getTrayIcon());
+  }
+}
+
 #endif
