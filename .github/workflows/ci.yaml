@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-    QT_VERSION: 6.4.2
+    QT_VERSION: 6.5.1
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -127,7 +127,7 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev > /dev/null
+            sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-cursor0 > /dev/null
         elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install ninja --ignore-checksums
         fi
