@@ -94,6 +94,12 @@ class TrayManager : public QDialog {
   QTimer *updateCheckTimer = nullptr;
   MessageType currentTrayMessage = NO_ACTION;
 
+  ///Show the Settings Wizard
+  void showWizard();
+
+  ///Show the Welcome Screen
+  void showWelcomeScreen();
+
   /// openServicesPath is a variable to store where, on click, to open a path the next time a tray message is displayed
   QString openServicesPath;
 

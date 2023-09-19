@@ -104,6 +104,9 @@ QString AppConfig::defaultValue(const QString &key)
     if (key == CONFIG::APIURL)
         return QStringLiteral("http://localhost:8080");
 
+    if (key == CONFIG::SHOW_WELCOME_SCREEN)
+        return QStringLiteral("true");
+
     if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD) {
           if(!get()->appSettings->value(key).isValid())
               return QStringLiteral("Meta+Alt+v");

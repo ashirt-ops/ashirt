@@ -36,6 +36,7 @@ Settings::Settings(QWidget *parent)
     , captureClipboardShortcutTextBox(new SingleStrokeKeySequenceEdit(this))
     , testConnectionButton(new LoadingButton(tr("Test Connection"), this))
     , couldNotSaveSettingsMsg(new QErrorMessage(this))
+    , showWelcomeScreen(new QCheckBox(tr("Show Welcome Screen"), this))
 {
   buildUi();
   wireUi();
@@ -65,11 +66,13 @@ void Settings::buildUi() {
        +---------------+-------------+------------+-------------+
     6  | CodeblkSh Lbl | [CodeblkSh TB]                         |
        +---------------+-------------+------------+-------------+
-    7  | Test Conn Btn |  StatusLabel                           |
+    7  |                               [] Show Welcome Screen   |
        +---------------+-------------+------------+-------------+
-    8  | Vertical spacer                                        |
+    8  | Test Conn Btn |  StatusLabel                           |
        +---------------+-------------+------------+-------------+
-    9  | Dialog button Box{save, cancel}                        |
+    9  | Vertical spacer                                        |
+       +---------------+-------------+------------+-------------+
+    10 | Dialog button Box{save, cancel}                        |
        +---------------+-------------+------------+-------------+
   */
   auto gridLayout = new QGridLayout(this);
@@ -107,14 +110,17 @@ void Settings::buildUi() {
   gridLayout->addWidget(captureClipboardShortcutTextBox, 6, 1);
 
   // row 7
-  gridLayout->addWidget(testConnectionButton, 7, 0);
-  gridLayout->addWidget(connStatusLabel, 7, 1, 1, 4);
+  gridLayout->addWidget(showWelcomeScreen, 7, 1, 1, 5);
 
   // row 8
-  gridLayout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding), 8, 0, 1, gridLayout->columnCount());
+  gridLayout->addWidget(testConnectionButton, 8, 0);
+  gridLayout->addWidget(connStatusLabel, 8, 1, 1, 4);
 
   // row 9
-  gridLayout->addWidget(buttonBox, 9, 0, 1, gridLayout->columnCount());
+  gridLayout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding), 9, 0, 1, gridLayout->columnCount());
+
+  // row 10
+  gridLayout->addWidget(buttonBox, 10, 0, 1, gridLayout->columnCount());
 
   setLayout(gridLayout);
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
@@ -175,6 +181,7 @@ void Settings::showEvent(QShowEvent *evt) {
   captureWindowCmdTextBox->setText(AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW));
   captureWindowShortcutTextBox->setKeySequence(QKeySequence::fromString(AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW)));
   captureClipboardShortcutTextBox->setKeySequence(QKeySequence::fromString(AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD)));
+  showWelcomeScreen->setChecked(AppConfig::value(CONFIG::SHOW_WELCOME_SCREEN) == "true");
 
   // re-enable form
   connStatusLabel->clear();
@@ -209,6 +216,8 @@ void Settings::onSaveClicked() {
   AppConfig::setValue(CONFIG::COMMAND_CAPTUREWINDOW, captureWindowCmdTextBox->text());
   AppConfig::setValue(CONFIG::SHORTCUT_CAPTUREWINDOW, captureWindowShortcutTextBox->keySequence().toString());
   AppConfig::setValue(CONFIG::SHORTCUT_CAPTURECLIPBOARD, captureClipboardShortcutTextBox->keySequence().toString());
+  QString showWelcome = showWelcomeScreen->isChecked() ? "true" : "false";
+  AppConfig::setValue(CONFIG::SHOW_WELCOME_SCREEN, showWelcome);
 
   HotkeyManager::updateHotkeys();
   close();

@@ -21,6 +21,7 @@ struct CONFIG {
     inline static const auto COMMAND_CAPTUREWINDOW = QStringLiteral("captureWindowExec");
     inline static const auto SHORTCUT_CAPTUREWINDOW = QStringLiteral("captureWindowShortcut");
     inline static const auto SHORTCUT_CAPTURECLIPBOARD = QStringLiteral("captureClipboardShortcut");
+    inline static const auto SHOW_WELCOME_SCREEN = QStringLiteral("showWelcomeScreen");
 };
 
 /// AppConfig is a singleton for accessing the application's configuration.
@@ -102,5 +103,6 @@ private:
         CONFIG::COMMAND_CAPTUREWINDOW,
         CONFIG::SHORTCUT_CAPTUREWINDOW,
         CONFIG::SHORTCUT_CAPTURECLIPBOARD,
+        CONFIG::SHOW_WELCOME_SCREEN,
     };
 };
