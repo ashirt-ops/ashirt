@@ -130,6 +130,8 @@ jobs:
             sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-cursor0 > /dev/null
         elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install ninja --ignore-checksums
+        elif [ "RUNNER_OS" == "macOS"]; then
+            brew install brotli
         fi
 
     - name: Build
