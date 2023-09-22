@@ -155,12 +155,11 @@ void TrayManager::closeEvent(QCloseEvent* event) {
 
 void TrayManager::changeEvent(QEvent *event)
 {
-    if (event->type() == QEvent::ApplicationPaletteChange) {
-        trayIcon->setIcon(getTrayIcon());
-        QWidget::event(event);
-        event->accept();
-    }
-    event->ignore();
+  if (event->type() == QEvent::PaletteChange) {
+    trayIcon->setIcon(getTrayIcon());
+    event->accept();
+  }
+  event->ignore();
 }
 
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
