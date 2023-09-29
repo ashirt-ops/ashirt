@@ -20,7 +20,7 @@
 #include "dtos/checkConnection.h"
 #include "helpers/http_status.h"
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 #include "components/loading_button/loadingbutton.h"

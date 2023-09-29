@@ -15,7 +15,7 @@
 #include "dtos/github_release.h"
 #include "dtos/checkConnection.h"
 #include "helpers/multipartparser.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 #include "helpers/http_status.h"
 #include "models/evidence.h"
 
@@ -69,7 +69,7 @@ public:
     if(!ok) {
         get()->_lastTestError = tr("Server not Found, Check the Url");
         Q_EMIT get()->testStatusChanged(FAILURE);
-        tidyReply(&get()->testConnectionReply);
+        cleanUpReply(&get()->testConnectionReply);
         return;
     }
 
@@ -93,7 +93,7 @@ public:
           get()->_lastTestError = tr("Code %1").arg(statusCode);
           Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
     }
-    tidyReply(&get()->testConnectionReply);
+    cleanUpReply(&get()->testConnectionReply);
   }
 
   /// testConnection provides a mechanism to validate a given host, apikey and secret key, to test
@@ -190,9 +190,9 @@ private:
  void operator=(NetMan const &) = delete;
 
  ~NetMan() {
-    stopReply(&get()->allOpsReply);
-    stopReply(&get()->testConnectionReply);
-    stopReply(&get()->githubReleaseReply);
+    cleanUpReply(&get()->allOpsReply);
+    cleanUpReply(&get()->testConnectionReply);
+    cleanUpReply(&get()->githubReleaseReply);
  };
 
  QString _lastTestError;
@@ -273,7 +273,7 @@ private:
    } else {
      Q_EMIT get()->operationListUpdated(false);
    }
-   tidyReply(&get()->allOpsReply);
+   cleanUpReply(&get()->allOpsReply);
  }
 
  /// onGithubReleasesComplete is called when the network request associated with the method checkForNewRelease
@@ -287,7 +287,7 @@ private:
    } else {
      Q_EMIT get()->releasesChecked(false);
    }
-   tidyReply(&get()->githubReleaseReply);
+   cleanUpReply(&get()->githubReleaseReply);
  }
  QNetworkReply *allOpsReply = nullptr;
  QNetworkReply *testConnectionReply = nullptr;

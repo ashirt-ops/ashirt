@@ -12,7 +12,7 @@
 
 #include "components/loading/qprogressindicator.h"
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 #include "tag_cache/tagcache.h"
 
 TagEditor::TagEditor(QWidget *parent)
@@ -30,9 +30,9 @@ TagEditor::TagEditor(QWidget *parent)
 
 TagEditor::~TagEditor() {
   for (auto& entry : activeRequests) {
-    stopReply(&(entry));
+    cleanUpReply(&(entry));
   }
-  stopReply(&createTagReply);
+  cleanUpReply(&createTagReply);
 }
 
 void TagEditor::buildUi() {
@@ -123,7 +123,7 @@ void TagEditor::updateCompleterModel() {
 }
 
 void TagEditor::clear() {
-  stopReply(&createTagReply);
+  cleanUpReply(&createTagReply);
   tagCompleteTextBox->clear();
   errorLabel->clear();
   tagView->clear();
@@ -197,7 +197,7 @@ void TagEditor::onCreateTagComplete() {
     QMessageBox::warning(this, tr("Tag Error"),tr("Could not create tag\n Please check your connection and try again."));
   }
   disconnect(createTagReply, &QNetworkReply::finished, this, &TagEditor::onCreateTagComplete);
-  tidyReply(&createTagReply);
+  cleanUpReply(&createTagReply);
   loading->stopAnimation();
   tagCompleteTextBox->setEnabled(true);
   tagCompleteTextBox->setFocus();

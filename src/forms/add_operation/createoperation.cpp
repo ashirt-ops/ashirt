@@ -10,7 +10,7 @@
 #include "dtos/ashirt_error.h"
 #include "components/loading_button/loadingbutton.h"
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 
 CreateOperation::CreateOperation(QWidget* parent)
   : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
@@ -44,7 +44,7 @@ CreateOperation::CreateOperation(QWidget* parent)
 }
 
 CreateOperation::~CreateOperation() {
-  stopReply(&createOpReply);
+  cleanUpReply(&createOpReply);
 }
 
 void CreateOperation::submitButtonClicked() {
@@ -97,5 +97,5 @@ void CreateOperation::onRequestComplete() {
   submitButton->stopAnimation();
   submitButton->setEnabled(true);
 
-  tidyReply(&createOpReply);
+  cleanUpReply(&createOpReply);
 }
