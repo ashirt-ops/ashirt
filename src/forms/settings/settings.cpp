@@ -45,10 +45,6 @@ Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
   wireUi();
 }
 
-Settings::~Settings() {
-  stopReply(&currentTestReply);
-}
-
 void Settings::buildUi() {
   auto eviRepoBrowseButton = new QPushButton(tr("Browse"), this);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
@@ -135,6 +131,7 @@ void Settings::buildUi() {
 }
 
 void Settings::wireUi() {
+  connect(NetMan::get(), &NetMan::testStatusChanged, this, &Settings::testStatusChanged);
   connect(testConnectionButton, &QPushButton::clicked, this, &Settings::onTestConnectionClicked);
   connect(captureAreaShortcutTextBox, &QKeySequenceEdit::keySequenceChanged, this, [this](const QKeySequence &keySequence){
     checkForDuplicateShortcuts(keySequence, captureAreaShortcutTextBox);
@@ -199,13 +196,11 @@ void Settings::closeEvent(QCloseEvent *event) {
 }
 
 void Settings::onCancelClicked() {
-  stopReply(&currentTestReply);
   hotkeyManager->enableHotkeys();
   reject();
 }
 
 void Settings::onSaveClicked() {
-  stopReply(&currentTestReply);
   connStatusLabel->clear();
 
   AppConfig::setValue(CONFIG::EVIDENCEREPO, QDir::fromNativeSeparators(eviRepoTextBox->text()));
@@ -250,46 +245,18 @@ void Settings::onTestConnectionClicked() {
     connStatusLabel->setText(tr("Please set Access Key, Secret key and Host Path first."));
     return;
   }
-  testConnectionButton->startAnimation();
-  testConnectionButton->setEnabled(false);
-  currentTestReply = NetMan::testConnection(
-      hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
-  connect(currentTestReply, &QNetworkReply::finished, this, &Settings::onTestRequestComplete);
+  NetMan::testConnection(hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
 }
 
-void Settings::onTestRequestComplete() {
-  bool ok = true;
-  auto statusCode =
-      currentTestReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(&ok);
-
-  if (ok) {
-    dto::CheckConnection connectionCheckResp;
-
-    switch (statusCode) {
-      case HttpStatus::StatusOK:
-        connectionCheckResp = dto::CheckConnection::parseJson(currentTestReply->readAll());
-        if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
-          connStatusLabel->setText(tr("Connected"));
-        }
-        else {
-          connStatusLabel->setText(tr("Unable to connect: Wrong or outdated server"));
-        }
-        break;
-      case HttpStatus::StatusUnauthorized:
-        connStatusLabel->setText(tr("Could not connect: Unauthorized (check access key and secret)"));
-        break;
-      case HttpStatus::StatusNotFound:
-        connStatusLabel->setText(tr("Could not connect: Not Found (check URL)"));
-        break;
-      default:
-        connStatusLabel->setText(tr("Could not connect: Unexpected Error (code: %1)").arg(statusCode));
-    }
+void Settings::testStatusChanged(int result)
+{
+  if(result == NetMan::INPROGRESS) {
+    testConnectionButton->startAnimation();
+    testConnectionButton->setEnabled(false);
+    connStatusLabel->setText("Testing");
+    return;
   }
-  else {
-    connStatusLabel->setText(tr("Could not connect: Unexpected Error (check network connection and URL)"));
-  }
-
   testConnectionButton->stopAnimation();
   testConnectionButton->setEnabled(true);
-  tidyReply(&currentTestReply);
+  connStatusLabel->setText(NetMan::lastTestError());
 }

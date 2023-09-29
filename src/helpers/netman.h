@@ -13,15 +13,23 @@
 #include "dtos/operation.h"
 #include "dtos/tag.h"
 #include "dtos/github_release.h"
+#include "dtos/checkConnection.h"
 #include "helpers/multipartparser.h"
 #include "helpers/stopreply.h"
+#include "helpers/http_status.h"
 #include "models/evidence.h"
-
 
 class NetMan : public QObject {
   Q_OBJECT
 public:
-  // type alias QList<dto::Operation> to provide shorter lines
+  //Result for Connection Test
+  enum TestResult {
+   INPROGRESS,
+   SUCCESS,
+   FAILURE
+  };
+
+ // type alias QList<dto::Operation> to provide shorter lines
   using OperationVector = QList<dto::Operation>;
   static NetMan* get() {
     static NetMan i;
@@ -50,12 +58,54 @@ public:
     return builder->execute(get()->nam);
   }
 
+  ///Return the last Test Error
+  static QString lastTestError() {return get()->_lastTestError;}
+
+  ///Processes the test result and emits sets the lastError and a emits a result.
+  static void processTestResults() {
+    bool ok = true;
+    auto statusCode = get()->testConnectionReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(&ok);
+
+    if(!ok) {
+        get()->_lastTestError = tr("Server not Found, Check the Url");
+        Q_EMIT get()->testStatusChanged(FAILURE);
+        tidyReply(&get()->testConnectionReply);
+        return;
+    }
+
+    dto::CheckConnection connectionCheckResp;
+    switch (statusCode) {
+        case HttpStatus::StatusOK:
+          connectionCheckResp = dto::CheckConnection::parseJson(get()->testConnectionReply->readAll());
+          if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
+            get()->_lastTestError = tr("Successfully Connected");
+            Q_EMIT get()->testStatusChanged(SUCCESS);
+          } else {
+            get()->_lastTestError = tr("Server Error Report to Admin");
+            Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
+          }
+          break;
+        case HttpStatus::StatusUnauthorized:
+          get()->_lastTestError = tr("Authorization Failure, Check Api Keys");
+          Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
+          break;
+        default:
+          get()->_lastTestError = tr("Code %1").arg(statusCode);
+          Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
+    }
+    tidyReply(&get()->testConnectionReply);
+  }
+
   /// testConnection provides a mechanism to validate a given host, apikey and secret key, to test
   /// a connection to the ASHIRT API server
-  static QNetworkReply *testConnection(QString host, QString apiKey, QString secretKey) {
+  /// Connect to the testStatusChanged signal to see results;
+  static void testConnection(QString host, QString apiKey, QString secretKey) {
     auto builder = ashirtGet(QStringLiteral("/api/checkconnection"), host);
     addASHIRTAuth(builder, apiKey, secretKey);
-    return builder->execute(get()->nam);
+    get()->testConnectionReply = builder->execute(get()->nam);
+    get()->_lastTestError = tr("Testing in progress");
+    Q_EMIT get()->testStatusChanged(TestResult::INPROGRESS);
+    connect(get()->testConnectionReply, &QNetworkReply::finished, get(), processTestResults);
   }
 
   /// getAllOperations retrieves all (user-visble) operations from the configured ASHIRT API server.
@@ -132,12 +182,20 @@ public:
 signals:
  void operationListUpdated(bool success, NetMan::OperationVector  operations = NetMan::OperationVector());
  void releasesChecked(bool success, QList<dto::GithubRelease> releases = QList<dto::GithubRelease>());
+ void testStatusChanged(int newStatus);
 
 private:
  NetMan(QObject * parent = nullptr) : QObject(parent), nam(new QNetworkAccessManager(this)) { }
  NetMan(NetMan const &) = delete;
  void operator=(NetMan const &) = delete;
- ~NetMan() = default;
+
+ ~NetMan() {
+    stopReply(&get()->allOpsReply);
+    stopReply(&get()->testConnectionReply);
+    stopReply(&get()->githubReleaseReply);
+ };
+
+ QString _lastTestError;
 
  /// ashirtGet generates a basic GET request to the ashirt API server. No authentication is
  /// provided (use addASHIRTAuth to do this)
@@ -232,6 +290,7 @@ private:
    tidyReply(&get()->githubReleaseReply);
  }
  QNetworkReply *allOpsReply = nullptr;
+ QNetworkReply *testConnectionReply = nullptr;
  QNetworkReply *githubReleaseReply = nullptr;
  QNetworkAccessManager *nam = nullptr;
 };
