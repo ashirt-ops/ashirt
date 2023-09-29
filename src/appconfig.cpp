@@ -106,7 +106,7 @@ QString AppConfig::defaultValue(const QString &key)
 
     if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD)
 #ifdef Q_OS_LINUX
-        return QString();
+        return QStringLiteral("Meta+Alt+v");
 #elif defined Q_OS_WIN
         return QStringLiteral("Alt+v");
 #elif defined Q_OS_MAC
@@ -115,7 +115,7 @@ QString AppConfig::defaultValue(const QString &key)
 
     if(key == CONFIG::SHORTCUT_CAPTUREWINDOW)
 #ifdef Q_OS_LINUX
-        return QString();
+        return QStringLiteral("Meta+Alt+4");
 #elif defined Q_OS_WIN
         return QStringLiteral("Alt+4");
 #elif defined Q_OS_MAC
@@ -124,7 +124,7 @@ QString AppConfig::defaultValue(const QString &key)
 
     if(key == CONFIG::SHORTCUT_SCREENSHOT)
 #ifdef Q_OS_LINUX
-        return QString();
+        return QStringLiteral("Meta+Alt+3");
 #elif defined Q_OS_WIN
         return QStringLiteral("Alt+3");
 #elif defined Q_OS_MAC
@@ -133,7 +133,7 @@ QString AppConfig::defaultValue(const QString &key)
 
     if(key == CONFIG::COMMAND_SCREENSHOT)
 #ifdef Q_OS_LINUX
-        return QString();
+        return QFile::exists(gnomeSS) ? gnomeAreaCommand : QFile::exists(kdeSS) ? kdeAreaCommand : QFile::exists(xfceSS) ? xfceAreaCommand : QString();
 #elif defined Q_OS_WIN
         return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=4 convert=%file");
 #elif defined Q_OS_MAC
@@ -142,7 +142,7 @@ QString AppConfig::defaultValue(const QString &key)
 
     if(key == CONFIG::COMMAND_CAPTUREWINDOW)
 #ifdef Q_OS_LINUX
-        return QString();
+        return QFile::exists(gnomeSS) ? gnomeWindowCommand : QFile::exists(kdeSS) ? kdeWindowCommand : QFile::exists(xfceSS) ? xfceWindowCommand : QString();
 #elif defined Q_OS_WIN
         return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=0 convert=%file");
 #elif defined Q_OS_MAC
