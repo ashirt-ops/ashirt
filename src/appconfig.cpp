@@ -6,6 +6,7 @@
 #include <QIODevice>
 #include <QJsonParseError>
 #include <QJsonObject>
+#include <QFile>
 
 AppConfig::AppConfig(QObject *parent)
     : QObject(parent)
@@ -17,24 +18,16 @@ AppConfig::AppConfig(QObject *parent)
 
 void AppConfig::validateConfig()
 {
-    //Remove Any invalid Keys and set or fix any keys needed.
+    //Remove Any invalid Keys and set or set any empty to their default.
     for (const auto &key : appConfig->allKeys()) {
         if(!_appConfigValidKeys.contains(key))
             appConfig->remove(key);
     }
-    if (appConfig->value(CONFIG::EVIDENCEREPO).isNull())
-        appConfig->setValue(CONFIG::EVIDENCEREPO, QStringLiteral("%1/ashirt/evidence").arg(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)));
-#ifdef Q_OS_MACOS
-    if (appConfig->value(CONFIG::COMMAND_SCREENSHOT).isNull())
-        appConfig->setValue(CONFIG::COMMAND_SCREENSHOT, QStringLiteral("screencapture -s %file"));
-    if (appConfig->value(CONFIG::COMMAND_CAPTUREWINDOW).isNull())
-        appConfig->setValue(CONFIG::COMMAND_CAPTUREWINDOW, QStringLiteral("screencapture -w %file"));
-#endif
 }
 
 QString AppConfig::value(const QString &key)
 {
-    return get()->appConfig->value(key, QString()).toString();
+    return get()->appConfig->value(key, defaultValue(key)).toString();
 }
 
 void AppConfig::setValue(const QString &key, const QString &value)
@@ -98,6 +91,64 @@ void AppConfig::setLastUsedTags(QList<model::Tag> lastTags)
     for (const auto &tag : lastTags)
         writeTags << QVariant::fromValue(tag);
     get()->appSettings->setValue(_lastUsedTagsSetting, QVariant::fromValue(writeTags));
+}
+
+QString AppConfig::defaultValue(const QString &key)
+{
+    if (key.isEmpty() || key == CONFIG::ACCESSKEY || key == CONFIG::SECRETKEY )
+        return QString();
+
+    if (key == CONFIG::EVIDENCEREPO)
+        return QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).at(0).mid(0).append("/evidence");
+
+    if (key == CONFIG::APIURL)
+        return QStringLiteral("http://localhost:8080");
+
+    if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD)
+#ifdef Q_OS_LINUX
+        return QString();
+#elif defined Q_OS_WIN
+        return QStringLiteral("Alt+v");
+#elif defined Q_OS_MAC
+        return QStringLiteral("Option+v");
+#endif
+
+    if(key == CONFIG::SHORTCUT_CAPTUREWINDOW)
+#ifdef Q_OS_LINUX
+        return QString();
+#elif defined Q_OS_WIN
+        return QStringLiteral("Alt+4");
+#elif defined Q_OS_MAC
+        return QStringLiteral("Option+shift+4");
+#endif
+
+    if(key == CONFIG::SHORTCUT_SCREENSHOT)
+#ifdef Q_OS_LINUX
+        return QString();
+#elif defined Q_OS_WIN
+        return QStringLiteral("Alt+3");
+#elif defined Q_OS_MAC
+        return QStringLiteral("Option+shift+3");
+#endif
+
+    if(key == CONFIG::COMMAND_SCREENSHOT)
+#ifdef Q_OS_LINUX
+        return QString();
+#elif defined Q_OS_WIN
+        return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=4 convert=%file");
+#elif defined Q_OS_MAC
+        return QStringLiteral("screencapture -s %file");
+#endif
+
+    if(key == CONFIG::COMMAND_CAPTUREWINDOW)
+#ifdef Q_OS_LINUX
+        return QString();
+#elif defined Q_OS_WIN
+        return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=0 convert=%file");
+#elif defined Q_OS_MAC
+        return QStringLiteral("screencapture -w %file");
+#endif
+    return QString();
 }
 
 QList<model::Tag> AppConfig::getLastUsedTags()

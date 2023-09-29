@@ -53,7 +53,8 @@ public:
     static QList<model::Tag> getLastUsedTags();
     /// Set the last used Tags
     static void setLastUsedTags(QList<model::Tag> lastTags);
-
+    /// Return the Default Value for a given key
+    static QString defaultValue(const QString &key = QString());
 signals:
     void operationChanged(QString operationSlug, QString operationName);
 
