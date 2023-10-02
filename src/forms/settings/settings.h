@@ -30,7 +30,7 @@ class Settings : public AShirtDialog {
    * @param parent
    */
   explicit Settings(HotkeyManager* hotkeyManager, QWidget* parent = nullptr);
-  ~Settings();
+  ~Settings() = default;
 
  private:
   /// buildUi creates the window structure.
@@ -55,16 +55,14 @@ class Settings : public AShirtDialog {
 
   /// onTestConnectionClicked acts upon the "test connection" button press. Checks the network.
   void onTestConnectionClicked();
-  /// onTestRequestComplete handles the network result action.
-  void onTestRequestComplete();
+  /// testStatusChanged handles the netman test results
+  void testStatusChanged(int result);
   /// onBrowseClicked triggers when the "browse" button is pressed. Shows a file dialog to the user.
   void onBrowseClicked();
 
  private:
   /// hotkeyManager is a (shared) reference to the HotkeyManager. Not to be deleted.
   HotkeyManager* hotkeyManager;
-
-  QNetworkReply* currentTestReply = nullptr;
 
   // UI components
   QLabel* connStatusLabel = nullptr;

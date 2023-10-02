@@ -3,7 +3,7 @@
 #include <QNetworkReply>
 
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 
 
 TagCache::TagCache(QObject *parent): QObject(parent) {
@@ -12,7 +12,7 @@ TagCache::TagCache(QObject *parent): QObject(parent) {
 
 TagCache::~TagCache() {
   for (auto entry : qAsConst(tagRequests)) {
-    stopReply(&(entry));
+    cleanUpReply(&(entry));
   }
 }
 
@@ -73,5 +73,5 @@ void TagCache::onGetTagsComplete(QNetworkReply* reply, QString operationSlug) {
     }
   }
 
-  tidyReply(&reply);
+  cleanUpReply(&reply);
 }

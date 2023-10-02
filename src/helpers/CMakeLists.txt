@@ -16,7 +16,7 @@ add_library (HELPERS STATIC
     netman.h
     request_builder.h
     screenshot.cpp screenshot.h
-    stopreply.cpp stopreply.h
+    cleanupreply.h
     string_helpers.h
     system_helpers.h
     ui_helpers.h
