@@ -10,7 +10,7 @@
 #include "components/loading_button/loadingbutton.h"
 #include "db/databaseconnection.h"
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 
 GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
     : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
@@ -25,7 +25,7 @@ GetInfo::GetInfo(DatabaseConnection* db, qint64 evidenceID, QWidget* parent)
 
 GetInfo::~GetInfo() {
   delete evidenceEditor;
-  stopReply(&uploadAssetReply);
+  cleanUpReply(&uploadAssetReply);
 }
 
 void GetInfo::buildUi() {
@@ -150,5 +150,5 @@ void GetInfo::onUploadComplete()
     // one thing we might want to record: evidence uuid... not sure why we'd need it though.
     submitButton->stopAnimation();
     Q_EMIT setActionButtonsEnabled(true);
-    tidyReply(&uploadAssetReply);
+    cleanUpReply(&uploadAssetReply);
 }

@@ -18,7 +18,7 @@
 #include "forms/evidence_filter/evidencefilter.h"
 #include "forms/evidence_filter/evidencefilterform.h"
 #include "helpers/netman.h"
-#include "helpers/stopreply.h"
+#include "helpers/cleanupreply.h"
 
 enum ColumnIndexes {
   COL_DATE_CAPTURED = 0,
@@ -54,7 +54,7 @@ EvidenceManager::EvidenceManager(DatabaseConnection* db, QWidget* parent)
 }
 
 EvidenceManager::~EvidenceManager() {
-  stopReply(&uploadAssetReply);
+  cleanUpReply(&uploadAssetReply);
 }
 
 void EvidenceManager::buildEvidenceTableUi() {
@@ -510,7 +510,7 @@ void EvidenceManager::onUploadComplete() {
   loadingAnimation->stopAnimation();
   evidenceTable->setEnabled(true);
 
-  tidyReply(&uploadAssetReply);
+  cleanUpReply(&uploadAssetReply);
 }
 
 qint64 EvidenceManager::selectedRowEvidenceID() {
