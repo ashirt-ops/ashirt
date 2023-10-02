@@ -53,7 +53,8 @@ public:
     static QList<model::Tag> getLastUsedTags();
     /// Set the last used Tags
     static void setLastUsedTags(QList<model::Tag> lastTags);
-
+    /// Return the Default Value for a given key
+    static QString defaultValue(const QString &key = QString());
 signals:
     void operationChanged(QString operationSlug, QString operationName);
 
@@ -74,6 +75,19 @@ private:
     inline static const auto _configFile = QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation));
 #else
     inline static const QString _configFile = QStringLiteral("%1/ashirt/config.json").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
+#endif
+#ifdef Q_OS_LINUX
+    inline static const auto gnomeSS = QStringLiteral("/usr/bin/gnome-screenshot");
+    inline static const auto gnomeWindowCommand = QStringLiteral("gnome-screenshot -w -f %file");
+    inline static const auto gnomeAreaCommand = QStringLiteral("gnome-screenshot -a -f %file");
+
+    inline static const auto kdeSS = QStringLiteral("/usr/bin/spectacle");
+    inline static const auto kdeWindowCommand = QStringLiteral("spectacle -a -bno %file");
+    inline static const auto kdeAreaCommand = QStringLiteral("spectacle -r -bno %file");
+
+    inline static const auto xfceSS = QStringLiteral("/usr/bin/xfce4-screenshooter");
+    inline static const auto xfceWindowCommand = QStringLiteral("xfce4-screenshooter -w -s %file");
+    inline static const auto xfceAreaCommand = QStringLiteral("xfce4-screenshooter -r -s %file");
 #endif
     inline static const auto _opSlugSetting = QStringLiteral("operation/slug");
     inline static const auto _opNameSetting = QStringLiteral("operation/name");
