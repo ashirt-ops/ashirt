@@ -49,9 +49,6 @@ void Settings::buildUi() {
   auto eviRepoBrowseButton = new QPushButton(tr("Browse"), this);
   connect(eviRepoBrowseButton, &QPushButton::clicked, this, &Settings::onBrowseClicked);
 
-  auto clearHotkeysButton = new QPushButton(tr("Clear Shortcuts"), this);
-  connect(clearHotkeysButton, &QPushButton::clicked, this, &Settings::onClearShortcutsClicked);
-
   auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, this);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &Settings::onSaveClicked);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &Settings::onCancelClicked);
@@ -60,17 +57,17 @@ void Settings::buildUi() {
        +---------------+-------------+------------+-------------+
     0  | Evi Repo Lbl  |    [Evi Repo TB]         | browseBtn   |
        +---------------+-------------+------------+-------------+
-    1  | A. Key Label  |  [A. Key TB]                           |
+    1  | Host Label    |  [Host TB]                             |
        +---------------+-------------+------------+-------------+
-    2  | S. Key Label  |  [S. Key TB]                           |
+    2  | A. Key Label  |  [A. Key TB]                           |
        +---------------+-------------+------------+-------------+
-    3  | Host Label    |  [Host TB]                             |
+    3  | S. Key Label  |  [S. Key TB]                           |
        +---------------+-------------+------------+-------------+
     4  | Cap A Cmd Lbl | [CapACmdTB] | CapASh lbl | [CapASh TB] |
        +---------------+-------------+------------+-------------+
     5  | Cap W Cmd Lbl | [CapWCmdTB] | CapWSh lbl | [CapWSh TB] |
        +---------------+-------------+------------+-------------+
-    6  | CodeblkSh Lbl | [CodeblkSh TB] |  Clear Hotkey Btn     |
+    6  | CodeblkSh Lbl | [CodeblkSh TB]                         |
        +---------------+-------------+------------+-------------+
     7  | Test Conn Btn |  StatusLabel                           |
        +---------------+-------------+------------+-------------+
@@ -86,16 +83,16 @@ void Settings::buildUi() {
   gridLayout->addWidget(eviRepoBrowseButton, 0, 4);
 
   // row 1
-  gridLayout->addWidget(new QLabel(tr("Access Key"), this), 1, 0);
-  gridLayout->addWidget(accessKeyTextBox, 1, 1, 1, 4);
+  gridLayout->addWidget(new QLabel(tr("Server URL"), this), 1, 0);
+  gridLayout->addWidget(hostPathTextBox, 1, 1, 1, 4);
 
   // row 2
   gridLayout->addWidget(new QLabel(tr("Secret Key"), this), 2, 0);
   gridLayout->addWidget(secretKeyTextBox, 2, 1, 1, 4);
 
   // row 3
-  gridLayout->addWidget(new QLabel(tr("Host Path"), this), 3, 0);
-  gridLayout->addWidget(hostPathTextBox, 3, 1, 1, 4);
+  gridLayout->addWidget(new QLabel(tr("Access Key"), this), 3, 0);
+  gridLayout->addWidget(accessKeyTextBox, 3, 1, 1, 4);
 
   // row 4
   gridLayout->addWidget(new QLabel(tr("Capture Area Command"), this), 4, 0);
@@ -112,7 +109,6 @@ void Settings::buildUi() {
   // row 6 (reserved for codeblocks)
   gridLayout->addWidget(new QLabel(tr("Capture Clipboard Shortcut"), this), 6, 0);
   gridLayout->addWidget(captureClipboardShortcutTextBox, 6, 1);
-  gridLayout->addWidget(clearHotkeysButton, 6, 2, 1, 3, Qt::AlignRight);
 
   // row 7
   gridLayout->addWidget(testConnectionButton, 7, 0);
@@ -230,12 +226,6 @@ void Settings::onBrowseClicked() {
   if (filename != nullptr) {
     eviRepoTextBox->setText(QDir::toNativeSeparators(filename));
   }
-}
-
-void Settings::onClearShortcutsClicked() {
-  captureAreaShortcutTextBox->clear();
-  captureWindowShortcutTextBox->clear();
-  captureClipboardShortcutTextBox->clear();
 }
 
 void Settings::onTestConnectionClicked() {
