@@ -78,6 +78,5 @@ class Settings : public AShirtDialog {
   QKeySequenceEdit* captureClipboardShortcutTextBox = nullptr;
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
-  QPushButton* clearHotkeysButton = nullptr;
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
 };
