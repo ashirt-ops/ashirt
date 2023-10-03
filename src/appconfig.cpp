@@ -37,7 +37,7 @@ void AppConfig::setValue(const QString &key, const QString &value)
     if (AppConfig::value(key) == value)
         return;
 
-    if (value.isEmpty())
+    if (value.isNull())
         get()->appConfig->remove(key);
     else
         get()->appConfig->setValue(key, value);
@@ -104,32 +104,45 @@ QString AppConfig::defaultValue(const QString &key)
     if (key == CONFIG::APIURL)
         return QStringLiteral("http://localhost:8080");
 
-    if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD)
+    if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD) {
+          if(!get()->appSettings->value(key).isValid())
 #ifdef Q_OS_LINUX
-        return QStringLiteral("Meta+Alt+v");
+              return QStringLiteral("Meta+Alt+v");
 #elif defined Q_OS_WIN
-        return QStringLiteral("Alt+v");
+              return QStringLiteral("Alt+v");
 #elif defined Q_OS_MAC
-        return QStringLiteral("Option+v");
+              return QStringLiteral("Option+v");
 #endif
+          else
+              return QString();
+    }
 
-    if(key == CONFIG::SHORTCUT_CAPTUREWINDOW)
-#ifdef Q_OS_LINUX
-        return QStringLiteral("Meta+Alt+4");
-#elif defined Q_OS_WIN
-        return QStringLiteral("Alt+4");
-#elif defined Q_OS_MAC
-        return QStringLiteral("Option+shift+4");
-#endif
 
-    if(key == CONFIG::SHORTCUT_SCREENSHOT)
+    if(key == CONFIG::SHORTCUT_CAPTUREWINDOW) {
+          if(!get()->appSettings->value(key).isValid())
 #ifdef Q_OS_LINUX
-        return QStringLiteral("Meta+Alt+3");
+              return QStringLiteral("Meta+Alt+4");
 #elif defined Q_OS_WIN
-        return QStringLiteral("Alt+3");
+              return QStringLiteral("Alt+4");
 #elif defined Q_OS_MAC
-        return QStringLiteral("Option+shift+3");
+              return QStringLiteral("Option+shift+4");
 #endif
+          else
+              return QString();
+    }
+
+    if(key == CONFIG::SHORTCUT_SCREENSHOT) {
+        if(!get()->appSettings->value(key).isValid())
+#ifdef Q_OS_LINUX
+            return QStringLiteral("Meta+Alt+3");
+#elif defined Q_OS_WIN
+            return QStringLiteral("Alt+3");
+#elif defined Q_OS_MAC
+            return QStringLiteral("Option+shift+3");
+#endif
+        else
+            return QString();
+    }
 
     if(key == CONFIG::COMMAND_SCREENSHOT)
 #ifdef Q_OS_LINUX
