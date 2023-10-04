@@ -22,9 +22,8 @@
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 #include "components/loading_button/loadingbutton.h"
 
-Settings::Settings(HotkeyManager *hotkeyManager, QWidget *parent)
+Settings::Settings(QWidget *parent)
     : AShirtDialog(parent, AShirtDialog::commonWindowFlags)
-    , hotkeyManager(hotkeyManager)
     , connStatusLabel(new QLabel(this))
     , eviRepoTextBox(new QLineEdit(this))
     , accessKeyTextBox(new QLineEdit(this))
@@ -163,7 +162,7 @@ void Settings::checkForDuplicateShortcuts(const QKeySequence& keySequence, QKeyS
 
 void Settings::showEvent(QShowEvent *evt) {
   QDialog::showEvent(evt);
-  hotkeyManager->disableHotkeys();
+  HotkeyManager::disableHotkeys();
   eviRepoTextBox->setFocus(); //setting focus to prevent retaining focus for macs
 
   // reset the form in case a user left junk in the text boxes and pressed "cancel"
@@ -184,12 +183,12 @@ void Settings::showEvent(QShowEvent *evt) {
 
 void Settings::closeEvent(QCloseEvent *event) {
   onSaveClicked();
-  hotkeyManager->enableHotkeys();
+  HotkeyManager::enableHotkeys();
   QDialog::closeEvent(event);
 }
 
 void Settings::onCancelClicked() {
-  hotkeyManager->enableHotkeys();
+  HotkeyManager::enableHotkeys();
   reject();
 }
 
@@ -211,7 +210,7 @@ void Settings::onSaveClicked() {
   AppConfig::setValue(CONFIG::SHORTCUT_CAPTUREWINDOW, captureWindowShortcutTextBox->keySequence().toString());
   AppConfig::setValue(CONFIG::SHORTCUT_CAPTURECLIPBOARD, captureClipboardShortcutTextBox->keySequence().toString());
 
-  hotkeyManager->updateHotkeys();
+  HotkeyManager::updateHotkeys();
   close();
 }
 

@@ -13,12 +13,9 @@
  */
 class HotkeyManager : public QObject {
   Q_OBJECT
+  /// GlobalHotkeyEvent provides names for all possible application-global hotkeys
 
  public:
-  HotkeyManager(QObject *parent = nullptr);
-  ~HotkeyManager();
-
-  /// GlobalHotkeyEvent provides names for all possible application-global hotkeys
   enum GlobalHotkeyEvent {
     // Reserving 1 (UGlobalHotkey default)
     ACTION_CAPTURE_AREA = 2,
@@ -26,23 +23,26 @@ class HotkeyManager : public QObject {
     ACTION_CAPTURE_CLIPBOARD = 4,
   };
 
- public:
+  static HotkeyManager* get() {
+    static HotkeyManager m;
+    return &m;
+  }
   /**
    * @brief registerKey pairs a given key combination with a given event type.
    * @param binding A string representing the actual command (e.g. Alt+f1)
    * @param evt A GlobalHotkeyEvent specifying what should happen when a key is pressed.
    */
-  void registerKey(const QString& binding, GlobalHotkeyEvent evt);
+  static void registerKey(const QString& binding, GlobalHotkeyEvent evt);
   /// unregisterKey removes the handling specified for the given event. Safe to call even if
   /// no key has been registered.
-  void unregisterKey(GlobalHotkeyEvent evt);
+  static void unregisterKey(GlobalHotkeyEvent evt);
 
   /// disableHotkeys removes all of the keybindings.
-  void disableHotkeys();
+  static void disableHotkeys();
 
   /// enableHotkeys "restores" all of the currently set hotkeys. This acts as the counterpoint to
   /// disableHotkeys, but functionally is identical to updateHotKeys.
-  void enableHotkeys();
+  static void enableHotkeys();
 
  signals:
   /// clipboardHotkeyPressed signals when the ACTION_CAPTURE_CLIPBOARD event has been triggered.
@@ -55,13 +55,17 @@ class HotkeyManager : public QObject {
  public slots:
   /// updateHotkeys retrives AppConfig data to set known global hotkeys. Removes _all_ (Application)
   /// hotkeys when called.
-  void updateHotkeys();
+  static void updateHotkeys();
 
  private slots:
   /// hotkeyTriggered provides a slot for interacting with the underlying UGlobalHotkey manager.
-  void hotkeyTriggered(size_t hotkeyIndex);
+  static void hotkeyTriggered(size_t hotkeyIndex);
 
- private:
+ private:  
+  HotkeyManager();
+  ~HotkeyManager();
+  /// Interal Reg method used to filter Empty keys
+  void regKey(QString combo, GlobalHotkeyEvent evt);
   /// hotkeyManager is a reference to the raw hotkey manager, which a 3rd party manages.
-  UGlobalHotkeys* hotkeyManager;
+  UGlobalHotkeys* m_hotkeyManager = nullptr;
 };

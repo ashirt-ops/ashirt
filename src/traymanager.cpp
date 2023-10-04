@@ -30,9 +30,8 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     : QDialog(parent)
     , db(db)
     , screenshotTool(new Screenshot(this))
-    , hotkeyManager(new HotkeyManager(this))
     , updateCheckTimer(new QTimer(this))
-    , settingsWindow(new Settings(hotkeyManager, this))
+    , settingsWindow(new Settings(this))
     , evidenceManagerWindow(new EvidenceManager(this->db, this))
     , creditsWindow(new Credits(this))
     , importWindow(new PortingDialog(PortingDialog::Import, this->db, this))
@@ -43,7 +42,7 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     , allOperationActions(this)
 
 {
-  hotkeyManager->updateHotkeys();
+  HotkeyManager::updateHotkeys();
   updateCheckTimer->start(MS_IN_DAY); // every day
 
   buildUi();
@@ -106,11 +105,11 @@ void TrayManager::wireUi() {
           &TrayManager::onScreenshotCaptured);
 
   // connect to hotkey signals
-  connect(hotkeyManager, &HotkeyManager::clipboardHotkeyPressed, this,
+  connect(HotkeyManager::get(), &HotkeyManager::clipboardHotkeyPressed, this,
           &TrayManager::captureClipboardActionTriggered);
-  connect(hotkeyManager, &HotkeyManager::captureAreaHotkeyPressed, this,
+  connect(HotkeyManager::get(), &HotkeyManager::captureAreaHotkeyPressed, this,
           &TrayManager::captureAreaActionTriggered);
-  connect(hotkeyManager, &HotkeyManager::captureWindowHotkeyPressed, this,
+  connect(HotkeyManager::get(), &HotkeyManager::captureWindowHotkeyPressed, this,
           &TrayManager::captureWindowActionTriggered);
 
   // connect to network signals

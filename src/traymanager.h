@@ -14,7 +14,6 @@
 #include "forms/porting/porting_dialog.h"
 #include "forms/settings/settings.h"
 #include "helpers/screenshot.h"
-#include "hotkeymanager.h"
 #include "forms/add_operation/createoperation.h"
 
 #ifndef QT_NO_SYSTEMTRAYICON
@@ -91,7 +90,6 @@ class TrayManager : public QDialog {
   inline static const int MS_IN_DAY = 86400000;
   QString _recordErrorTitle = tr("Unable to Record Evidence");
   DatabaseConnection *db = nullptr;
-  HotkeyManager *hotkeyManager = nullptr;
   Screenshot *screenshotTool = nullptr;
   QTimer *updateCheckTimer = nullptr;
   MessageType currentTrayMessage = NO_ACTION;
