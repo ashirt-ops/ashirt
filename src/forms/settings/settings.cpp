@@ -17,10 +17,7 @@
 #include <QString>
 
 #include "appconfig.h"
-#include "dtos/checkConnection.h"
-#include "helpers/http_status.h"
 #include "helpers/netman.h"
-#include "helpers/cleanupreply.h"
 #include "hotkeymanager.h"
 #include "components/custom_keyseq_edit/singlestrokekeysequenceedit.h"
 #include "components/loading_button/loadingbutton.h"
@@ -232,7 +229,7 @@ void Settings::onTestConnectionClicked() {
   if (hostPathTextBox->text().isEmpty()
       || accessKeyTextBox->text().isEmpty()
       || secretKeyTextBox->text().isEmpty()) {
-    connStatusLabel->setText(tr("Please set Access Key, Secret key and Host Path first."));
+    connStatusLabel->setText(tr("Please set Access Key, Secret key and Server URL first."));
     return;
   }
   NetMan::testConnection(hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
