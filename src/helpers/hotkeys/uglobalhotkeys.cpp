@@ -107,7 +107,9 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
 void UGlobalHotkeys::unregisterHotkey(size_t id)
 {
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
-    Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
+    if(Registered.find(id) == Registered.end()) {
+        return;
+    }
 #endif
 #if defined(Q_OS_WIN)
     UnregisterHotKey(nullptr, id);

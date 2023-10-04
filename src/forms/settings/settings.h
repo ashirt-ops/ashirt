@@ -26,10 +26,9 @@ class Settings : public AShirtDialog {
  public:
   /**
    * @brief Settings constructs the settings menu. UI will be built and wired.
-   * @param hotkeyManager a handle to the HotkeyManager, so hotkeys may be updated upon saving.
    * @param parent
    */
-  explicit Settings(HotkeyManager* hotkeyManager, QWidget* parent = nullptr);
+  explicit Settings(QWidget* parent = nullptr);
   ~Settings() = default;
 
  private:
@@ -61,9 +60,6 @@ class Settings : public AShirtDialog {
   void onBrowseClicked();
 
  private:
-  /// hotkeyManager is a (shared) reference to the HotkeyManager. Not to be deleted.
-  HotkeyManager* hotkeyManager;
-
   // UI components
   QLabel* connStatusLabel = nullptr;
 
