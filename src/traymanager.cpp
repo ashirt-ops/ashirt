@@ -25,11 +25,6 @@
 #include "helpers/system_helpers.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
-#include "porting/system_manifest.h"
-
-#if defined(Q_OS_WIN)
-#include <QSettings>
-#endif
 
 TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     : QDialog(parent)
@@ -316,18 +311,11 @@ void TrayManager::setTrayMessage(MessageType type, const QString& title, const Q
 
 QIcon TrayManager::getTrayIcon()
 {
-#if defined(Q_OS_LINUX)
-  QIcon icon = QIcon(palette().text().color().value() >= QColor(Qt::lightGray).value()
-                     ? QStringLiteral(":/icons/shirt-light.svg")
-                     : QStringLiteral(":/icons/shirt-dark.svg"));
-#elif defined(Q_OS_MACOS)
+#if defined(Q_OS_MACOS)
   QIcon icon = QIcon(QStringLiteral(":/icons/shirt-dark.svg"));
   icon.setIsMask(true);
-#elif defined(Q_OS_WIN)
-  QSettings settings(QStringLiteral("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"), QSettings::NativeFormat);
-  QIcon icon = QIcon(settings.value(QStringLiteral("SystemUsesLightTheme")).toInt() == 0
-                     ? QStringLiteral(":/icons/shirt-light.svg")
-                     : QStringLiteral(":/icons/shirt-dark.svg"));
+#else
+  QIcon icon = SystemHelpers::isLightTheme() ?  QIcon(QStringLiteral(":/icons/shirt-dark.svg")) : QIcon(QStringLiteral(":/icons/shirt-light.svg"));
 #endif
   return icon;
 }
