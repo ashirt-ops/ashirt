@@ -148,7 +148,7 @@ QString AppConfig::defaultValue(const QString &key)
 #ifdef Q_OS_LINUX
         return QFile::exists(gnomeSS) ? gnomeAreaCommand : QFile::exists(kdeSS) ? kdeAreaCommand : QFile::exists(xfceSS) ? xfceAreaCommand : QString();
 #elif defined Q_OS_WIN
-        return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=4 convert=%file");
+        return QStringLiteral("\"C:\\Program Files\\IrfanView\\i_view64.exe\" /capture=4 /convert=%file");
 #elif defined Q_OS_MAC
         return QStringLiteral("screencapture -s %file");
 #endif
@@ -157,7 +157,7 @@ QString AppConfig::defaultValue(const QString &key)
 #ifdef Q_OS_LINUX
         return QFile::exists(gnomeSS) ? gnomeWindowCommand : QFile::exists(kdeSS) ? kdeWindowCommand : QFile::exists(xfceSS) ? xfceWindowCommand : QString();
 #elif defined Q_OS_WIN
-        return QStringLiteral("C:\\Program Files\\IrfanView\\i_view64.exe /capture=0 convert=%file");
+        return QStringLiteral("\"C:\\Program Files\\IrfanView\\i_view64.exe\" /capture=0 /convert=%file");
 #elif defined Q_OS_MAC
         return QStringLiteral("screencapture -w %file");
 #endif
