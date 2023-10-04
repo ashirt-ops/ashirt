@@ -23,10 +23,14 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName(QStringLiteral("ashirt"));
 #ifdef Q_OS_WIN
     QCoreApplication::setOrganizationName(QCoreApplication::applicationName());
+
 #endif
 
     QApplication app(argc, argv);
     app.setWindowIcon(getWindowIcon());
+#ifdef Q_OS_WIN
+    app.setStyle("fusion");
+#endif
 
     if(!QSystemTrayIcon::isSystemTrayAvailable()) {
         showMsgBox(QT_TRANSLATE_NOOP("main", "A System tray is required to interact with the application"));
