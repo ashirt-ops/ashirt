@@ -58,11 +58,7 @@ else()
 endif()
      message(STATUS "VERSION: ${CMAKE_PROJECT_VERSION}")
 
-if(NOT QT_DEFAULT_MAJOR_VERSION)
-    set(QT_DEFAULT_MAJOR_VERSION 6 CACHE STRING "" FORCE)
-endif()
-
-find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
+find_package(Qt6 6.5.0 REQUIRED COMPONENTS
     Widgets
     Gui
     Network
