@@ -106,42 +106,20 @@ QString AppConfig::defaultValue(const QString &key)
 
     if (key == CONFIG::SHORTCUT_CAPTURECLIPBOARD) {
           if(!get()->appSettings->value(key).isValid())
-#ifdef Q_OS_LINUX
               return QStringLiteral("Meta+Alt+v");
-#elif defined Q_OS_WIN
-              return QStringLiteral("Alt+v");
-#elif defined Q_OS_MAC
-              return QStringLiteral("Option+v");
-#endif
-          else
-              return QString();
+          return QString();
     }
-
 
     if(key == CONFIG::SHORTCUT_CAPTUREWINDOW) {
           if(!get()->appSettings->value(key).isValid())
-#ifdef Q_OS_LINUX
               return QStringLiteral("Meta+Alt+4");
-#elif defined Q_OS_WIN
-              return QStringLiteral("Alt+4");
-#elif defined Q_OS_MAC
-              return QStringLiteral("Option+shift+4");
-#endif
-          else
-              return QString();
+          return QString();
     }
 
     if(key == CONFIG::SHORTCUT_SCREENSHOT) {
         if(!get()->appSettings->value(key).isValid())
-#ifdef Q_OS_LINUX
             return QStringLiteral("Meta+Alt+3");
-#elif defined Q_OS_WIN
-            return QStringLiteral("Alt+3");
-#elif defined Q_OS_MAC
-            return QStringLiteral("Option+shift+3");
-#endif
-        else
-            return QString();
+        return QString();
     }
 
     if(key == CONFIG::COMMAND_SCREENSHOT)
