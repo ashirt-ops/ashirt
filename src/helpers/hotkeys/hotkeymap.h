@@ -266,9 +266,9 @@ static QMap<uint32_t, uint32_t> KEY_MAP = {
 static QMap<uint32_t, uint32_t> MOD_MAP = {
     {Qt::Key_Shift, shiftKey},
     {Qt::Key_Alt, optionKey},
-    {Qt::Key_Control, controlKey},
+    {Qt::Key_Meta, controlKey},
     {Qt::Key_Option, optionKey},
-    {Qt::Key_Meta, cmdKey},
+    {Qt::Key_Control, cmdKey},
 };
 
 inline UKeyData QtKeyToMac(const UKeySequence &keySeq)
