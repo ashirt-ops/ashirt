@@ -64,6 +64,7 @@ find_package(Qt6 6.5.0 REQUIRED COMPONENTS
     Network
     Sql
     Core
+    Svg
 )
 
 add_subdirectory(deploy)

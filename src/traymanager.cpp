@@ -25,6 +25,8 @@
 #include "helpers/system_helpers.h"
 #include "hotkeymanager.h"
 #include "models/codeblock.h"
+#include "firstRunWizard/firstTimeWizard.h"
+#include "firstRunWizard/welcomepage.h"
 
 TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     : QDialog(parent)
@@ -51,6 +53,9 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
   // delayed so that windows can listen for get all ops signal
   NetMan::refreshOperationsList();
   QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);
+
+  if(AppConfig::value(CONFIG::SHOW_WELCOME_SCREEN) != "false")
+    showWelcomeScreen();
 }
 
 TrayManager::~TrayManager() {
@@ -156,6 +161,19 @@ void TrayManager::changeEvent(QEvent *event)
   event->ignore();
 }
 
+void TrayManager::showWizard()
+{
+    auto gandalf = new FirstTimeWizard();
+    gandalf->show();
+}
+
+void TrayManager::showWelcomeScreen()
+{
+  auto welcomePage = new WelcomePage(this);
+  connect(welcomePage, &WelcomePage::requestSetupWizard, this, &TrayManager::showWizard);
+  welcomePage->show();
+}
+
 void TrayManager::spawnGetInfoWindow(qint64 evidenceID) {
   auto getInfoWindow = new GetInfo(db, evidenceID, this);
   connect(getInfoWindow, &GetInfo::evidenceSubmitted, [](const model::Evidence& evi) {
@@ -252,6 +270,12 @@ void TrayManager::showNoOperationSetTrayMessage() {
 void TrayManager::setActiveOperationLabel() {
   const auto& opName = AppConfig::operationName();
   chooseOpSubmenu->setTitle(tr("Operation: %1").arg(opName.isEmpty() ? tr("<None>") : opName));
+  for(const auto &a : allOperationActions.actions()) {
+      if(a->text() == opName) {
+          a->setChecked(true);
+          selectedAction = a;
+      }
+  }
 }
 
 void TrayManager::onOperationListUpdated(bool success,

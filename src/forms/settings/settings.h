@@ -5,6 +5,7 @@
 
 #include "ashirtdialog/ashirtdialog.h"
 
+#include <QCheckBox>
 #include <QCloseEvent>
 
 class HotkeyManager;
@@ -75,4 +76,5 @@ class Settings : public AShirtDialog {
   LoadingButton* testConnectionButton = nullptr;
   QPushButton* eviRepoBrowseButton = nullptr;
   QErrorMessage* couldNotSaveSettingsMsg = nullptr;
+  QCheckBox *showWelcomeScreen = nullptr;
 };
