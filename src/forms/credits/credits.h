@@ -1,6 +1,3 @@
-// Copyright 2020, Verizon Media
-// Licensed under the terms of MIT. See LICENSE file in project root for terms.
-
 #pragma once
 
 #include "ashirtdialog/ashirtdialog.h"
@@ -43,7 +40,7 @@ class Credits : public AShirtDialog {
   inline static const auto preambleMarkdown
       = QStringLiteral("Version: %1 \n\n"
                    "Commit Hash: %2\n\n"
-                   "Copyright %3, Verizon Media\n\n"
+                   "Copyright %3\n\n"
                    "Licensed under the terms of %4\n\n"
                    "A short user guide can be found %5\n\n"
                    "Report issues %6\n\n")
