@@ -71,7 +71,7 @@ ApiKeysPage::ApiKeysPage(QWidget *parent)
   _lblAKey->setText(tr("Access Key"));
 
   accessKeyLine = new QLineEdit(this);
-  accessKeyLine->setMaxLength(24);
+  accessKeyLine->setMaxLength(27);
   accessKeyLine->setTextMargins(3,0,3,0);
   accessKeyLine->setMaximumWidth(fontMetrics().averageCharWidth() * 27);
   registerField("host.accessKey*", accessKeyLine);
