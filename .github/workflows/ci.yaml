@@ -177,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download Files
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Deploy Continuous
       if: github.ref == 'refs/heads/main'
