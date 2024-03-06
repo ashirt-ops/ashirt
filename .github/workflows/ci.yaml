@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-    QT_VERSION: 6.5.2
+    QT_VERSION: 6.6.2
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
