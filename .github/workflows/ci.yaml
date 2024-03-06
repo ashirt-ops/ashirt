@@ -154,7 +154,7 @@ jobs:
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt \
-                --exclude-libs libmimeapi.so
+                --exclude-library=libmimeapi.so
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
             xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
