@@ -154,7 +154,7 @@ jobs:
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt \
-                --exclude-library=libmimerapi.so
+                --exclude-library=libqsqlmimer.so
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             brew tap mitchellh/gon
             brew install mitchellh/gon/gon jq
