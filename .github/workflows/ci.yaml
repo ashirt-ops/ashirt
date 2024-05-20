@@ -117,8 +117,6 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4.1.1
       with:
-       aqtversion: ==2.0.0
-       py7zrversion: ==0.16.2
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
        version: ${{ env.QT_VERSION }}
