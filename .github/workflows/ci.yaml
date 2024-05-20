@@ -115,7 +115,7 @@ jobs:
         p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3.3.0
+      uses: jurplel/install-qt-action@v4.0.0
       with:
        aqtversion: ==2.0.0
        py7zrversion: ==0.16.2
