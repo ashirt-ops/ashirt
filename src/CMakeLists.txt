@@ -73,6 +73,7 @@ if(APPLE)
             TARGET ashirt POST_BUILD
             COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/ashirt.app/Contents/Frameworks
             COMMAND install ${HOMEBREW_CELLAR}/brotli/1.1.0/lib/libbrotlicommon.1.1.0.dylib ${CMAKE_CURRENT_BINARY_DIR}/ashirt.app/Contents/Frameworks/libbrotlicommon.1.dylib
+            COMMAND codesign --remove-signature ${CMAKE_CURRENT_BINARY_DIR}/ashirt.app/Contents/Frameworks/libbrotlicommon.1.dylib
             COMMAND codesign -v --timestamp --sign ${NOTARIZE_AS} ${CMAKE_CURRENT_BINARY_DIR}/ashirt.app/Contents/Frameworks/libbrotlicommon.1.dylib
             COMMAND ${PLATFORMDEPLOYQT} ${CMAKE_CURRENT_BINARY_DIR}/ashirt.app -sign-for-notarization=${NOTARIZE_AS}
         )
