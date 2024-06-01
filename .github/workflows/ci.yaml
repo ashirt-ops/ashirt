@@ -155,11 +155,12 @@ jobs:
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
-            brew tap mitchellh/gon
-            brew install mitchellh/gon/gon jq
-            export ID=${{ env.name }}.dmg
-            echo "${{ secrets.GON_CONF }}" | base64 -D -i - | jq '.notarize[0].path = env.ID' > notarize.json
-            gon notarize.json
+            # Prepare application for notarization
+            xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
+            # Notarize the application
+            xcrun notarytool submit ${{env.name}}.dmg --keychain-profile "AC_PASSWORD" --wait
+            # Staple the ticket to the application
+            xcrun stapler staple ${{env.name}}.dmg
         elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
             signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
         fi
