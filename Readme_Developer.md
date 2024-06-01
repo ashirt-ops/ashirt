@@ -4,7 +4,7 @@
 
 This application is built off of Qt 6.5+, and utilizes's Qt's networking and Sql featuresets. To build, your specific system may need the following:
 
-1. Qt 6.5+, `qmake`, and possibly Qt Creator IDE.
+1. Qt 6.5+, `cmake`, and possibly Qt Creator IDE.
    1. Binaries located [here](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4). You may need to alter which downloader you install.
 2. SQLite C driver (for SQLite version 3)
    1. On Fedora, this can be installed with `yum install sqlite-devel`
@@ -20,7 +20,7 @@ This code is found by tracing its usage from it's initial request. Currently, th
 
 ### Adding Versioning
 
-This application attempts to add versioning data when building. This is accomplished by leveraging qmake's ability to add in preprocessor macros. This can be seen by looking in the `CMakeLists.txt` file, specifically looking for the `DEFINES` definition/updates, and tracing those additions back. For this project in particular a few fields are defined:
+This application attempts to add versioning data when building. This is accomplished by leveraging cmake's ability to add in preprocessor macros. This can be seen by looking in the `CMakeLists.txt` file, specifically looking for the `DEFINES` definition/updates, and tracing those additions back. For this project in particular a few fields are defined:
 
 | Field                 | default Value      | Meaning                                                                                                                                                                                  |
 | --------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
