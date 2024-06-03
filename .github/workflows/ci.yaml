@@ -166,6 +166,17 @@ jobs:
         fi
         mv ashirt*.* dist/
 
+    - name: Sign Artifact with CodeSignTool
+      uses: sslcom/esigner-codesign@develop
+      with:
+        command: sign
+        username: ${{secrets.ES_USERNAME}}
+        password: ${{secrets.ES_PASSWORD}}
+        credential_id: ${{secrets.CREDENTIAL_ID}}
+        totp_secret: ${{secrets.ES_TOTP_SECRET}}
+        file_path: ${{env.name}}.exe
+        output_path: dist/
+
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
       with:
