@@ -165,6 +165,7 @@ jobs:
 
     - name: Sign Artifact with CodeSignTool
       uses: sslcom/esigner-codesign@develop
+      if: ${{ env.signWinRelease == "true" && RUNNER_OS == "Windows"}}
       with:
         command: sign
         username: ${{secrets.ES_USERNAME}}
