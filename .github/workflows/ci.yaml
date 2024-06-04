@@ -163,6 +163,7 @@ jobs:
             # Staple the ticket to the application
             xcrun stapler staple ${{env.name}}.dmg
             mv ashirt*.* dist/
+        fi
 
     - name: Sign Artifact with CodeSignTool
       uses: sslcom/esigner-codesign@develop
