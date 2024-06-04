@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-    QT_VERSION: 6.5.2
+    QT_VERSION: 6.7.1
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -117,8 +117,6 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4.0.0
       with:
-       aqtversion: ==2.0.0
-       py7zrversion: ==0.16.2
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
        version: ${{ env.QT_VERSION }}
@@ -145,7 +143,7 @@ jobs:
         mkdir -p dist
         if [ "$RUNNER_OS" == "Linux" ]; then
             wget -qc "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
-            wget -qc "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+            wget -qc "https://github.com/jkennedyvz/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-static-x86_64.AppImage" -O linuxdeploy-plugin-qt-x86_64.AppImage
             chmod a+x linuxdeploy*.AppImage
             export VERSION=${{ env.githash }}
             export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
@@ -153,7 +151,8 @@ jobs:
                 -e src/ashirt \
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
-                --plugin=qt
+                --plugin=qt \
+                --exclude-library=libqsqlmimer
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
             xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
