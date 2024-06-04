@@ -175,7 +175,7 @@ jobs:
         credential_id: ${{secrets.CREDENTIAL_ID}}
         totp_secret: ${{secrets.ES_TOTP_SECRET}}
         file_path: build/${{env.name}}.exe
-        output_path: dist/
+        output_path: ${GITHUB_WORKSPACE}/build/dist/
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
