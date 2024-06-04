@@ -154,6 +154,7 @@ jobs:
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
+            mv ashirt*.* dist/
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
             xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
@@ -161,7 +162,7 @@ jobs:
             xcrun notarytool submit ${{env.name}}.dmg --keychain-profile "AC_PASSWORD" --wait
             # Staple the ticket to the application
             xcrun stapler staple ${{env.name}}.dmg
-        mv ashirt*.* dist/
+            mv ashirt*.* dist/
 
     - name: Sign Artifact with CodeSignTool
       uses: sslcom/esigner-codesign@develop
