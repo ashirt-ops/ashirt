@@ -154,6 +154,7 @@ jobs:
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
                 --plugin=qt
+            mv ashirt*.* dist/
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
             xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
@@ -161,10 +162,20 @@ jobs:
             xcrun notarytool submit ${{env.name}}.dmg --keychain-profile "AC_PASSWORD" --wait
             # Staple the ticket to the application
             xcrun stapler staple ${{env.name}}.dmg
-        elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
-            signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
+            mv ashirt*.* dist/
         fi
-        mv ashirt*.* dist/
+
+    - name: Sign Artifact with CodeSignTool
+      uses: sslcom/esigner-codesign@main
+      if: ${{ env.signWinRelease == 'true' && matrix.config.os == 'windows-2019' }}
+      with:
+        command: sign
+        username: ${{secrets.ES_USERNAME}}
+        password: ${{secrets.ES_PASSWORD}}
+        credential_id: ${{secrets.CREDENTIAL_ID}}
+        totp_secret: ${{secrets.ES_TOTP_SECRET}}
+        file_path: build/${{env.name}}.exe
+        output_path: build/dist/
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
