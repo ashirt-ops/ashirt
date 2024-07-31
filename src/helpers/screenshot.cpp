@@ -9,11 +9,40 @@
 #include "helpers/string_helpers.h"
 #include "helpers/system_helpers.h"
 
+#ifndef Q_OS_WIN
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusReply>
+#endif
+
 Screenshot::Screenshot(QObject *parent) : QObject(parent) {}
 
 void Screenshot::captureArea() { basicScreenshot(AppConfig::value(CONFIG::COMMAND_SCREENSHOT)); }
 
-void Screenshot::captureWindow() { basicScreenshot(AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW)); }
+void Screenshot::captureWindow() {
+  auto captureCommand = AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW);
+  if(!captureCommand.startsWith("DBUS")) {
+    basicScreenshot(AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW));
+    return;
+  }
+
+#ifndef Q_OS_WIN
+  // Attempt Dbus Capture
+  QDBusConnection bus = QDBusConnection::sessionBus();
+
+  QDBusInterface *i = new QDBusInterface("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Screenshot", bus, NULL);
+
+  QVariantMap options;
+  options["interactive"] = captureCommand.endsWith(QStringLiteral("INTERACTIVE")) ? true : false;
+
+  QDBusReply<QDBusObjectPath> repl = i->call("Screenshot", "", options);
+  if(repl.isValid()) {
+    bus.connect("", repl.value().path(), "org.freedesktop.portal.Request", "Response", this, SLOT(dbusScreenShot(uint, QVariantMap)));
+  } else {
+    qDebug() << "Something is wrong: " << repl.error();
+  }
+#endif
+}
 
 QString Screenshot::mkName()
 {
@@ -51,4 +80,21 @@ void Screenshot::basicScreenshot(QString cmdProto)
         Q_EMIT onScreenshotCaptured(trueName);
     });
     connect(ssTool, &QProcess::aboutToClose, ssTool, &QProcess::deleteLater);
+}
+
+void Screenshot::dbusScreenShot(uint responseCode, QVariantMap results)
+{
+    if(responseCode != 0) {
+        qDebug() << "Unable to take a screenshot";
+        return;
+    }
+    auto baseDir = SystemHelpers::pathToEvidence();
+    if(!QDir().mkpath(baseDir))
+        return;
+    auto newName = mkName();
+    auto tempFile = QDir::toNativeSeparators(m_fileTemplate.arg(QDir::tempPath(), newName));
+    auto oldFile = results["uri"].toString().mid(7);
+    QFile::copy(oldFile, tempFile);
+    QFile::remove(oldFile);
+    Q_EMIT onScreenshotCaptured(tempFile);
 }
