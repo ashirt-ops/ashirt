@@ -44,11 +44,13 @@ target_link_libraries ( HELPERS
       Qt::GuiPrivate
 )
 
+if(UNIX)
+    find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS DBus)
+    target_link_libraries(HELPERS PRIVATE Qt::DBus)
+endif()
+
 if(APPLE)
-    find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
-    DBus
-    )
-    target_link_libraries(HELPERS PRIVATE Qt::DBus ${CARBON_LIBRARY})
+    target_link_libraries(HELPERS PRIVATE ${CARBON_LIBRARY})
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(HELPERS PRIVATE xcb xcb-keysyms pthread)
 elseif(WIN32)
