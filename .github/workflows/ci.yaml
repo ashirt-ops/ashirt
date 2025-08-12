@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-    QT_VERSION: 6.7.1
+    QT_VERSION: 6.9.1
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -59,7 +59,7 @@ jobs:
         config:
         - {
             name: "Linux"
-            , os: ubuntu-20.04
+            , os: ubuntu-24.04
             , QT_INST_DIR: /opt
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr"
           }
@@ -88,7 +88,7 @@ jobs:
         echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
 
     - name: Check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         submodules: true
         fetch-depth: 0
@@ -115,7 +115,7 @@ jobs:
         p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4.1.1
+      uses: jurplel/install-qt-action@v4.3.0
       with:
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
