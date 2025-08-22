@@ -147,12 +147,12 @@ jobs:
             chmod a+x linuxdeploy*.AppImage
             export VERSION=${{ env.githash }}
             export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
+            export LINUXDEPLOY_EXCLUDED_LIBRARIES=libqsqlmimer.so
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e src/ashirt \
                 -d ../deploy/ashirt.desktop \
                 -i ../deploy/hicolor/128x128/apps/ashirt.png \
-                --plugin=qt \
-                --exclude-library=sqldrivers/libqsqlmysql.so
+                --plugin=qt
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
             xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
