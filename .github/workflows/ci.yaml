@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-    QT_VERSION: 6.5.2
+    QT_VERSION: 6.9.2
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -59,7 +59,7 @@ jobs:
         config:
         - {
             name: "Linux"
-            , os: ubuntu-20.04
+            , os: ubuntu-24.04
             , QT_INST_DIR: /opt
             , extraCMakeConfig: "-DCMAKE_INSTALL_PREFIX=/usr"
           }
@@ -68,13 +68,13 @@ jobs:
             , os: macos-latest
             , QT_INST_DIR: /Users/runner
             , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\""
-            , cmakeSigning: "-DNOTARIZE_AS=\"John Kennedy\""
+            , cmakeSigning: "-DNOTARIZE_AS=\"Joseph Rozner\""
             , buildTarget: "--target package"
           }
         - {
             name: "Windows", WIN_ARCH: "x64"
-            , os: windows-2019
-            , QT_INST_DIR: "C:/", QT_ARCH: win64_msvc2019_64
+            , os: windows-2022
+            , QT_INST_DIR: "C:/", QT_ARCH: win64_msvc2022_64
             , extraCMakeConfig: "-G Ninja"
             , buildTarget: "--target package"
           }
@@ -88,7 +88,7 @@ jobs:
         echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
 
     - name: Check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         submodules: true
         fetch-depth: 0
@@ -115,10 +115,8 @@ jobs:
         p12-password: ${{ secrets.MACOS_PASS }}
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4.1.1
+      uses: jurplel/install-qt-action@v4.3.0
       with:
-       aqtversion: ==2.0.0
-       py7zrversion: ==0.16.2
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
        version: ${{ env.QT_VERSION }}
@@ -149,6 +147,7 @@ jobs:
             chmod a+x linuxdeploy*.AppImage
             export VERSION=${{ env.githash }}
             export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
+            export LINUXDEPLOY_EXCLUDED_LIBRARIES=libqsqlmimer.so
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e src/ashirt \
                 -d ../deploy/ashirt.desktop \
@@ -162,7 +161,8 @@ jobs:
             # Staple the ticket to the application
             xcrun stapler staple ${{env.name}}.dmg
         elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
-            signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
+            echo "not signing"
+            #signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
         fi
         mv ashirt*.* dist/
 
