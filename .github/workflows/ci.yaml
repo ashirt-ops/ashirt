@@ -73,7 +73,7 @@ jobs:
           }
         - {
             name: "Windows", WIN_ARCH: "x64"
-            , os: windows-2025
+            , os: windows-2022
             , QT_INST_DIR: "C:/", QT_ARCH: win64_msvc2022_64
             , extraCMakeConfig: "-G Ninja"
             , buildTarget: "--target package"
