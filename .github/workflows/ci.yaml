@@ -68,7 +68,7 @@ jobs:
             , os: macos-latest
             , QT_INST_DIR: /Users/runner
             , extraCMakeConfig: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\""
-            , cmakeSigning: "-DNOTARIZE_AS=\"John Kennedy\""
+            , cmakeSigning: "-DNOTARIZE_AS=\"Joseph Rozner\""
             , buildTarget: "--target package"
           }
         - {
