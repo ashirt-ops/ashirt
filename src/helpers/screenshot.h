@@ -12,7 +12,6 @@ class Screenshot : public QObject {
   static QString mkName();
   static QString extension() { return QStringLiteral("png"); }
   static QString contentType() { return QStringLiteral("image"); }
-
  signals:
   void onScreenshotCaptured(QString filepath);
 
@@ -21,4 +20,7 @@ class Screenshot : public QObject {
   inline static const QString m_fileTemplate = QStringLiteral("%1/%2");
   inline static const QString m_doubleQuote = QStringLiteral("\"");
   inline static const QString m_space = QStringLiteral(" ");
+
+ private slots:
+  void dbusScreenShot(uint responseCode, QVariantMap results);
 };
