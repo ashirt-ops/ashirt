@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: CheckRun Info
         env:
-          MCERT: ${{secrets.MACOS_CERT}}
+          MCERT: ${{secrets.APPLE_CERTIFICATE}}
           WCERT: ${{ secrets.WINDOWS_CERT }}
         id: calc-info
         run: |
@@ -111,8 +111,8 @@ jobs:
       if: runner.os == 'macOS' && env.signMacRelease == 'true'
       uses: Apple-Actions/import-codesign-certs@v3
       with:
-        p12-file-base64: ${{ secrets.MACOS_CERT }}
-        p12-password: ${{ secrets.MACOS_PASS }}
+        p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
+        p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4.3.0
@@ -155,7 +155,7 @@ jobs:
                 --plugin=qt
         elif [[ "$RUNNER_OS" == "macOS" && "${{ env.signMacRelease }}" == "true" ]]; then
             # Prepare application for notarization
-            xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.TEAM_ID }} --password ${{ secrets.APP_SPECIFIC_PASSWORD }}
+            xcrun notarytool store-credentials "AC_PASSWORD" --apple-id ${{ secrets.APPLE_ID }} --team-id ${{ secrets.APPLE_TEAM_ID }} --password ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
             # Notarize the application
             xcrun notarytool submit ${{env.name}}.dmg --keychain-profile "AC_PASSWORD" --wait
             # Staple the ticket to the application
