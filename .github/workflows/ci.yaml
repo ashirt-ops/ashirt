@@ -7,6 +7,8 @@ on:
       'v*'
   pull_request:
     branches: [ main ]
+permissions:
+  contents: read
 env:
     QT_VERSION: 6.9.2
 jobs:
@@ -176,6 +178,8 @@ jobs:
     name: Release
     needs: [run-info, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Download Files
       uses: actions/download-artifact@v4
