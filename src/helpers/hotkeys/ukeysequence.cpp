@@ -37,7 +37,7 @@ QString UKeySequence::toString()
 QList<Qt::Key> UKeySequence::getSimpleKeys() const
 {
     QList<Qt::Key> result;
-    for (auto key : qAsConst(mKeys)) {
+    for (auto key : std::as_const(mKeys)) {
         if (!isModifier(key)) {
             result.append(key);
         }
@@ -48,7 +48,7 @@ QList<Qt::Key> UKeySequence::getSimpleKeys() const
 QList<Qt::Key> UKeySequence::getModifiers() const
 {
     QList<Qt::Key> result;
-    for (auto key : qAsConst(mKeys)) {
+    for (auto key : std::as_const(mKeys)) {
         if (isModifier(key)) {
             result.append(key);
         }
@@ -113,7 +113,7 @@ void UKeySequence::addKey(Qt::Key key)
     if (key <= 0)
         return;
 
-    for (auto testKey : qAsConst(mKeys)) {
+    for (auto testKey : std::as_const(mKeys)) {
         if (testKey == key) {
             return;
         }

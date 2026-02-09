@@ -1,6 +1,7 @@
 #include "databaseconnection.h"
 
 #include <QDir>
+#include <QTimeZone>
 #include <QVariant>
 
 #include "helpers/file_helpers.h"
@@ -84,8 +85,8 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID)
     rtn.errorText = query.value(QStringLiteral("error")).toString();
     rtn.recordedDate = query.value(QStringLiteral("recorded_date")).toDateTime();
     rtn.uploadDate = query.value(QStringLiteral("upload_date")).toDateTime();
-    rtn.recordedDate.setTimeSpec(Qt::UTC);
-    rtn.uploadDate.setTimeSpec(Qt::UTC);
+    rtn.recordedDate.setTimeZone(QTimeZone::UTC);
+    rtn.uploadDate.setTimeZone(QTimeZone::UTC);
     rtn.tags = getTagsForEvidenceID(evidenceID);
   } else {
     rtn.id = -1;
@@ -282,8 +283,8 @@ QList<model::Evidence> DatabaseConnection::getEvidenceWithFilters(const Evidence
         evi.errorText = resultSet.value(QStringLiteral("error")).toString();
         evi.recordedDate = resultSet.value(QStringLiteral("recorded_date")).toDateTime();
         evi.uploadDate = resultSet.value(QStringLiteral("upload_date")).toDateTime();
-        evi.recordedDate.setTimeSpec(Qt::UTC);
-        evi.uploadDate.setTimeSpec(Qt::UTC);
+        evi.recordedDate.setTimeZone(QTimeZone::UTC);
+        evi.uploadDate.setTimeZone(QTimeZone::UTC);
         allEvidence.append(evi);
     }
 

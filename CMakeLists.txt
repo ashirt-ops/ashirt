@@ -58,9 +58,10 @@ else()
 endif()
      message(STATUS "VERSION: ${CMAKE_PROJECT_VERSION}")
 
-find_package(Qt6 6.6.1 REQUIRED COMPONENTS
+find_package(Qt6 6.10.0 REQUIRED COMPONENTS
     Widgets
     Gui
+    GuiPrivate
     Network
     Sql
     Core

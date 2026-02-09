@@ -2,9 +2,9 @@
 
 ## Building and Build Requirements
 
-This application is built off of Qt 6.6.1+, and utilizes's Qt's networking and Sql featuresets. To build, your specific system may need the following:
+This application is built off of Qt 6.10+, and utilizes's Qt's networking and Sql featuresets. To build, your specific system may need the following:
 
-1. Qt 6.6.1+, `cmake`, and possibly Qt Creator IDE.
+1. Qt 6.10+, `cmake`, and possibly Qt Creator IDE.
    1. Binaries located [here](https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4). You may need to alter which downloader you install.
 2. SQLite C driver (for SQLite version 3)
    1. On Fedora, this can be installed with `yum install sqlite-devel`

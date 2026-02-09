@@ -120,7 +120,7 @@ WelcomePage::WelcomePage(QWidget *parent)
 
     auto hide = new QCheckBox("Do Not show when starting", this);
     hide->setChecked(AppConfig::value(CONFIG::SHOW_WELCOME_SCREEN) != "true");
-    connect(hide,&QCheckBox::stateChanged, this, [hide, this] (int newState) {
+    connect(hide, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState newState) {
       if(newState != Qt::Checked)
         AppConfig::setValue(CONFIG::SHOW_WELCOME_SCREEN, "true");
       else

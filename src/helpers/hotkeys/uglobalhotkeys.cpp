@@ -148,7 +148,7 @@ void UGlobalHotkeys::unregisterAllHotkeys()
 UGlobalHotkeys::~UGlobalHotkeys()
 {
 #if defined(Q_OS_WIN)
-    for (auto hotKey : qAsConst(Registered)) {
+    for (auto hotKey : std::as_const(Registered)) {
         UnregisterHotKey(nullptr, hotKey);
     }
 #elif defined(Q_OS_LINUX)
