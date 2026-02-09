@@ -25,7 +25,7 @@ bool DatabaseConnection::withConnection(const QString& dbPath, const QString &db
         return false;
     actions(conn);
     bool rtn = true;
-    if( conn._db.lastError().type() != QSqlError::NoError)
+    if(conn._db.lastError().isValid())
         rtn = false;
 
     conn.close();
@@ -76,7 +76,7 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID)
   model::Evidence rtn;
   auto qStr = QStringLiteral("%1 WHERE id=? LIMIT 1").arg(_sqlSelectTemplate.arg(_evidenceAllKeys, _tblEvidence));
   auto query = executeQuery(_db, qStr, {evidenceID});
-  if (_db.lastError().type() == QSqlError::NoError && query.first()) {
+  if (!_db.lastError().isValid() && query.first()) {
     rtn.id = query.value(QStringLiteral("id")).toLongLong();
     rtn.path = query.value(QStringLiteral("path")).toString();
     rtn.operationSlug = query.value(QStringLiteral("operation_slug")).toString();
@@ -97,18 +97,18 @@ model::Evidence DatabaseConnection::getEvidenceDetails(qint64 evidenceID)
 bool DatabaseConnection::updateEvidenceDescription(const QString &newDescription, qint64 evidenceID)
 {
     auto q = executeQuery(_db, QStringLiteral("UPDATE evidence SET description=? WHERE id=?"), {newDescription, evidenceID});
-    return (q.lastError().type() == QSqlError::NoError);
+    return !q.lastError().isValid();
 }
 
 bool DatabaseConnection::deleteEvidence(qint64 evidenceID)
 {
     auto q = executeQuery(_db, QStringLiteral("DELETE FROM evidence WHERE id=?"), {evidenceID});
-    return (q.lastError().type() == QSqlError::NoError);
+    return !q.lastError().isValid();
 }
 
 bool DatabaseConnection::updateEvidenceError(const QString &errorText, qint64 evidenceID) {
   auto q = executeQuery(_db, QStringLiteral("UPDATE evidence SET error=? WHERE id=?"), {errorText, evidenceID});
-  return (q.lastError().type() == QSqlError::NoError);
+  return !q.lastError().isValid();
 }
 
 void DatabaseConnection::updateEvidenceSubmitted(qint64 evidenceID) {
@@ -158,12 +158,12 @@ bool DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint6
 
   auto qDelStr = QStringLiteral("DELETE FROM tags WHERE tag_id NOT IN (?) AND evidence_id = ?");
   auto a = executeQuery(_db, qDelStr, {newTagIds, evidenceID});
-  if(a.lastError().type() != QSqlError::NoError)
+  if(a.lastError().isValid())
       return false;
 
   auto qSelStr = QStringLiteral("SELECT tag_id FROM tags WHERE evidence_id = ?");
   auto currentTagsResult = executeQuery(_db, qSelStr, {evidenceID});
-  if (currentTagsResult.lastError().type() != QSqlError::NoError)
+  if (currentTagsResult.lastError().isValid())
       return false;
 
   QList<qint64> currentTags;
@@ -200,7 +200,7 @@ bool DatabaseConnection::setEvidenceTags(const QList<model::Tag> &newTags, qint6
       args.append(item.name);
     }
     auto q = executeQuery(_db, baseQuery, args);
-    if (q.lastError().type() != QSqlError::NoError)
+    if (q.lastError().isValid())
         return false;
   }
   return true;
@@ -402,7 +402,7 @@ QueryResult DatabaseConnection::executeQueryNoThrow(const QSqlDatabase& db, cons
 qint64 DatabaseConnection::doInsert(const QSqlDatabase& db, const QString &stmt, const QVariantList &args)
 {
   auto query = executeQuery(db, stmt, args);
-  if(query.lastInsertId() != QVariant())
+  if(query.lastInsertId().isValid())
     return query.lastInsertId().toLongLong();
   return -1;
 }
