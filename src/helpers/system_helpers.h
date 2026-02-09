@@ -10,6 +10,7 @@
 #endif
 
 #include "appconfig.h"
+#include "string_helpers.h"
 
 class SystemHelpers {
 
@@ -21,7 +22,12 @@ class SystemHelpers {
     auto op = AppConfig::operationSlug();
     auto root = QStringLiteral("%1/").arg(AppConfig::value(CONFIG::EVIDENCEREPO));
     if (!op.isEmpty()) {
-      root.append(QStringLiteral("%1/").arg(op));
+      if (!StringHelpers::isValidOperationSlug(op)) {
+        qWarning() << "Invalid operation slug detected, ignoring:" << op;
+      }
+      else {
+        root.append(QStringLiteral("%1/").arg(op));
+      }
     }
 
     QDir().mkpath(root);
