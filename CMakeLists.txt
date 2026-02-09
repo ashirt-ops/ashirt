@@ -61,7 +61,6 @@ endif()
 find_package(Qt6 6.10.0 REQUIRED COMPONENTS
     Widgets
     Gui
-    GuiPrivate
     Network
     Sql
     Core
