@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 env:
-    QT_VERSION: 6.9.2
+    QT_VERSION: 6.10.2
 jobs:
   # This is a super hacky way to get this into a place that can actually be
   # used by downstream jobs because YAML values don't allow shell
@@ -149,7 +149,7 @@ jobs:
             chmod a+x linuxdeploy*.AppImage
             export VERSION=${{ env.githash }}
             export PATH=$PATH:/opt/Qt/${{env.QT_VERSION}}/gcc_64/libexec
-            export LINUXDEPLOY_EXCLUDED_LIBRARIES=libqsqlmimer.so
+            export LINUXDEPLOY_EXCLUDED_LIBRARIES="libqsqlmimer.so;libqsqloci.so"
             ./linuxdeploy-x86_64.AppImage --appdir=appdir  --output appimage \
                 -e src/ashirt \
                 -d ../deploy/ashirt.desktop \

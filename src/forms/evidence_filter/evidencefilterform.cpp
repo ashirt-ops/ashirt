@@ -123,8 +123,12 @@ void EvidenceFilterForm::wireUi() {
   connect(NetMan::get(), &NetMan::operationListUpdated, this, &EvidenceFilterForm::onOperationListUpdated);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &EvidenceFilterForm::writeAndClose);
 
-  connect(includeStartDateCheckBox, &QCheckBox::stateChanged, fromDateEdit, &QDateEdit::setEnabled);
-  connect(includeEndDateCheckBox, &QCheckBox::stateChanged, toDateEdit, &QDateEdit::setEnabled);
+  connect(includeStartDateCheckBox, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
+    fromDateEdit->setEnabled(state == Qt::Checked);
+  });
+  connect(includeEndDateCheckBox, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
+    toDateEdit->setEnabled(state == Qt::Checked);
+  });
 }
 
 void EvidenceFilterForm::writeAndClose() {

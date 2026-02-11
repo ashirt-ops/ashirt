@@ -1,6 +1,4 @@
 
-include_directories(${Qt${QT_DEFAULT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}/qpa)
-
 if(APPLE)
     find_library(CARBON_LIBRARY Carbon)
 endif()
@@ -41,7 +39,6 @@ target_link_libraries ( HELPERS
       Qt::Network
       Qt::Widgets
       Qt::Gui
-      Qt::GuiPrivate
 )
 
 if(APPLE)

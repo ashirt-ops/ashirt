@@ -11,7 +11,7 @@ TagCache::TagCache(QObject *parent): QObject(parent) {
 }
 
 TagCache::~TagCache() {
-  for (auto entry : qAsConst(tagRequests)) {
+  for (auto entry : std::as_const(tagRequests)) {
     cleanUpReply(&(entry));
   }
 }

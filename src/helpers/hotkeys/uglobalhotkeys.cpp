@@ -2,9 +2,8 @@
 #if defined(Q_OS_WIN)
 #include <windows.h>
 #elif defined(Q_OS_LINUX)
-#include <QWindow>
-#include <qpa/qplatformnativeinterface.h>
 #include <QApplication>
+#include <QGuiApplication>
 #endif
 
 #include "hotkeymap.h"
@@ -15,9 +14,8 @@ UGlobalHotkeys::UGlobalHotkeys(QObject *parent)
 {
 #if defined(Q_OS_LINUX)
     qApp->installNativeEventFilter(this);
-    QWindow wndw;
-    void *v = qApp->platformNativeInterface()->nativeResourceForWindow("connection", &wndw);
-    X11Connection = (xcb_connection_t *)v;
+    auto *x11App = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+    X11Connection = x11App->connection();
     X11Wid = xcb_setup_roots_iterator(xcb_get_setup(X11Connection)).data->root;
     X11KeySymbs = xcb_key_symbols_alloc(X11Connection);
 #elif defined(Q_OS_WIN)
@@ -148,7 +146,7 @@ void UGlobalHotkeys::unregisterAllHotkeys()
 UGlobalHotkeys::~UGlobalHotkeys()
 {
 #if defined(Q_OS_WIN)
-    for (auto hotKey : qAsConst(Registered)) {
+    for (auto hotKey : std::as_const(Registered)) {
         UnregisterHotKey(nullptr, hotKey);
     }
 #elif defined(Q_OS_LINUX)

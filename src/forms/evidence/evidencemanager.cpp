@@ -335,7 +335,7 @@ void EvidenceManager::loadEvidence()
 
     auto filter = EvidenceFilters::parseFilter(filterTextBox->text());
     QList<model::Evidence> operationEvidence = db->getEvidenceWithFilters(filter);
-    if(db->lastError().type() != QSqlError::NoError){
+    if(db->lastError().isValid()){
         qWarning() << "Could not retrieve evidence for operation. Error: " << db->lastError().text();
     }
     evidenceTable->setRowCount(operationEvidence.size());

@@ -113,7 +113,7 @@ QSize FlowLayout::sizeHint() const {
 
 QSize FlowLayout::minimumSize() const {
   QSize size;
-  for (const QLayoutItem *item : qAsConst(itemList))
+  for (const QLayoutItem *item : std::as_const(itemList))
     size = size.expandedTo(item->minimumSize());
 
   const QMargins margins = contentsMargins();
@@ -122,14 +122,13 @@ QSize FlowLayout::minimumSize() const {
 }
 
 int FlowLayout::doLayout(const QRect &rect, bool testOnly) const {
-  int left, top, right, bottom;
-  getContentsMargins(&left, &top, &right, &bottom);
-  QRect effectiveRect = rect.adjusted(+left, +top, -right, -bottom);
+  const QMargins m = contentsMargins();
+  QRect effectiveRect = rect.adjusted(+m.left(), +m.top(), -m.right(), -m.bottom());
   int x = effectiveRect.x();
   int y = effectiveRect.y();
   int lineHeight = 0;
 
-  for (QLayoutItem *item : qAsConst(itemList)) {
+  for (QLayoutItem *item : std::as_const(itemList)) {
     const QWidget *wid = item->widget();
     int spaceX = horizontalSpacing();
     if (spaceX == -1) {
@@ -157,7 +156,7 @@ int FlowLayout::doLayout(const QRect &rect, bool testOnly) const {
     x = nextX;
     lineHeight = qMax(lineHeight, item->sizeHint().height());
   }
-  return y + lineHeight - rect.y() + bottom;
+  return y + lineHeight - rect.y() + m.bottom();
 }
 
 int FlowLayout::smartSpacing(QStyle::PixelMetric pm) const {
