@@ -117,7 +117,7 @@ jobs:
         p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4.3.0
+      uses: jurplel/install-qt-action@v4.3.1
       with:
        dir: ${{matrix.config.QT_INST_DIR}}
        arch: ${{ matrix.config.QT_ARCH }}
