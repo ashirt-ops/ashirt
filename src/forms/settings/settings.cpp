@@ -240,9 +240,9 @@ void Settings::onTestConnectionClicked() {
   NetMan::testConnection(hostPathTextBox->text(), accessKeyTextBox->text(), secretKeyTextBox->text());
 }
 
-void Settings::testStatusChanged(int result)
+void Settings::testStatusChanged(NetMan::TestResult result)
 {
-  if(result == NetMan::INPROGRESS) {
+  if(result == NetMan::TestResult::INPROGRESS) {
     testConnectionButton->startAnimation();
     testConnectionButton->setEnabled(false);
     connStatusLabel->setText("Testing");

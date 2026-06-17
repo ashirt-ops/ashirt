@@ -78,15 +78,13 @@ class GithubRelease {
   QString tagName;
   QString releaseName;
   QString body;
-  bool prerelease;
-  bool draft;
+  bool prerelease = false;
+  bool draft = false;
   QString publishedAt;
-  qint64 id;
+  qint64 id = 0;
 
  public:
-  GithubRelease() {
-    this->id = 0;
-  }
+  GithubRelease() = default;
 
   static GithubRelease parseData(QByteArray data) {
     return parseJSONItem<GithubRelease>(data, GithubRelease::fromJson);

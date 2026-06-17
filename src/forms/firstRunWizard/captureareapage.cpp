@@ -26,7 +26,7 @@ bool CaptureAreaPage::validatePage()
 
 void CaptureAreaPage::initializePage()
 {
-  HotkeyManager::unregisterKey(HotkeyManager::ACTION_CAPTURE_AREA);
+  HotkeyManager::unregisterKey(HotkeyManager::GlobalHotkeyEvent::ACTION_CAPTURE_AREA);
   QString captureAreaCommand = AppConfig::value(CONFIG::COMMAND_SCREENSHOT);
   if(!captureAreaCommand.isEmpty()) {
     setField("command.area", captureAreaCommand);

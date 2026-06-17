@@ -24,7 +24,7 @@ public:
     }
     inline Qt::Key operator [](size_t n) const
     {
-        if ((int)n > mKeys.size()) {
+        if (static_cast<int>(n) > mKeys.size()) {
             return Qt::Key_unknown;
         }
 

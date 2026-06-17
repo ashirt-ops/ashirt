@@ -13,8 +13,8 @@ struct DeleteEvidenceResponse {
     , dbDeleteSuccess(dbDeleteSuccess)
     , errorText(err) { }
 
-  bool fileDeleteSuccess;
-  bool dbDeleteSuccess;
+  bool fileDeleteSuccess = false;
+  bool dbDeleteSuccess = false;
   QString errorText;
   model::Evidence model;
 };

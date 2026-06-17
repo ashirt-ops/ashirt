@@ -35,7 +35,7 @@ QT_END_NAMESPACE
  * @brief The MessageType enum specifies how to respond to a click on a tray message
  * @see openServicesPath
  */
-enum MessageType {
+enum class MessageType {
   /// NO_ACTION indicates that nothing should happen on a tray message click
   NO_ACTION,
   /// UPGRADE indicates that the user should be taken to the releases page
@@ -89,7 +89,7 @@ class TrayManager : public QDialog {
   DatabaseConnection *db = nullptr;
   Screenshot *screenshotTool = nullptr;
   QTimer *updateCheckTimer = nullptr;
-  MessageType currentTrayMessage = NO_ACTION;
+  MessageType currentTrayMessage = MessageType::NO_ACTION;
 
   ///Show the Settings Wizard
   void showWizard();

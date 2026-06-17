@@ -3,6 +3,7 @@
 #include <QMetaType>
 
 #include "db/databaseconnection.h"
+#include "helpers/netman.h"
 #include "traymanager.h"
 
 QIcon getWindowIcon() { return QIcon(QStringLiteral(":icons/windowIcon.png")); }
@@ -42,6 +43,7 @@ int main(int argc, char* argv[])
 
     app.setQuitOnLastWindowClosed(false);
     qRegisterMetaType<model::Tag>();
+    qRegisterMetaType<NetMan::TestResult>();
     auto window = new TrayManager(nullptr, conn);
 
     QObject::connect(&app, &QApplication::aboutToQuit, [conn] {

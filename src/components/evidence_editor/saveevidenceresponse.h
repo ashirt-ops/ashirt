@@ -11,7 +11,7 @@ struct SaveEvidenceResponse {
     , actionSucceeded(success)
     , errorText(err) { }
 
-  bool actionSucceeded;
+  bool actionSucceeded = false;
   QString errorText;
   model::Evidence model;
 };

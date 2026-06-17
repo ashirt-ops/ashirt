@@ -33,7 +33,7 @@ class DBQuery {
 class DatabaseConnection {
  public:
   const unsigned long SQLITE_MAX_VARS = 999;
-  QString getDatabasePath() { return _dbPath; }
+  [[nodiscard]] QString getDatabasePath() const { return _dbPath; }
    /**
    * @brief DatabaseConnection construct a connect to the database,
    * Uses QSQLite Driver if the driver is missing the app to exit with code 255.
@@ -57,8 +57,8 @@ class DatabaseConnection {
                              const std::function<void(DatabaseConnection)> &actions);
 
   ///Return the last Error
-  QString errorString() {return _db.lastError().text();}
-  bool connect();
+  [[nodiscard]] QString errorString() const {return _db.lastError().text();}
+  [[nodiscard]] bool connect();
   void close() noexcept {_db.close();}
 
   static DBQuery buildGetEvidenceWithFiltersQuery(const EvidenceFilters &filters);
@@ -104,7 +104,7 @@ class DatabaseConnection {
                                                                DatabaseConnection *runningDB);
   QList<model::Tag> getTagsForEvidenceID(qint64 evidenceID);
 
-  QSqlError lastError() {return _db.lastError();}
+  [[nodiscard]] QSqlError lastError() const {return _db.lastError();}
 
  private:
   QString _dbName;

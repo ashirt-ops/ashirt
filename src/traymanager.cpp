@@ -97,10 +97,10 @@ void TrayManager::wireUi() {
 
   connect(exportWindow, &PortingDialog::portCompleted, this, [this](const QString& path) {
     openServicesPath = path;
-    setTrayMessage(OPEN_PATH, tr("Export Complete"), tr("Export saved to: %1\nClick to view").arg(path));
+    setTrayMessage(MessageType::OPEN_PATH, tr("Export Complete"), tr("Export saved to: %1\nClick to view").arg(path));
   });
   connect(importWindow, &PortingDialog::portCompleted, this, [this](const QString& path) {
-    setTrayMessage(NO_ACTION, tr("Import Complete"), tr("Import retrieved from: %1").arg(path));
+    setTrayMessage(MessageType::NO_ACTION, tr("Import Complete"), tr("Import retrieved from: %1").arg(path));
   });
 
   connect(screenshotTool, &Screenshot::onScreenshotCaptured, this,
@@ -221,7 +221,7 @@ void TrayManager::onClipboardCapture()
 
         Codeblock evidence(clipboardContent);
         if(!Codeblock::saveCodeblock(evidence)) {
-            setTrayMessage(NO_ACTION, _recordErrorTitle, tr("Error Gathering Evidence from clipboard"), QSystemTrayIcon::Information);
+            setTrayMessage(MessageType::NO_ACTION, _recordErrorTitle, tr("Error Gathering Evidence from clipboard"), QSystemTrayIcon::Information);
             return;
         }
         path = evidence.filePath();
@@ -255,11 +255,11 @@ void TrayManager::onScreenshotCaptured(const QString& path)
 
 void TrayManager::showDBWriteErrorTrayMessage()
 {
-    setTrayMessage(NO_ACTION, _recordErrorTitle,tr("Could not write to database"), QSystemTrayIcon::Warning);
+    setTrayMessage(MessageType::NO_ACTION, _recordErrorTitle,tr("Could not write to database"), QSystemTrayIcon::Warning);
 }
 
 void TrayManager::showNoOperationSetTrayMessage() {
-  setTrayMessage(NO_ACTION, _recordErrorTitle,
+  setTrayMessage(MessageType::NO_ACTION, _recordErrorTitle,
                         tr("No Operation has been selected. Please select an operation first."),
                         QSystemTrayIcon::Warning);
 }
@@ -319,7 +319,7 @@ void TrayManager::onReleaseCheck(bool success, const QList<dto::GithubRelease>& 
   auto digest = dto::ReleaseDigest::fromReleases(ReleaseInfo::version, releases);
 
   if (digest.hasUpgrade()) {
-    setTrayMessage(UPGRADE, tr("A new version is available!"), tr("Click for more info"));
+    setTrayMessage(MessageType::UPGRADE, tr("A new version is available!"), tr("Click for more info"));
   }
 }
 
@@ -342,12 +342,12 @@ QIcon TrayManager::getTrayIcon()
 
 void TrayManager::onTrayMessageClicked() {
   switch(currentTrayMessage) {
-    case UPGRADE:
+    case MessageType::UPGRADE:
       QDesktopServices::openUrl(ReleaseInfo::releasePageUrl);
       break;
-    case OPEN_PATH:
+    case MessageType::OPEN_PATH:
       QDesktopServices::openUrl(openServicesPath);
-    case NO_ACTION:
+    case MessageType::NO_ACTION:
     default:
       break;
   }

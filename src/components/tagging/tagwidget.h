@@ -12,7 +12,7 @@ class TagWidget : public QLabel {
   Q_OBJECT
  public:
   explicit TagWidget(dto::Tag tag, bool readonly, QWidget* parent = nullptr);
-  ~TagWidget() = default;
+  ~TagWidget() override = default;
 
  private:
   void buildTag();
@@ -22,14 +22,14 @@ class TagWidget : public QLabel {
   void mouseReleaseEvent(QMouseEvent* ev) override;
 
  public:
-  inline dto::Tag getTag(){return tag;};
+  [[nodiscard]] inline dto::Tag getTag() const {return tag;};
 
   void setReadOnly(bool readonly);
-  inline bool isReadOnly(){return readonly;}
+  [[nodiscard]] inline bool isReadOnly() const {return readonly;}
 
   static QString randomColor() {
     // Note: this should match the frontend's color palette (naming)
-    auto index = QRandomGenerator::global()->bounded(int(allColorNames.size()));
+    auto index = QRandomGenerator::global()->bounded(static_cast<int>(allColorNames.size()));
     return allColorNames.at(index);
   }
 
@@ -50,8 +50,8 @@ class TagWidget : public QLabel {
 
   QRectF labelArea;
   QRectF removeArea;
-  int tagWidth;
-  int tagHeight;
+  int tagWidth = 0;
+  int tagHeight = 0;
   inline static const QMap<QString, QColor> colorMap{
       // matches colors defined on front end
       {QStringLiteral("blue"),           QColor(0x0E5A8A)},

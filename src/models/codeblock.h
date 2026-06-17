@@ -42,7 +42,7 @@ class Codeblock {
 
  public:
   /// filePath is a small helper to access the filename
-  inline QString filePath() { return filename; }
+  [[nodiscard]] inline QString filePath() const { return filename; }
 
   /**
    * @brief encode converts the Codeblock into a json-encoded QNyteArray (it's normal

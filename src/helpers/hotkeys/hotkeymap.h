@@ -3,7 +3,7 @@
 #if defined(Q_OS_WIN)
 inline size_t QtKeyToWin(Qt::Key key)
 {
-    switch ((Qt::Key)key) {
+    switch (key) {
     case Qt::Key_Escape:
         return VK_ESCAPE;
     case Qt::Key_Tab:
@@ -130,8 +130,8 @@ inline size_t QtKeyToWin(Qt::Key key)
 #include "X11/keysym.h"
 
 struct UKeyData {
-    int key;
-    int mods;
+    int key = 0;
+    int mods = 0;
 };
 
 inline const static QMap<uint32_t, uint32_t> KEY_MAP = {

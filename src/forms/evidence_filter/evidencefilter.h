@@ -3,7 +3,7 @@
 #include <QDate>
 #include <QStringList>
 
-enum Tri { Any, Yes, No };
+enum class Tri { Any, Yes, No };
 
 class EvidenceFilters {
  public:
@@ -16,8 +16,8 @@ class EvidenceFilters {
  public:
   QString operationSlug;
   QString contentType;
-  Tri hasError = Any;
-  Tri submitted = Any;
+  Tri hasError = Tri::Any;
+  Tri submitted = Tri::Any;
   QDate startDate = QDate();
   QDate endDate = QDate();
 

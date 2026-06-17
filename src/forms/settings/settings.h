@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ashirtdialog/ashirtdialog.h"
+#include "helpers/netman.h"
 
 #include <QCheckBox>
 #include <QCloseEvent>
@@ -53,7 +54,7 @@ class Settings : public AShirtDialog {
   /// onTestConnectionClicked acts upon the "test connection" button press. Checks the network.
   void onTestConnectionClicked();
   /// testStatusChanged handles the netman test results
-  void testStatusChanged(int result);
+  void testStatusChanged(NetMan::TestResult result);
   /// onBrowseClicked triggers when the "browse" button is pressed. Shows a file dialog to the user.
   void onBrowseClicked();
 

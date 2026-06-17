@@ -13,7 +13,7 @@ class HotkeyManager : public QObject {
   /// GlobalHotkeyEvent provides names for all possible application-global hotkeys
 
  public:
-  enum GlobalHotkeyEvent {
+  enum class GlobalHotkeyEvent {
     // Reserving 1 (UGlobalHotkey default)
     ACTION_CAPTURE_AREA = 2,
     ACTION_CAPTURE_WINDOW = 3,
