@@ -37,6 +37,10 @@ void HotkeyManager::setShortcut(GlobalHotkeyEvent evt, const QString& combo) {
   hotkey->setShortcut(QKeySequence::fromString(combo, QKeySequence::PortableText), true);
 }
 
+bool HotkeyManager::hotkeysSupported() {
+  return QHotkey::isPlatformSupported();
+}
+
 void HotkeyManager::unregisterKey(GlobalHotkeyEvent evt) {
   if (QHotkey* hotkey = get()->hotkeyFor(evt))
     hotkey->setRegistered(false);
@@ -53,6 +57,10 @@ void HotkeyManager::enableHotkeys() {
 }
 
 void HotkeyManager::updateHotkeys() {
+  // Skip entirely on platforms that can't grab global keys (e.g. native Wayland), otherwise
+  // QHotkey would log a "failed to map shortcut" warning for every binding on every call.
+  if (!QHotkey::isPlatformSupported())
+    return;
   get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_AREA, AppConfig::value(CONFIG::SHORTCUT_SCREENSHOT));
   get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW, AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW));
   get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD, AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD));

@@ -47,6 +47,13 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
   buildUi();
   wireUi();
 
+  // Let the user know once if the session can't support global hotkeys (e.g. native Wayland),
+  // since the capture shortcuts will silently do nothing there.
+  if (!HotkeyManager::hotkeysSupported())
+    setTrayMessage(MessageType::NO_ACTION, tr("Global hotkeys unavailable"),
+                   tr("This desktop session (e.g. Wayland) doesn't support global hotkeys. "
+                      "Capture actions are still available from the tray menu."));
+
   // delayed so that windows can listen for get all ops signal
   NetMan::refreshOperationsList();
   QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);

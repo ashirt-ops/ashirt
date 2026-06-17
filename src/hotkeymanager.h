@@ -24,6 +24,11 @@ class HotkeyManager : public QObject {
     return &m;
   }
 
+  /// hotkeysSupported reports whether the current platform/session can register global hotkeys.
+  /// Returns false on platforms QHotkey cannot grab keys on (notably native Wayland sessions),
+  /// where registration is a no-op.
+  static bool hotkeysSupported();
+
   /// unregisterKey removes the handling specified for the given event. Safe to call even if
   /// no key has been registered.
   static void unregisterKey(GlobalHotkeyEvent evt);
