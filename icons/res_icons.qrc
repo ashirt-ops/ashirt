@@ -2,7 +2,6 @@
     <qresource prefix="/icons">
         <file>shirt-dark.svg</file>
         <file>shirt-light.svg</file>
-        <file>shirt-red.svg</file>
         <file>windowIcon.png</file>
     </qresource>
 </RCC>
