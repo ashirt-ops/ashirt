@@ -29,6 +29,16 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     # Windows packaging is handled by the modern WiX toolset (the `wix` CLI,
     # WixToolset.Sdk 7.x) rather than CPack/NSIS. `cmake --build . --target
     # package` stages the install tree and harvests it into a single MSI.
+
+    # Derive a numeric MSI ProductVersion from the release tag (e.g. "v1.2.3" ->
+    # "1.2.3.0"); fall back to the project version for untagged/continuous builds.
+    if(CPACK_PACKAGE_VERSION MATCHES "^v?([0-9]+\\.[0-9]+\\.[0-9]+)$")
+        set(MSI_PRODUCT_VERSION "${CMAKE_MATCH_1}.0")
+    else()
+        set(MSI_PRODUCT_VERSION "${PROJECT_VERSION}.0")
+    endif()
+    message(STATUS "MSI ProductVersion: ${MSI_PRODUCT_VERSION}")
+
     configure_file(ashirt.wxs.in ${CMAKE_CURRENT_BINARY_DIR}/ashirt.wxs @ONLY)
 
     set(WIX_STAGE_DIR ${CMAKE_BINARY_DIR}/installRoot)

@@ -12,7 +12,7 @@
   <Package
       Name="AShirt"
       Manufacturer="AShirt"
-      Version="@PROJECT_VERSION@.0"
+      Version="@MSI_PRODUCT_VERSION@"
       UpgradeCode="90CA1BE0-E024-48CC-B3A0-3BDF1F319084"
       Scope="perMachine"
       Compressed="yes">
