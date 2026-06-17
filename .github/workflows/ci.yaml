@@ -130,15 +130,23 @@ jobs:
             sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-cursor0 > /dev/null
         elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install ninja --ignore-checksums
+            # Install the latest WiX toolset (the `wix` CLI) used by the
+            # `package` target to build the MSI installer, plus the UI
+            # extension that provides the license-acceptance wizard. WiX v7
+            # gates commands behind the Open Source Maintenance Fee EULA
+            # (error WIX7015); `-acceptEula wix7` accepts it non-interactively
+            # (the actual build accepts it the same way in deploy/CMakeLists.txt).
+            dotnet tool install --global wix
+            wix extension add -g WixToolset.UI.wixext -acceptEula wix7
         fi
 
     - name: Build
       shell: bash
       run: |
         if [[ "${{ env.signMacRelease }}" == "true" ]]; then
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DPACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DPACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
         fi
         cmake --build build ${{ matrix.config.buildTarget }}
         cd build
@@ -164,7 +172,7 @@ jobs:
             xcrun stapler staple ${{env.name}}.dmg
         elif [[ "$RUNNER_OS" == "Windows" && "${{ env.signWinRelease }}" == "true" ]]; then
             echo "not signing"
-            #signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.exe
+            #signtool sign -f certificate\\certificate.pfx -fd certHash -p '${{ secrets.WIN_CERT_PASS }}' -t http://timestamp.digicert.com ${{env.name}}.msi
         fi
         mv ashirt*.* dist/
 

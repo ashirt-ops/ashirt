@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v4+ installer definition for ashirt (built with the modern `wix` CLI,
+  WixToolset.Sdk 7.x). Configured by CMake into ashirt.wxs.
+
+  The set of payload files (ashirt.exe + the Qt runtime produced by
+  windeployqt + LICENSE/README) is harvested at build time from the staging
+  directory passed via the `InstallRoot` bind path, so this file never has to
+  enumerate the individual Qt DLLs/plugins.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package
+      Name="ashirt"
+      Manufacturer="ashirt"
+      Version="@MSI_PRODUCT_VERSION@"
+      UpgradeCode="90CA1BE0-E024-48CC-B3A0-3BDF1F319084"
+      Scope="perMachine"
+      Compressed="yes">
+
+    <!-- Block side-by-side installs; allow in-place upgrades/downgrades to replace. -->
+    <MajorUpgrade
+        AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Add/Remove Programs icon. -->
+    <Icon Id="ashirt.ico" SourceFile="@CMAKE_CURRENT_SOURCE_DIR@/ashirt.ico" />
+    <Property Id="ARPPRODUCTICON" Value="ashirt.ico" />
+
+    <!-- 64-bit install location: C:\Program Files\ashirt -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="ashirt" />
+    </StandardDirectory>
+
+    <!-- Start Menu folder for the application shortcut. -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppShortcutFolder" Name="ashirt" />
+    </StandardDirectory>
+
+    <!--
+      Harvest every file from the staging tree into INSTALLFOLDER, preserving the
+      sub-directory layout windeployqt created (plugins\, etc.). One component is
+      generated per file automatically.
+    -->
+    <ComponentGroup Id="DeployedFiles" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.InstallRoot)\**" />
+    </ComponentGroup>
+
+    <!-- Start Menu shortcut to the installed executable. -->
+    <ComponentGroup Id="Shortcuts" Directory="AppShortcutFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="AppStartMenuShortcut"
+                  Name="ashirt"
+                  Description="ashirt screenshot and evidence collection client"
+                  Target="[INSTALLFOLDER]ashirt.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="ashirt.ico" />
+        <RemoveFolder Id="RemoveAppShortcutFolder" Directory="AppShortcutFolder" On="uninstall" />
+        <RegistryValue Root="HKMU" Key="Software\ashirt\ashirt"
+                       Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="ashirt" Level="1">
+      <ComponentGroupRef Id="DeployedFiles" />
+      <ComponentGroupRef Id="Shortcuts" />
+    </Feature>
+
+    <!-- Wizard UI: welcome -> license acceptance (EULA) -> install dir -> install. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="@CMAKE_CURRENT_SOURCE_DIR@/license.rtf" />
+    <!-- ashirt-branded wizard graphics (welcome/exit background + interior banner). -->
+    <WixVariable Id="WixUIDialogBmp" Value="@CMAKE_CURRENT_SOURCE_DIR@/ashirt_dialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="@CMAKE_CURRENT_SOURCE_DIR@/ashirt_banner.bmp" />
+  </Package>
+</Wix>
