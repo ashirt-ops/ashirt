@@ -11,7 +11,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wix">
   <Package
       Name="AShirt"
-      Manufacturer="Yahoo"
+      Manufacturer="AShirt"
       Version="@PROJECT_VERSION@.0"
       UpgradeCode="90CA1BE0-E024-48CC-B3A0-3BDF1F319084"
       Scope="perMachine"
@@ -57,7 +57,7 @@
                   WorkingDirectory="INSTALLFOLDER"
                   Icon="ashirt.ico" />
         <RemoveFolder Id="RemoveAppShortcutFolder" Directory="AppShortcutFolder" On="uninstall" />
-        <RegistryValue Root="HKMU" Key="Software\Yahoo\ashirt"
+        <RegistryValue Root="HKMU" Key="Software\AShirt\ashirt"
                        Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
