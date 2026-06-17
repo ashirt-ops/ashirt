@@ -57,6 +57,17 @@ jobs:
         cmake --build build
 
     - name: Perform CodeQL Analysis
+      id: analyze
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:c-cpp"
+        # Skip upload to avoid conflict with the repo's default setup; emit SARIF locally for comparison.
+        upload: false
+        output: sarif-results
+
+    - name: Upload SARIF artifact
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: codeql-manual-sarif
+        path: sarif-results
