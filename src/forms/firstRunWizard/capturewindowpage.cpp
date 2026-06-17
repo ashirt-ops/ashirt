@@ -27,7 +27,7 @@ bool CaptureWindowPage::validatePage()
 
 void CaptureWindowPage::initializePage()
 {
-  HotkeyManager::unregisterKey(HotkeyManager::ACTION_CAPTURE_WINDOW);
+  HotkeyManager::unregisterKey(HotkeyManager::GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW);
   QString captureWindowCommand = AppConfig::value(CONFIG::COMMAND_CAPTUREWINDOW);
   setField("command.window", captureWindowCommand);
   captureWindowLine->setText(captureWindowCommand);
@@ -40,7 +40,7 @@ void CaptureWindowPage::initializePage()
 void CaptureWindowPage::cleanupPage()
 {
   HotkeyManager::updateHotkeys();
-  HotkeyManager::unregisterKey(HotkeyManager::ACTION_CAPTURE_AREA);
+  HotkeyManager::unregisterKey(HotkeyManager::GlobalHotkeyEvent::ACTION_CAPTURE_AREA);
 }
 
 CaptureWindowPage::CaptureWindowPage(QWidget *parent)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wizardpage.h"
+#include "helpers/netman.h"
 #include <QObject>
 
 class QLabel;
@@ -15,10 +16,10 @@ class HostTestPage : public WizardPage
   void initializePage() override;
   void paintEvent(QPaintEvent*) override;
  private:
-  void testResultsChanged(int result);
+  void testResultsChanged(NetMan::TestResult result);
   void timerCheck();
   int f=0;
   QTimer *timer = nullptr;
   QNetworkReply *currentTestReply = nullptr;
-  int currentState;
+  NetMan::TestResult currentState = NetMan::TestResult::INPROGRESS;
 };

@@ -10,13 +10,13 @@ static auto NO_BODY = "";
 
 /// RequestMethod is a small enum representing valid request types.
 /// Currently, only GET and POST are supported
-enum RequestMethod { METHOD_GET = 0, METHOD_POST };
+enum class RequestMethod { METHOD_GET = 0, METHOD_POST };
 
 /// RequestMethodToString converst the given RequestMethod enum into a proper method string.
 /// METHOD_GET corresponds to "GET", METHOD_POST corresponds to "POST" and so on
 static QString RequestMethodToString(RequestMethod val) {
   static QString names[] = {QStringLiteral("GET"), QStringLiteral("POST")};
-  return names[val];
+  return names[static_cast<int>(val)];
 }
 
 /**
@@ -37,7 +37,7 @@ static QString RequestMethodToString(RequestMethod val) {
  */
 class RequestBuilder {
  private:
-  RequestMethod method;
+  RequestMethod method = RequestMethod::METHOD_GET;
   QByteArray body = NO_BODY;
   QString host;
   QString endpoint;
@@ -49,20 +49,20 @@ class RequestBuilder {
 
   // creators (constructors + Psuedo constructors)
  public:
-  RequestBuilder() {}
-  ~RequestBuilder() {}
+  RequestBuilder() = default;
+  ~RequestBuilder() = default;
 
   /// newGet constructs a request builder with method GET
   static RequestBuilder* newGet() {
     RequestBuilder* builder = new RequestBuilder();
-    return builder->setMethod(METHOD_GET);
+    return builder->setMethod(RequestMethod::METHOD_GET);
   }
 
   /// newFormPost constructs a request builder with method POST and contentType multipart/form-data
   static RequestBuilder* newFormPost(QString formboundary) {
     RequestBuilder* builder = new RequestBuilder();
     return builder
-        ->setMethod(METHOD_POST)
+        ->setMethod(RequestMethod::METHOD_POST)
         ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("multipart/form-data; boundary=%1").arg(formboundary));
   }
 
@@ -70,7 +70,7 @@ class RequestBuilder {
   static RequestBuilder* newJSONPost() {
     RequestBuilder* builder = new RequestBuilder();
     return builder
-        ->setMethod(METHOD_POST)
+        ->setMethod(RequestMethod::METHOD_POST)
         ->addKnownHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
   }
 
@@ -174,10 +174,10 @@ class RequestBuilder {
     QNetworkReply* reply = nullptr;
 
     switch (method) {
-      case METHOD_GET:
+      case RequestMethod::METHOD_GET:
         reply = nam->get(req);
         break;
-      case METHOD_POST:
+      case RequestMethod::METHOD_POST:
         reply = nam->post(req, body);
         break;
       default:

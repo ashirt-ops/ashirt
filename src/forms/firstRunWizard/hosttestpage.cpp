@@ -73,7 +73,7 @@ void HostTestPage::paintEvent(QPaintEvent *event)
   p.setPen(QPen(palette().text().color(), 8));
   p.drawEllipse(25, 25, 200, 200);
 
-  if ( currentState == NetMan::INPROGRESS) {
+  if ( currentState == NetMan::TestResult::INPROGRESS) {
       p.translate(125, 125);
       p.rotate(f);
       p.translate(-125, -125);
@@ -113,11 +113,11 @@ void HostTestPage::paintEvent(QPaintEvent *event)
 
   t.setPen(palette().text().color());
   switch (currentState) {
-    case NetMan::INPROGRESS:
+    case NetMan::TestResult::INPROGRESS:
       t.setFont(statusFont);
       t.drawText(testLabelArea, "Testing", textOptions);
     break;
-    case NetMan::SUCCESS:
+    case NetMan::TestResult::SUCCESS:
       t.setFont(checkFont);
       t.drawText(iconArea, QStringLiteral("✓"), textOptions);
       t.setFont(statusFont);
@@ -134,11 +134,11 @@ void HostTestPage::paintEvent(QPaintEvent *event)
 
 }
 
-void HostTestPage::testResultsChanged(int result)
+void HostTestPage::testResultsChanged(NetMan::TestResult result)
 {
   currentState = result;
   timerCheck();
-  setField("host.accessable", (currentState == NetMan::SUCCESS));
+  setField("host.accessable", (currentState == NetMan::TestResult::SUCCESS));
   update();
 }
 
@@ -146,7 +146,7 @@ void HostTestPage::timerCheck()
 {
   if(wizard()->currentId() == id()) {
     f=0;
-    if (currentState == NetMan::INPROGRESS)
+    if (currentState == NetMan::TestResult::INPROGRESS)
       timer->start(33);
     else
       timer->stop();

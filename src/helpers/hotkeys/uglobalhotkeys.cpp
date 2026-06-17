@@ -33,11 +33,11 @@ OSStatus macHotkeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent, vo
 {
     Q_UNUSED(nextHandler);
     EventHotKeyID hkCom;
-    GetEventParameter(theEvent, kEventParamDirectObject, typeEventHotKeyID, NULL,
-                      sizeof(hkCom), NULL, &hkCom);
+    GetEventParameter(theEvent, kEventParamDirectObject, typeEventHotKeyID, nullptr,
+                      sizeof(hkCom), nullptr, &hkCom);
     size_t id = hkCom.id;
 
-    UGlobalHotkeys *caller = (UGlobalHotkeys *)userData;
+    auto *caller = static_cast<UGlobalHotkeys *>(userData);
     caller->onHotkeyPressed(id);
     return noErr;
 }
@@ -86,7 +86,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
     eventType.eventClass = kEventClassKeyboard;
     eventType.eventKind = kEventHotKeyPressed;
 
-    InstallApplicationEventHandler(&macHotkeyHandler, 1, &eventType, this, NULL);
+    InstallApplicationEventHandler(&macHotkeyHandler, 1, &eventType, this, nullptr);
 
     gMyHotKeyID.signature = uint32_t(id);
     gMyHotKeyID.id = uint32_t(id);
@@ -190,7 +190,7 @@ bool UGlobalHotkeys::nativeEventFilter(const QByteArray &eventType, void *messag
 bool UGlobalHotkeys::linuxEvent(xcb_generic_event_t *message)
 {
     if ((message->response_type & ~0x80) == XCB_KEY_PRESS) {
-        xcb_key_press_event_t *ev = (xcb_key_press_event_t *)message;
+        auto *ev = reinterpret_cast<xcb_key_press_event_t *>(message);
         auto ind = Registered.key({ev->detail, (ev->state & ~XCB_MOD_MASK_2)});
 
         if (ind == 0) // this is not hotkeys

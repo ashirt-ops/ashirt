@@ -11,9 +11,9 @@ class ErrorView : public EvidencePreview {
   Q_OBJECT
  public:
   explicit ErrorView(QString errorText = QString(), QWidget* parent = nullptr);
-  ~ErrorView() = default;
-  virtual void loadFromFile(QString filepath) {Q_UNUSED(filepath)}
-  virtual void clearPreview() {}
+  ~ErrorView() override = default;
+  void loadFromFile(QString filepath) override {Q_UNUSED(filepath)}
+  void clearPreview() override {}
  private:
   QLabel* errorLabel = nullptr;
 };

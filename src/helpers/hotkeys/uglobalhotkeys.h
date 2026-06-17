@@ -15,8 +15,8 @@
 
 #if defined(Q_OS_LINUX)
 struct UHotkeyData {
-    xcb_keycode_t keyCode;
-    int mods;
+    xcb_keycode_t keyCode = 0;
+    int mods = 0;
     bool operator ==(const UHotkeyData &data) const
     {
         return data.keyCode == this->keyCode && data.mods == this->mods;
@@ -32,7 +32,7 @@ class UGlobalHotkeys : public QObject
     Q_OBJECT
 
 public:
-    explicit UGlobalHotkeys(QObject *parent = 0);
+    explicit UGlobalHotkeys(QObject *parent = nullptr);
     bool registerHotkey(const QString &keySeq, size_t id = 1);
     bool registerHotkey(const UKeySequence &keySeq, size_t id = 1);
     void unregisterHotkey(size_t id = 1);
@@ -43,12 +43,12 @@ public:
 #endif
 
 #if (defined (Q_OS_WIN) || defined (Q_OS_LINUX))
-    typedef qintptr RESULT_TYPE;
+    using RESULT_TYPE = qintptr;
 #endif
 
 protected:
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
-    bool nativeEventFilter(const QByteArray &eventType, void *message, RESULT_TYPE *result);
+    bool nativeEventFilter(const QByteArray &eventType, void *message, RESULT_TYPE *result) override;
 #endif
 
 #if defined (Q_OS_WIN)

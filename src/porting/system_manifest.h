@@ -17,8 +17,8 @@ namespace porting {
     Q_OBJECT
 
   public:
-    SystemManifest() {}
-    ~SystemManifest(){}
+    SystemManifest() = default;
+    ~SystemManifest() override = default;
 
     /**
     * @brief readManifest parses the the system.json (as provided by the caller) into a complete SystemManifest

@@ -20,7 +20,7 @@ class NetMan : public QObject {
   Q_OBJECT
 public:
   //Result for Connection Test
-  enum TestResult {
+  enum class TestResult {
    INPROGRESS,
    SUCCESS,
    FAILURE
@@ -65,7 +65,7 @@ public:
 
     if(!ok) {
         get()->_lastTestError = tr("Server not Found, Check the Url");
-        Q_EMIT get()->testStatusChanged(FAILURE);
+        Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
         cleanUpReply(&get()->testConnectionReply);
         return;
     }
@@ -76,7 +76,7 @@ public:
           connectionCheckResp = dto::CheckConnection::parseJson(get()->testConnectionReply->readAll());
           if (connectionCheckResp.parsedCorrectly && connectionCheckResp.ok) {
             get()->_lastTestError = tr("Successfully Connected");
-            Q_EMIT get()->testStatusChanged(SUCCESS);
+            Q_EMIT get()->testStatusChanged(TestResult::SUCCESS);
           } else {
             get()->_lastTestError = tr("Server Error Report to Admin");
             Q_EMIT get()->testStatusChanged(TestResult::FAILURE);
@@ -179,7 +179,7 @@ public:
 signals:
  void operationListUpdated(bool success, NetMan::OperationVector  operations = NetMan::OperationVector());
  void releasesChecked(bool success, QList<dto::GithubRelease> releases = QList<dto::GithubRelease>());
- void testStatusChanged(int newStatus);
+ void testStatusChanged(TestResult newStatus);
 
 private:
  NetMan(QObject * parent = nullptr) : QObject(parent), nam(new QNetworkAccessManager(this)) { }
@@ -291,3 +291,8 @@ private:
  QNetworkReply *githubReleaseReply = nullptr;
  QNetworkAccessManager *nam = nullptr;
 };
+
+// TestResult is emitted across the testStatusChanged signal; declaring it as a
+// metatype keeps it usable in queued/cross-thread connections (built-in `int`
+// gave us this for free before the enum class conversion).
+Q_DECLARE_METATYPE(NetMan::TestResult)

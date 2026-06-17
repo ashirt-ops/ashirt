@@ -18,6 +18,6 @@ class TagCacheItem
 
  private:
   inline static const qint64 defaultExpiryDeltaMs = 60000;
-  qint64 expiry;
+  qint64 expiry = 0;
   QList<dto::Tag> tags;
 };

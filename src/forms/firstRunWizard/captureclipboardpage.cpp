@@ -23,7 +23,7 @@ bool CaptureClipboardPage::validatePage()
 
 void CaptureClipboardPage::initializePage()
 {
-  HotkeyManager::unregisterKey(HotkeyManager::ACTION_CAPTURE_CLIPBOARD);
+  HotkeyManager::unregisterKey(HotkeyManager::GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD);
   QString sequence = AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD);
   setField("keySequence.clipboard", sequence);
   captureClipboardKeySequence->setKeySequence(QKeySequence::fromString(sequence));
@@ -32,7 +32,7 @@ void CaptureClipboardPage::initializePage()
 void CaptureClipboardPage::cleanupPage()
 {
   HotkeyManager::updateHotkeys();
-  HotkeyManager::unregisterKey(HotkeyManager::ACTION_CAPTURE_WINDOW);
+  HotkeyManager::unregisterKey(HotkeyManager::GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW);
 }
 
 CaptureClipboardPage::CaptureClipboardPage(QWidget *parent)

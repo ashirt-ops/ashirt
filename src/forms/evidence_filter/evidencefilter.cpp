@@ -38,7 +38,7 @@ QString EvidenceFilters::toString() const {
     return d.toString(QStringLiteral("yyyy-MM-dd"));
   };
   static auto triToText = [](Tri t) -> QString {
-      return t == Yes
+      return t == Tri::Yes
               ? QT_TRANSLATE_NOOP("EvidenceFilter", "yes")
               : QT_TRANSLATE_NOOP("EvidenceFilter", "no");
   };
@@ -51,7 +51,7 @@ QString EvidenceFilters::toString() const {
   if (!contentType.isEmpty()) {
     rtn.append(appendTemp.arg(FILTER_KEY_CONTENT_TYPE, contentType));
   }
-  if (hasError != Any) {
+  if (hasError != Tri::Any) {
     rtn.append(appendTemp.arg(FILTER_KEY_ERROR, triToText(hasError)));
   }
   if (startDate.isValid() || endDate.isValid()) {
@@ -68,7 +68,7 @@ QString EvidenceFilters::toString() const {
       }
     }
   }
-  if (submitted != Any) {
+  if (submitted != Tri::Any) {
     rtn.append(appendTemp.arg(FILTER_KEY_SUBMITTED, triToText(submitted)));
   }
 
@@ -176,21 +176,21 @@ QDate EvidenceFilters::parseDateString(QString text) {
 // This is the inverse of triToString
 Tri EvidenceFilters::parseTri(const QString& text) {
   if (text == QT_TRANSLATE_NOOP("EvidenceFilter", "Yes")) {
-    return Yes;
+    return Tri::Yes;
   }
   if (text == QT_TRANSLATE_NOOP("EvidenceFilter", "No")) {
-    return No;
+    return Tri::No;
   }
-  return Any;
+  return Tri::Any;
 }
 
 // triToString returns "Yes" for Tri::Yes, "No" for Tri::No, otherwise "Any"
 // This is the inverse to parseTri
 QString EvidenceFilters::triToString(const Tri& tri) {
   switch (tri) {
-    case Yes:
+    case Tri::Yes:
       return QT_TRANSLATE_NOOP("EvidenceFilter", "Yes");
-    case No:
+    case Tri::No:
       return QT_TRANSLATE_NOOP("EvidenceFilter", "No");
     default:
       return QT_TRANSLATE_NOOP("EvidenceFilter", "Any");

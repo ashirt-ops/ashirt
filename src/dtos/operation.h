@@ -7,13 +7,13 @@
 namespace dto {
 class Operation {
  public:
-  Operation() {}
+  Operation() = default;
   Operation(QString name, QString slug) {
     this->name = name;
     this->slug = slug;
   }
 
-  enum OperationStatus {
+  enum class OperationStatus {
     OperationStatusPlanning = 0,
     OperationStatusAcitve = 1,
     OperationStatusComplete = 2,
@@ -21,8 +21,8 @@ class Operation {
 
   QString slug;
   QString name;
-  int numUsers;
-  OperationStatus status;
+  int numUsers = 0;
+  OperationStatus status = OperationStatus::OperationStatusPlanning;
 
   static Operation parseData(QByteArray data) {
     return parseJSONItem<Operation>(data, Operation::fromJson);

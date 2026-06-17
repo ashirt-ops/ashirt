@@ -12,13 +12,13 @@ class AspectRatioPixmapLabel : public QLabel {
   Q_OBJECT
  public:
   explicit AspectRatioPixmapLabel(QWidget *parent = nullptr);
-  virtual int heightForWidth(int width) const;
-  virtual QSize sizeHint() const;
+  int heightForWidth(int width) const override;
+  QSize sizeHint() const override;
   QPixmap scaledPixmap() const;
  public slots:
   void setPixmap(const QPixmap &p);
  protected:
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
  private:
   QPixmap pix;

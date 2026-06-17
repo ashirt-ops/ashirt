@@ -15,7 +15,7 @@
 class MultipartParser {
  public:
   MultipartParser();
-  inline const QString &boundary() {return m_boundary;}
+  [[nodiscard]] inline const QString &boundary() const {return m_boundary;}
   inline void addParameter(const QString &name = QString(), const QString &value = QString()) {
       m_paramList.append(QPair<QString, QString>(name, value));
   }
