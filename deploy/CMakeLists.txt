@@ -22,20 +22,31 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(CPACK_PACKAGE_VENDOR "Yahoo")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "ashirt")
-    set(CPACK_NSIS_DISPLAY_NAME ${CMAKE_PACKAGE_NAME})
-    set(CPACK_NSIS_COMPRESSOR lzma)
-    set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/ashirt.ico")
-    set(CPACK_NSIS_INSTALLED_ICON_NAME ashirt.exe)
-    set(CPACK_NSIS_MENU_LINKS "ashirt.exe" "ashirt")
-    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
-        "RMDir /r '$INSTDIR'"
-    )
     install(
         DIRECTORY ${CMAKE_BINARY_DIR}/qtDeploy/
         DESTINATION .
         FILES_MATCHING PATTERN "*.*"
     )
-    set(CPACK_GENERATOR "NSIS")
+
+    # Windows packaging is handled by the modern WiX toolset (the `wix` CLI,
+    # WixToolset.Sdk 7.x) rather than CPack/NSIS. `cmake --build . --target
+    # package` stages the install tree and harvests it into a single MSI.
+    configure_file(ashirt.wxs.in ${CMAKE_CURRENT_BINARY_DIR}/ashirt.wxs @ONLY)
+
+    set(WIX_STAGE_DIR ${CMAKE_BINARY_DIR}/installRoot)
+    set(WIX_OUTPUT ${CMAKE_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.msi)
+
+    add_custom_target(package
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${WIX_STAGE_DIR}
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${WIX_STAGE_DIR}
+        COMMAND wix build -arch x64 -pdbtype none
+                -b InstallRoot=${WIX_STAGE_DIR}
+                ${CMAKE_CURRENT_BINARY_DIR}/ashirt.wxs
+                -o ${WIX_OUTPUT}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Building MSI installer with WiX: ${WIX_OUTPUT}"
+        VERBATIM
+    )
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     # Write our cert identifier to a file generate_ds_store.applescript can read
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/NOTARIZE_AS ${NOTARIZE_AS})
@@ -47,4 +58,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     set(CPACK_GENERATOR "DragNDrop")
 endif()
 
-INCLUDE (CPack)
+# Windows uses the WiX `package` target above; every other platform packages
+# through CPack.
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+    INCLUDE (CPack)
+endif()

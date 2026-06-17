@@ -87,4 +87,10 @@ elseif(WIN32)
         TARGET ashirt POST_BUILD
         COMMAND ${PLATFORMDEPLOYQT} $<TARGET_FILE:ashirt> --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --no-opengl-sw --dir ${CMAKE_BINARY_DIR}/qtDeploy --plugindir ${CMAKE_BINARY_DIR}/qtDeploy/plugins
     )
+    # The WiX `package` target (defined in deploy/) harvests ashirt.exe and the
+    # windeployqt output, so it must build this target (and run the POST_BUILD
+    # above) first.
+    if(TARGET package)
+        add_dependencies(package ashirt)
+    endif()
 endif()
