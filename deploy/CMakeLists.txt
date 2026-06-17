@@ -11,14 +11,15 @@ elseif(UNIX AND NOT APPLE)
     install(FILES ashirt.desktop DESTINATION share/applictions)
 endif()
 
-##CPACK
-set(CPACK_STRIP_FILES TRUE)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_NAME "ashirt")
-if(NOT CPACK_PACKAGE_VERSION)
-    set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+# Packaging metadata shared by every platform's packaging step (CPack on
+# macOS/Linux, WiX on Windows). PACKAGE_VERSION may be passed on the command
+# line (a release tag like "v1.2.3" or "continuous"); otherwise it defaults to
+# the git-derived project version.
+set(PACKAGE_NAME "ashirt")
+if(NOT PACKAGE_VERSION)
+    set(PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
 endif()
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+set(PACKAGE_FILE_NAME "${PACKAGE_NAME}-${PACKAGE_VERSION}")
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     install(
         DIRECTORY ${CMAKE_BINARY_DIR}/qtDeploy/
@@ -32,7 +33,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
     # Derive a numeric MSI ProductVersion from the release tag (e.g. "v1.2.3" ->
     # "1.2.3.0"); fall back to the project version for untagged/continuous builds.
-    if(CPACK_PACKAGE_VERSION MATCHES "^v?([0-9]+\\.[0-9]+\\.[0-9]+)$")
+    if(PACKAGE_VERSION MATCHES "^v?([0-9]+\\.[0-9]+\\.[0-9]+)$")
         set(MSI_PRODUCT_VERSION "${CMAKE_MATCH_1}.0")
     else()
         set(MSI_PRODUCT_VERSION "${PROJECT_VERSION}.0")
@@ -42,7 +43,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     configure_file(ashirt.wxs.in ${CMAKE_CURRENT_BINARY_DIR}/ashirt.wxs @ONLY)
 
     set(WIX_STAGE_DIR ${CMAKE_BINARY_DIR}/installRoot)
-    set(WIX_OUTPUT ${CMAKE_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.msi)
+    set(WIX_OUTPUT ${CMAKE_BINARY_DIR}/${PACKAGE_FILE_NAME}.msi)
 
     add_custom_target(package
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${WIX_STAGE_DIR}
@@ -69,7 +70,12 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif()
 
 # Windows uses the WiX `package` target above; every other platform packages
-# through CPack.
+# through CPack, which consumes the shared metadata via its own CPACK_* names.
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(CPACK_STRIP_FILES TRUE)
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+    set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
+    set(CPACK_PACKAGE_VERSION "${PACKAGE_VERSION}")
+    set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}")
     INCLUDE (CPack)
 endif()

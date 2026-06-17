@@ -144,9 +144,9 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ env.signMacRelease }}" == "true" ]]; then
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DPACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}} ${{matrix.config.cmakeSigning}}
         else
-            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCPACK_PACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
+            cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DPACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
         fi
         cmake --build build ${{ matrix.config.buildTarget }}
         cd build
