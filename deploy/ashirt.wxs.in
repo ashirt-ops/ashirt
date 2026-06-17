@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  WiX v4+ installer definition for AShirt (built with the modern `wix` CLI,
+  WiX v4+ installer definition for ashirt (built with the modern `wix` CLI,
   WixToolset.Sdk 7.x). Configured by CMake into ashirt.wxs.
 
   The set of payload files (ashirt.exe + the Qt runtime produced by
@@ -11,8 +11,8 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package
-      Name="AShirt"
-      Manufacturer="AShirt"
+      Name="ashirt"
+      Manufacturer="ashirt"
       Version="@MSI_PRODUCT_VERSION@"
       UpgradeCode="90CA1BE0-E024-48CC-B3A0-3BDF1F319084"
       Scope="perMachine"
@@ -52,18 +52,18 @@
     <ComponentGroup Id="Shortcuts" Directory="AppShortcutFolder">
       <Component Id="ApplicationShortcut" Guid="*">
         <Shortcut Id="AppStartMenuShortcut"
-                  Name="AShirt"
-                  Description="AShirt screenshot and evidence collection client"
+                  Name="ashirt"
+                  Description="ashirt screenshot and evidence collection client"
                   Target="[INSTALLFOLDER]ashirt.exe"
                   WorkingDirectory="INSTALLFOLDER"
                   Icon="ashirt.ico" />
         <RemoveFolder Id="RemoveAppShortcutFolder" Directory="AppShortcutFolder" On="uninstall" />
-        <RegistryValue Root="HKMU" Key="Software\AShirt\ashirt"
+        <RegistryValue Root="HKMU" Key="Software\ashirt\ashirt"
                        Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
-    <Feature Id="Main" Title="AShirt" Level="1">
+    <Feature Id="Main" Title="ashirt" Level="1">
       <ComponentGroupRef Id="DeployedFiles" />
       <ComponentGroupRef Id="Shortcuts" />
     </Feature>
