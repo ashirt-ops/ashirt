@@ -74,10 +74,10 @@ jobs:
             , buildTarget: "--target package"
           }
         - {
-            name: "Windows", WIN_ARCH: "x64"
+            name: "Windows"
             , os: windows-2025-vs2026
             , QT_INST_DIR: "C:/", QT_ARCH: win64_msvc2022_64
-            , extraCMakeConfig: "-G Ninja"
+            , extraCMakeConfig: "-A x64"
             , buildTarget: "--target package"
           }
     steps:
@@ -95,12 +95,6 @@ jobs:
         submodules: true
         fetch-depth: 0
     - run: git fetch --tags --force
-
-    - name: Env Script (windows)
-      uses: ilammy/msvc-dev-cmd@v1
-      if: runner.os == 'Windows'
-      with:
-        arch: ${{matrix.config.WIN_ARCH}}
 
     - name: Import Signing Certificate ( windows )
       if: runner.os == 'Windows' && env.signWinRelease == 'true'
@@ -129,7 +123,6 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update > /dev/null && sudo apt-get install -qqq libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-cursor0 > /dev/null
         elif [ "$RUNNER_OS" == "Windows" ]; then
-            choco install ninja --ignore-checksums
             # Install the latest WiX toolset (the `wix` CLI) used by the
             # `package` target to build the MSI installer, plus the UI
             # extension that provides the license-acceptance wizard. WiX v7
@@ -148,7 +141,7 @@ jobs:
         else
             cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DPACKAGE_VERSION="${{env.githash}}" ${{matrix.config.extraCMakeConfig}}
         fi
-        cmake --build build ${{ matrix.config.buildTarget }}
+        cmake --build build --config Release ${{ matrix.config.buildTarget }}
         cd build
         mkdir -p dist
         if [ "$RUNNER_OS" == "Linux" ]; then

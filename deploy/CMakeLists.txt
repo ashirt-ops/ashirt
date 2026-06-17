@@ -47,7 +47,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
     add_custom_target(package
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${WIX_STAGE_DIR}
-        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${WIX_STAGE_DIR}
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${WIX_STAGE_DIR} --config $<CONFIG>
         COMMAND wix build -arch x64 -pdbtype none
                 -acceptEula wix7
                 -ext WixToolset.UI.wixext
