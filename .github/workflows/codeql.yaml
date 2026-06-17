@@ -1,0 +1,62 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ main, release-* ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '27 4 * * 1'
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: 6.10.2
+
+jobs:
+  analyze:
+    name: Analyze (C/C++)
+    runs-on: ubuntu-24.04
+    permissions:
+      # required for all workflows
+      security-events: write
+      # required to fetch internal or private CodeQL packs
+      packages: read
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: c-cpp
+        build-mode: manual
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4.3.1
+      with:
+        dir: /opt
+        version: ${{ env.QT_VERSION }}
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxcb-keysyms1-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-cursor0
+
+    - name: Build
+      run: |
+        cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build build
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:c-cpp"
