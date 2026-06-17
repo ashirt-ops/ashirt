@@ -1,55 +1,59 @@
 #include "hotkeymanager.h"
+
+#include <QKeySequence>
+
 #include "appconfig.h"
+#include "helpers/hotkeys/qhotkey.h"
 
 HotkeyManager::HotkeyManager()
-  : m_hotkeyManager(new UGlobalHotkeys(this))
+  : m_captureArea(new QHotkey(this))
+  , m_captureWindow(new QHotkey(this))
+  , m_captureClipboard(new QHotkey(this))
 {
-  connect(m_hotkeyManager, &UGlobalHotkeys::activated, this, &HotkeyManager::hotkeyTriggered);
+  connect(m_captureArea, &QHotkey::activated, this, &HotkeyManager::captureAreaHotkeyPressed);
+  connect(m_captureWindow, &QHotkey::activated, this, &HotkeyManager::captureWindowHotkeyPressed);
+  connect(m_captureClipboard, &QHotkey::activated, this, &HotkeyManager::clipboardHotkeyPressed);
 }
 
-HotkeyManager::~HotkeyManager() { delete m_hotkeyManager; }
+HotkeyManager::~HotkeyManager() = default;
 
-void HotkeyManager::regKey(QString combo, GlobalHotkeyEvent evt)
-{
-  if (combo.isEmpty())
+QHotkey* HotkeyManager::hotkeyFor(GlobalHotkeyEvent evt) const {
+  switch (evt) {
+    case GlobalHotkeyEvent::ACTION_CAPTURE_AREA:
+      return m_captureArea;
+    case GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW:
+      return m_captureWindow;
+    case GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD:
+      return m_captureClipboard;
+  }
+  return nullptr;
+}
+
+void HotkeyManager::setShortcut(GlobalHotkeyEvent evt, const QString& combo) {
+  QHotkey* hotkey = hotkeyFor(evt);
+  if (!hotkey)
     return;
-  registerKey(combo, evt);
-}
-
-void HotkeyManager::registerKey(const QString& binding, GlobalHotkeyEvent evt) {
-  get()->m_hotkeyManager->registerHotkey(binding, size_t(evt));
+  // An empty combo resets the shortcut, leaving the hotkey unregistered.
+  hotkey->setShortcut(QKeySequence::fromString(combo, QKeySequence::PortableText), true);
 }
 
 void HotkeyManager::unregisterKey(GlobalHotkeyEvent evt) {
-  get()->m_hotkeyManager->unregisterHotkey(size_t(evt));
-}
-
-void HotkeyManager::hotkeyTriggered(size_t hotkeyIndex) {
-  if (hotkeyIndex == static_cast<size_t>(GlobalHotkeyEvent::ACTION_CAPTURE_AREA)) {
-    Q_EMIT get()->captureAreaHotkeyPressed();
-  }
-  else if (hotkeyIndex == static_cast<size_t>(GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW)) {
-    Q_EMIT get()->captureWindowHotkeyPressed();
-  }
-  else if (hotkeyIndex == static_cast<size_t>(GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD)) {
-    Q_EMIT get()->clipboardHotkeyPressed();
-  }
+  if (QHotkey* hotkey = get()->hotkeyFor(evt))
+    hotkey->setRegistered(false);
 }
 
 void HotkeyManager::disableHotkeys() {
-  get()->m_hotkeyManager->unregisterAllHotkeys();
+  get()->m_captureArea->setRegistered(false);
+  get()->m_captureWindow->setRegistered(false);
+  get()->m_captureClipboard->setRegistered(false);
 }
 
 void HotkeyManager::enableHotkeys() {
-  get()->updateHotkeys();
+  updateHotkeys();
 }
 
 void HotkeyManager::updateHotkeys() {
-  get()->m_hotkeyManager->unregisterAllHotkeys();
-  get()->regKey(AppConfig::value(CONFIG::SHORTCUT_SCREENSHOT),
-                GlobalHotkeyEvent::ACTION_CAPTURE_AREA);
-  get()->regKey(AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW),
-                GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW);
-  get()->regKey(AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD),
-                GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD);
+  get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_AREA, AppConfig::value(CONFIG::SHORTCUT_SCREENSHOT));
+  get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_WINDOW, AppConfig::value(CONFIG::SHORTCUT_CAPTUREWINDOW));
+  get()->setShortcut(GlobalHotkeyEvent::ACTION_CAPTURE_CLIPBOARD, AppConfig::value(CONFIG::SHORTCUT_CAPTURECLIPBOARD));
 }
