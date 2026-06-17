@@ -131,11 +131,13 @@ jobs:
         elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install ninja --ignore-checksums
             # Install the latest WiX toolset (the `wix` CLI) used by the
-            # `package` target to build the MSI installer. WiX v7 requires
-            # accepting the Open Source Maintenance Fee EULA before it will run
-            # (error WIX7015); accept it non-interactively for CI.
+            # `package` target to build the MSI installer, plus the UI
+            # extension that provides the license-acceptance wizard. WiX v7
+            # gates commands behind the Open Source Maintenance Fee EULA
+            # (error WIX7015); `-acceptEula wix7` accepts it non-interactively
+            # (the actual build accepts it the same way in deploy/CMakeLists.txt).
             dotnet tool install --global wix
-            wix eula accept wix7
+            wix extension add -g WixToolset.UI.wixext -acceptEula wix7
         fi
 
     - name: Build

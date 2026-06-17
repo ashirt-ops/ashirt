@@ -48,6 +48,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${WIX_STAGE_DIR}
         COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${WIX_STAGE_DIR}
         COMMAND wix build -arch x64 -pdbtype none
+                -acceptEula wix7
+                -ext WixToolset.UI.wixext
                 -b InstallRoot=${WIX_STAGE_DIR}
                 ${CMAKE_CURRENT_BINARY_DIR}/ashirt.wxs
                 -o ${WIX_OUTPUT}
