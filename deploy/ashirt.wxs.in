@@ -8,7 +8,8 @@
   directory passed via the `InstallRoot` bind path, so this file never has to
   enumerate the individual Qt DLLs/plugins.
 -->
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wix">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wix"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package
       Name="AShirt"
       Manufacturer="AShirt"
@@ -66,5 +67,9 @@
       <ComponentGroupRef Id="DeployedFiles" />
       <ComponentGroupRef Id="Shortcuts" />
     </Feature>
+
+    <!-- Wizard UI: welcome -> license acceptance (EULA) -> install dir -> install. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="@CMAKE_CURRENT_SOURCE_DIR@/license.rtf" />
   </Package>
 </Wix>

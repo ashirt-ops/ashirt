@@ -131,8 +131,10 @@ jobs:
         elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install ninja --ignore-checksums
             # Install the latest WiX toolset (the `wix` CLI) used by the
-            # `package` target to build the MSI installer.
+            # `package` target to build the MSI installer, plus the UI
+            # extension that provides the license-acceptance wizard.
             dotnet tool install --global wix
+            wix extension add -g WixToolset.UI.wixext
         fi
 
     - name: Build
