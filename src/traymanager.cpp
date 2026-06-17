@@ -347,6 +347,7 @@ void TrayManager::onTrayMessageClicked() {
       break;
     case OPEN_PATH:
       QDesktopServices::openUrl(openServicesPath);
+      break;
     case NO_ACTION:
     default:
       break;
