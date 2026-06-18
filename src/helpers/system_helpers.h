@@ -1,13 +1,8 @@
 #pragma once
 
 #include <QDir>
-
-#ifdef Q_OS_WIN
-#include <QSettings>
-#else
 #include <QtGui/QGuiApplication>
-#include <QtGui/QPalette>
-#endif
+#include <QtGui/QStyleHints>
 
 #include "appconfig.h"
 
@@ -28,11 +23,8 @@ class SystemHelpers {
     return root;
   }
   static bool isLightTheme() {
-#ifdef Q_OS_WIN
-    QSettings settings(QStringLiteral("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"), QSettings::NativeFormat);
-    return settings.value(QStringLiteral("SystemUsesLightTheme")).toInt() == 1;
-#else
-    return qApp->palette().text().color().value() <= QColor(Qt::lightGray).value();
-#endif
+    // QStyleHints::colorScheme() (Qt 6.5+) reports the platform theme directly
+    // on Windows, macOS, and Linux. Treat an Unknown scheme as light.
+    return QGuiApplication::styleHints()->colorScheme() != Qt::ColorScheme::Dark;
   }
 };

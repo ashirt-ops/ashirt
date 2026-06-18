@@ -22,7 +22,6 @@ class WizardPage : public QWizardPage
   WizardPage(int pageId = Page_Requiments, QWidget *parent = nullptr);
   int id() {return m_id;}
  protected:
-  void changeEvent(QEvent *event);
   bool isDarkMode();
 #ifdef Q_OS_MAC
   const QPair<int, QFont::Weight> titleFont = QPair<int, QFont::Weight>(28, QFont::Bold);
