@@ -81,10 +81,8 @@ class TrayManager : public QDialog {
 
  protected:
   void closeEvent(QCloseEvent *event) override;
-  void changeEvent(QEvent *event) override;
 
  private:
-  inline static const int MS_IN_DAY = 86400000;
   QString _recordErrorTitle = tr("Unable to Record Evidence");
   DatabaseConnection *db = nullptr;
   Screenshot *screenshotTool = nullptr;

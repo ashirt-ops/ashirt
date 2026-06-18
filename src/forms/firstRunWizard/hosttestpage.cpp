@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QNetworkReply>
 #include <QCheckBox>
+#include <chrono>
 
 #include "helpers/netman.h"
 
@@ -147,7 +148,7 @@ void HostTestPage::timerCheck()
   if(wizard()->currentId() == id()) {
     f=0;
     if (currentState == NetMan::TestResult::INPROGRESS)
-      timer->start(33);
+      timer->start(std::chrono::milliseconds(33));
     else
       timer->stop();
   }

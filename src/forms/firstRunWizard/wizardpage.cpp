@@ -1,7 +1,8 @@
 #include "wizardpage.h"
+#include <QGuiApplication>
 #include <QPen>
 #include <QPainter>
-#include <QEvent>
+#include <QStyleHints>
 #include "system_helpers.h"
 
 WizardPage::WizardPage(int pageId, QWidget *parent)
@@ -14,17 +15,12 @@ WizardPage::WizardPage(int pageId, QWidget *parent)
 
   setPixmap(QWizard::WatermarkPixmap,  paintSideImage(m_id));
   setStyleSheet(isDarkMode() ? _darkStyle : _lightStyle);
-}
 
-void WizardPage::changeEvent(QEvent *event)
-{
-  if (event->type() == QEvent::PaletteChange) {
+  // Restyle and repaint when the system switches between light and dark themes.
+  connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this, [this] {
     setStyleSheet(isDarkMode() ? _darkStyle : _lightStyle);
-    setPixmap(QWizard::WatermarkPixmap,  paintSideImage(m_id));
-    event->accept();
-    return;
-  }
-  event->ignore();
+    setPixmap(QWizard::WatermarkPixmap, paintSideImage(m_id));
+  });
 }
 
 bool WizardPage::isDarkMode()

@@ -10,7 +10,9 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QStyleHints>
 #include <QTimer>
+#include <chrono>
 #include <QDesktopServices>
 #include <iostream>
 #include "appconfig.h"
@@ -41,15 +43,16 @@ TrayManager::TrayManager(QWidget * parent, DatabaseConnection* db)
     , allOperationActions(this)
 
 {
+  using namespace std::chrono_literals;
   HotkeyManager::updateHotkeys();
-  updateCheckTimer->start(MS_IN_DAY); // every day
+  updateCheckTimer->start(24h);
 
   buildUi();
   wireUi();
 
   // delayed so that windows can listen for get all ops signal
   NetMan::refreshOperationsList();
-  QTimer::singleShot(5000, this, &TrayManager::checkForUpdate);
+  QTimer::singleShot(5s, this, &TrayManager::checkForUpdate);
 
   if(AppConfig::value(CONFIG::SHOW_WELCOME_SCREEN) != "false")
     showWelcomeScreen();
@@ -126,6 +129,10 @@ void TrayManager::wireUi() {
   });
 
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
+
+  // Swap the tray icon when the system switches between light and dark themes.
+  connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this,
+          [this] { trayIcon->setIcon(getTrayIcon()); });
 }
 
 void TrayManager::cleanChooseOpSubmenu() {
@@ -147,15 +154,6 @@ void TrayManager::closeEvent(QCloseEvent* event) {
     hide();
     event->ignore();
   }
-}
-
-void TrayManager::changeEvent(QEvent *event)
-{
-  if (event->type() == QEvent::PaletteChange) {
-    trayIcon->setIcon(getTrayIcon());
-    event->accept();
-  }
-  event->ignore();
 }
 
 void TrayManager::showWizard()
