@@ -5,6 +5,16 @@ endif()
 
 configure_file(releaseinfo.h.in releaseinfo.h @ONLY)
 
+# QHotkey ships one backend per platform with no internal #ifdef guards, so only
+# the source matching the current OS may be compiled.
+if(APPLE)
+    set(QHOTKEY_PLATFORM_SRC hotkeys/qhotkey_mac.cpp)
+elseif(WIN32)
+    set(QHOTKEY_PLATFORM_SRC hotkeys/qhotkey_win.cpp)
+elseif(UNIX)
+    set(QHOTKEY_PLATFORM_SRC hotkeys/qhotkey_x11.cpp)
+endif()
+
 add_library (HELPERS STATIC
     constants.h
     file_helpers.h
@@ -18,9 +28,8 @@ add_library (HELPERS STATIC
     string_helpers.h
     system_helpers.h
     ui_helpers.h
-    hotkeys/hotkeymap.h
-    hotkeys/uglobalhotkeys.cpp hotkeys/uglobalhotkeys.h
-    hotkeys/ukeysequence.cpp hotkeys/ukeysequence.h
+    hotkeys/qhotkey.cpp hotkeys/qhotkey.h hotkeys/qhotkey_p.h
+    ${QHOTKEY_PLATFORM_SRC}
     ${CMAKE_CURRENT_BINARY_DIR}/releaseinfo.h
 )
 
@@ -47,7 +56,8 @@ if(APPLE)
     )
     target_link_libraries(HELPERS PRIVATE Qt::DBus ${CARBON_LIBRARY})
 elseif(UNIX AND NOT APPLE)
-    target_link_libraries(HELPERS PRIVATE xcb xcb-keysyms pthread)
+    # QHotkey's X11 backend grabs keys via Xlib (XGrabKey) and filters xcb events.
+    target_link_libraries(HELPERS PRIVATE X11 xcb)
 elseif(WIN32)
     target_link_libraries(HELPERS PRIVATE user32)
 endif()

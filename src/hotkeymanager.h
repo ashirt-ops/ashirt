@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "helpers/hotkeys/uglobalhotkeys.h"
+class QHotkey;
 
 /**
  * @brief The HotkeyManager class registers and unregisters hotkeys against the operating system.
@@ -14,22 +14,21 @@ class HotkeyManager : public QObject {
 
  public:
   enum class GlobalHotkeyEvent {
-    // Reserving 1 (UGlobalHotkey default)
-    ACTION_CAPTURE_AREA = 2,
-    ACTION_CAPTURE_WINDOW = 3,
-    ACTION_CAPTURE_CLIPBOARD = 4,
+    ACTION_CAPTURE_AREA,
+    ACTION_CAPTURE_WINDOW,
+    ACTION_CAPTURE_CLIPBOARD,
   };
 
   static HotkeyManager* get() {
     static HotkeyManager m;
     return &m;
   }
-  /**
-   * @brief registerKey pairs a given key combination with a given event type.
-   * @param binding A string representing the actual command (e.g. Alt+f1)
-   * @param evt A GlobalHotkeyEvent specifying what should happen when a key is pressed.
-   */
-  static void registerKey(const QString& binding, GlobalHotkeyEvent evt);
+
+  /// hotkeysSupported reports whether the current platform/session can register global hotkeys.
+  /// Returns false on platforms QHotkey cannot grab keys on (notably native Wayland sessions),
+  /// where registration is a no-op.
+  static bool hotkeysSupported();
+
   /// unregisterKey removes the handling specified for the given event. Safe to call even if
   /// no key has been registered.
   static void unregisterKey(GlobalHotkeyEvent evt);
@@ -54,15 +53,16 @@ class HotkeyManager : public QObject {
   /// hotkeys when called.
   static void updateHotkeys();
 
- private slots:
-  /// hotkeyTriggered provides a slot for interacting with the underlying UGlobalHotkey manager.
-  static void hotkeyTriggered(size_t hotkeyIndex);
-
- private:  
+ private:
   HotkeyManager();
   ~HotkeyManager();
-  /// Interal Reg method used to filter Empty keys
-  void regKey(QString combo, GlobalHotkeyEvent evt);
-  /// hotkeyManager is a reference to the raw hotkey manager, which a 3rd party manages.
-  UGlobalHotkeys* m_hotkeyManager = nullptr;
+  /// hotkeyFor returns the QHotkey backing the given event, or nullptr if unknown.
+  QHotkey* hotkeyFor(GlobalHotkeyEvent evt) const;
+  /// setShortcut (re)binds the QHotkey for evt to combo. An empty combo unregisters it.
+  void setShortcut(GlobalHotkeyEvent evt, const QString& combo);
+
+  /// One QHotkey per capture action. Each QHotkey::activated wires straight to the matching signal.
+  QHotkey* m_captureArea = nullptr;
+  QHotkey* m_captureWindow = nullptr;
+  QHotkey* m_captureClipboard = nullptr;
 };
