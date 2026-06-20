@@ -1,5 +1,6 @@
 #include "hotkeymanager.h"
 
+#include <QCoreApplication>
 #include <QKeySequence>
 
 #include "appconfig.h"
@@ -13,6 +14,11 @@ HotkeyManager::HotkeyManager()
   connect(m_captureArea, &QHotkey::activated, this, &HotkeyManager::captureAreaHotkeyPressed);
   connect(m_captureWindow, &QHotkey::activated, this, &HotkeyManager::captureWindowHotkeyPressed);
   connect(m_captureClipboard, &QHotkey::activated, this, &HotkeyManager::clipboardHotkeyPressed);
+
+  // This singleton (and its QHotkey children) outlives QApplication and QHotkey's own global
+  // state, which are torn down at program exit. Unregister while they're still alive, otherwise
+  // ~QHotkey calls into a destroyed QHotkeyPrivate singleton and crashes on quit.
+  connect(qApp, &QCoreApplication::aboutToQuit, this, [] { disableHotkeys(); });
 }
 
 HotkeyManager::~HotkeyManager() = default;
