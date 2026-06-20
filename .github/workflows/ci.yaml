@@ -90,7 +90,7 @@ jobs:
         echo "signWinRelease=${{ needs.run-info.outputs.signWinRelease }}" >> $GITHUB_ENV
 
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         submodules: true
         fetch-depth: 0
