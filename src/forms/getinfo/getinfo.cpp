@@ -104,21 +104,32 @@ void GetInfo::deleteButtonClicked() {
 
   if (reply == QMessageBox::Yes) {
     Q_EMIT  setActionButtonsEnabled(false);
-    bool shouldClose = true;
 
     model::Evidence evi = evidenceEditor->encodeEvidence();
-    if (!QFile::remove(evi.path)) {
+    bool fileDeleted = QFile::remove(evi.path);
+    bool dbDeleted = db->deleteEvidence(evidenceID);
+
+    if (!fileDeleted && !dbDeleted) {
       QMessageBox::warning(this, tr("Could not delete"),
-                           tr("Unable to delete evidence file.\n"
+                           tr("Unable to delete evidence file and database entry.\n"
                            "You can try deleting the file directly. File Location:\n%1")
                              .arg(evi.path));
-      shouldClose = false;
+    }
+    else if (!fileDeleted) {
+      QMessageBox::warning(this, tr("Could not delete file"),
+                           tr("Unable to delete evidence file (database entry removed).\n"
+                           "You can try deleting the file directly. File Location:\n%1")
+                             .arg(evi.path));
+    }
+    else if (!dbDeleted) {
+      QMessageBox::warning(this, tr("Could not delete database entry"),
+                           tr("Unable to delete database entry (file removed).\n"
+                           "The database may be corrupted. Error: %1")
+                             .arg(db->errorString()));
     }
 
-    db->deleteEvidence(evidenceID);
-
     Q_EMIT setActionButtonsEnabled(true);
-    if (shouldClose) {
+    if (fileDeleted && dbDeleted) {
       close();
     }
   }
