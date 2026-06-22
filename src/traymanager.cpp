@@ -137,7 +137,10 @@ void TrayManager::wireUi() {
 
   connect(updateCheckTimer, &QTimer::timeout, this, &TrayManager::checkForUpdate);
 
-  // Swap the tray icon when the system switches between light and dark themes.
+  // Refresh the tray icon when the system switches between light and dark
+  // themes. This matters on Windows, whose icon tracks the taskbar theme; macOS
+  // and Linux use a self-adapting icon (see getTrayIcon), so this is harmless
+  // there.
   connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this,
           [this] { trayIcon->setIcon(getTrayIcon()); });
 }
@@ -337,12 +340,26 @@ void TrayManager::setTrayMessage(MessageType type, const QString& title, const Q
 QIcon TrayManager::getTrayIcon()
 {
 #if defined(Q_OS_MACOS)
+  // macOS tints a template ("mask") image to match the menu bar automatically,
+  // so a single icon always has the right contrast.
   QIcon icon = QIcon(QStringLiteral(":/icons/shirt-dark.svg"));
   icon.setIsMask(true);
-#else
-  QIcon icon = SystemHelpers::isLightTheme() ?  QIcon(QStringLiteral(":/icons/shirt-dark.svg")) : QIcon(QStringLiteral(":/icons/shirt-light.svg"));
-#endif
   return icon;
+#elif defined(Q_OS_LINUX)
+  // A tray/panel's background color isn't reliably knowable across desktops and
+  // themes (e.g. GNOME Shell's top bar stays dark under a light theme), so we
+  // don't try to detect it (issue #285). Instead, prefer a symbolic themed icon
+  // that StatusNotifierItem hosts (KDE, GNOME's AppIndicator, etc.) recolor to
+  // match their panel; where that icon can't be found or recolored (XEmbed and
+  // other legacy hosts) fall back to a background-agnostic icon that stays
+  // legible on any panel color.
+  return QIcon::fromTheme(QStringLiteral("ashirt-tray-symbolic"),
+                          QIcon(QStringLiteral(":/icons/shirt-tray.svg")));
+#else
+  // Windows reports the taskbar theme accurately via QStyleHints::colorScheme().
+  return SystemHelpers::isLightTheme() ? QIcon(QStringLiteral(":/icons/shirt-dark.svg"))
+                                       : QIcon(QStringLiteral(":/icons/shirt-light.svg"));
+#endif
 }
 
 void TrayManager::onTrayMessageClicked() {
