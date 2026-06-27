@@ -50,11 +50,13 @@ target_link_libraries ( HELPERS
       Qt::Gui
 )
 
+if(UNIX)
+    find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS DBus)
+    target_link_libraries(HELPERS PRIVATE Qt::DBus)
+endif()
+
 if(APPLE)
-    find_package(Qt${QT_DEFAULT_MAJOR_VERSION} REQUIRED COMPONENTS
-    DBus
-    )
-    target_link_libraries(HELPERS PRIVATE Qt::DBus ${CARBON_LIBRARY})
+    target_link_libraries(HELPERS PRIVATE ${CARBON_LIBRARY})
 elseif(UNIX AND NOT APPLE)
     # QHotkey's X11 backend grabs keys via Xlib (XGrabKey) and filters xcb events.
     target_link_libraries(HELPERS PRIVATE X11 xcb)
