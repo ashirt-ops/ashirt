@@ -59,7 +59,7 @@ else()
 endif()
      message(STATUS "VERSION: ${CMAKE_PROJECT_VERSION}")
 
-find_package(Qt6 6.10.0 REQUIRED COMPONENTS
+find_package(Qt6 6.11.0 REQUIRED COMPONENTS
     Widgets
     Gui
     Network
