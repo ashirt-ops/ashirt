@@ -61,7 +61,7 @@ void AppConfig::importConfig(const QString &fileName)
         return;
     QSettings oldConfig(fileName, JSON);
     for (const auto &key : oldConfig.allKeys()) {
-        if (key != CONFIG::ACCESSKEY || key != CONFIG::SECRETKEY || key != CONFIG::APIURL)
+        if (key != CONFIG::ACCESSKEY && key != CONFIG::SECRETKEY && key != CONFIG::APIURL)
             AppConfig::setValue(key, QString());
         else
             AppConfig::setValue(key, oldConfig.value(key).toString());
