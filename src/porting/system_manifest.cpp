@@ -34,19 +34,18 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb)
             auto importRecord = importDb.getEvidenceDetails(item.evidenceID);
             if (importRecord.id == 0)
                 continue; // in the odd situation that evidence doesn't match up, just skip it
-            
-            // Validate operation slug to prevent path traversal attacks
-            if (!StringHelpers::isValidOperationSlug(importRecord.operationSlug)) {
-                qWarning() << "Skipping evidence with invalid operation slug:" << importRecord.operationSlug;
-                continue;
-            }
-            
             QString newEvidencePath = QStringLiteral("%1/%2/%3")
                     .arg(AppConfig::value(CONFIG::EVIDENCEREPO)
                          , importRecord.operationSlug
                          , contentSensitiveFilename(importRecord.contentType));
 
             auto fullFileExportPath = m_fileTemplate.arg(m_pathToManifest, item.exportPath);
+            if (!FileHelpers::isWithin(AppConfig::value(CONFIG::EVIDENCEREPO), newEvidencePath)
+                    || !FileHelpers::isWithin(m_pathToManifest, fullFileExportPath)) {
+                qWarning() << "Skipping evidence with path outside expected directory:"
+                           << item.exportPath << importRecord.operationSlug;
+                continue;
+            }
             auto parentDir = FileHelpers::getDirname(newEvidencePath);
             if (!QDir().exists(parentDir))
                 QDir().mkpath(parentDir);
