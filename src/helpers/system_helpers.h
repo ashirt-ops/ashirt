@@ -5,6 +5,7 @@
 #include <QtGui/QStyleHints>
 
 #include "appconfig.h"
+#include "helpers/file_helpers.h"
 
 class SystemHelpers {
 
@@ -16,7 +17,11 @@ class SystemHelpers {
     auto op = AppConfig::operationSlug();
     auto root = QStringLiteral("%1/").arg(AppConfig::value(CONFIG::EVIDENCEREPO));
     if (!op.isEmpty()) {
-      root.append(QStringLiteral("%1/").arg(op));
+      auto opRoot = QStringLiteral("%1%2/").arg(root, op);
+      if (FileHelpers::isWithin(root, opRoot))
+        root = opRoot;
+      else
+        qWarning() << "Operation slug resolves outside evidence directory, ignoring:" << op;
     }
 
     QDir().mkpath(root);

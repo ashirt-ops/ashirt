@@ -40,6 +40,12 @@ void SystemManifest::migrateDb(DatabaseConnection* systemDb)
                          , contentSensitiveFilename(importRecord.contentType));
 
             auto fullFileExportPath = m_fileTemplate.arg(m_pathToManifest, item.exportPath);
+            if (!FileHelpers::isWithin(AppConfig::value(CONFIG::EVIDENCEREPO), newEvidencePath)
+                    || !FileHelpers::isWithin(m_pathToManifest, fullFileExportPath)) {
+                qWarning() << "Skipping evidence with path outside expected directory:"
+                           << item.exportPath << importRecord.operationSlug;
+                continue;
+            }
             auto parentDir = FileHelpers::getDirname(newEvidencePath);
             if (!QDir().exists(parentDir))
                 QDir().mkpath(parentDir);

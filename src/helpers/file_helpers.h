@@ -36,4 +36,12 @@ class FileHelpers {
 
   /// getDirname is a small helper to convert a filepath to a file into a path to the file's parent
   static QString getDirname(QString filepath) { return QFileInfo(filepath).dir().path(); }
+
+  /// isWithin returns true if path resolves to a location inside root (after normalizing
+  /// "." / ".." segments). Use before reading or writing files built from untrusted input.
+  static bool isWithin(const QString &root, const QString &path) {
+    const QString cleanRoot = QDir::cleanPath(QFileInfo(root).absoluteFilePath());
+    const QString cleanPath = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+    return cleanPath.startsWith(cleanRoot + QLatin1Char('/'));
+  }
 };
